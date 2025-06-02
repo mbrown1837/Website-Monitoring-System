@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}{{ site.name }} Details - Website Monitor{% endblock %}
+
+{% block head_extra %}
+<style>
+    .snapshot-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .snapshot-item {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        width: calc(50% - 10px); /* Two items per row */
+        box-sizing: border-box;
+    }
+    .snapshot-item img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ccc;
+    }
+    .snapshot-item iframe {
+        width: 100%;
+        height: 400px; /* Adjust as needed */
+        border: 1px solid #ccc;
+    }
+    .comparison-badge {
+        font-size: 0.9em;
+    }
+    .changes-list ul {
+        padding-left: 20px;
+    }
+    .no-history-prompt {
+        background-color: #e0f7fa; /* Light blue background */
+        border: 1px solid #b2ebf2; /* Slightly darker border */
+        color: #00796b; /* Teal text color */
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .no-history-prompt .btn {
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Check History: <a href="{{ site.url }}" target="_blank">{{ site.name }}</a></h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <form action="{{ url_for('run_manual_check_from_ui', site_id=site.id) }}" method="POST" style="display: inline-block; margin-right: 5px;">
+            <button type="submit" class="btn btn-sm btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                    <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                    <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.5A5.002 5.002 0 0 0 8 3zM3.5 12A5.002 5.002 0 0 0 8 15a5.002 5.002 0 0 0 4.917-3H14.5A6.002 6.002 0 0 1 3.083 9H4.5a.5.5 0 0 1 .771.636A4.985 4.985 0 0 0 8 13c1.552 0 2.94-.707 3.857-1.818a.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.5v3z"/>
+                </svg>
+                Trigger Manual Check
+            </button>
+        </form>
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">Back to Websites</a>
+    </div>
+</div>
+<p><strong>URL:</strong> <a href="{{ site.url }}" target="_blank">{{ site.url }}</a></p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<h3>Check History {% if history %}(Last {{ history|length }} checks shown){% endif %}</h3>
+
+{% if history %}
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
+            <tr>
+                <th>Timestamp (UTC)</th>
+                <th>Status</th>
+                <th>Changes Detected</th>
+                <th>HTML Snapshot</th>
+                <th>Visual Snapshot</th>
+                <th>Summary / Error</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for record in history %}
+            <tr>
+                <td>{{ record.timestamp_utc.split('.')[0] if record.timestamp_utc else 'N/A' }}</td>
+                <td>
+                    <span class="badge badge-pill 
+                        {% if record.status == 'completed_no_changes' %}badge-success
+                        {% elif record.status == 'completed_with_changes' %}badge-danger
+                        {% elif record.status == 'initial_check_completed' %}badge-info
+                        {% elif record.status.startswith('failed') %}badge-warning
+                        {% else %}badge-secondary{% endif %}">
+                        {{ record.status.replace('_', ' ') | title if record.status else 'N/A' }}
+                    </span>
+                </td>
+                <td>
+                    {% if record.significant_change_detected %}
+                        <span class="badge badge-danger">Significant</span>
+                    {% elif record.status == 'completed_no_changes' %}
+                        <span class="badge badge-success">None</span>
+                    {% elif record.status == 'initial_check_completed' %}
+                        <span class="badge badge-info">Initial</span>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.html_snapshot_path %}
+                        <a href="{{ url_for('serve_snapshot', site_id=site.id, type='html', filename=record.html_snapshot_path.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-outline-info">View HTML</a>
+                        <br><small>Hash: {{ record.html_content_hash[:12] if record.html_content_hash else 'N/A' }}...</small>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.visual_snapshot_path %}
+                        <a href="{{ url_for('serve_snapshot', site_id=site.id, type='visual', filename=record.visual_snapshot_path.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-outline-info">View Image</a>
+                         {% if record.visual_diff_image_path %}
+                            <a href="{{ url_for('serve_snapshot', site_id=site.id, type='diffs', filename=record.visual_diff_image_path.split('/')[-1]) }}" class="btn btn-sm btn-outline-warning mt-1" target="_blank">View Diff</a>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.errors %}
+                        <span class="text-danger" title="{{ record.errors }}">{{ record.errors | truncate(50) }}</span>
+                    {% elif record.status == 'initial_check_completed' %}
+                        Baseline Captured
+                    {% elif record.content_diff_score is defined and record.content_diff_score is not none %}
+                        <small>
+                        Content: {{ "%.2f" | format(record.content_diff_score * 100) }}%<br>
+                        Visual (MSE): {{ "%.4f" | format(record.visual_diff_score) if record.visual_diff_score is defined and record.visual_diff_score is not none else 'N/A' }}
+                        </small>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <!-- Add a cell for accordion toggle if we bring back accordion view -->
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <!-- Removed accordion structure for simpler table view based on screenshot -->
+{% else %}
+    <div class="no-history-prompt">
+        No check history found for this website yet.
+        <form action="{{ url_for('run_manual_check_from_ui', site_id=site.id) }}" method="POST" style="display: inline-block;">
+            <button type="submit" class="btn btn-success btn-sm">
+                 Run First Check Now
+            </button>
+        </form>
+    </div>
+{% endif %}
+
+{% endblock %} 

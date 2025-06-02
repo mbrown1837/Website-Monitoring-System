@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Visual Comparison for {{ site.name }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    .comparison-view-container {
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        gap: 15px;
+        justify-content: space-around;
+    }
+    .image-compare-item {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        text-align: center;
+        flex: 1 1 300px; /* Flex properties for responsive layout */
+        min-width: 280px; /* Minimum width before wrapping */
+    }
+    .image-compare-item img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+    }
+    .image-compare-item h5 {
+        margin-bottom: 5px;
+        font-size: 1.1em;
+    }
+    .image-compare-item p {
+        font-size: 0.9em;
+        color: #555;
+        margin-bottom: 0;
+    }
+    .diff-info {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Visual Comparison: {{ site.name }}</h1>
+    <a href="{{ url_for('site_details', site_id=site.id) }}" class="btn btn-sm btn-outline-secondary">Back to Site Details</a>
+</div>
+
+<p>Comparing snapshots:</p>
+<ul>
+    <li><strong>Previous:</strong> {{ previous_check.timestamp_utc.split('.')[0] }} (Check ID: {{ previous_check.check_id }})</li>
+    <li><strong>Current:</strong> {{ current_check.timestamp_utc.split('.')[0] }} (Check ID: {{ current_check.check_id }})</li>
+</ul>
+
+{% if visual_diff_score is not none %}
+<div class="alert alert-info diff-info" role="alert">
+    Visual Difference Score (MSE): <strong>{{ "%.4f" | format(visual_diff_score) }}</strong>
+    {% if visual_diff_score > config.get('visual_difference_threshold', 0.05) %}
+        <span class="badge badge-danger ml-2">Significant Change</span>
+    {% else %}
+        <span class="badge badge-success ml-2">Minor/No Change</span>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="comparison-view-container">
+    <div class="image-compare-item">
+        <h5>Previous Snapshot</h5>
+        <img src="{{ url_for('serve_snapshot', site_id=site.id, type='visual', filename=previous_check.visual_snapshot_path.split('/')[-1]) }}" alt="Previous Visual Snapshot">
+        <p>{{ previous_check.visual_snapshot_path.split('/')[-1] }}</p>
+    </div>
+
+    <div class="image-compare-item">
+        <h5>Current Snapshot</h5>
+        <img src="{{ url_for('serve_snapshot', site_id=site.id, type='visual', filename=current_check.visual_snapshot_path.split('/')[-1]) }}" alt="Current Visual Snapshot">
+        <p>{{ current_check.visual_snapshot_path.split('/')[-1] }}</p>
+    </div>
+
+    {% if visual_diff_image_path %}
+    <div class="image-compare-item">
+        <h5>Difference Image</h5>
+        <img src="{{ url_for('serve_snapshot', site_id=site.id, type='diff', filename=visual_diff_image_path.split('/')[-1]) }}" alt="Visual Difference Image">
+        <p>{{ visual_diff_image_path.split('/')[-1] }}</p>
+    </div>
+    {% else %}
+        {% if visual_diff_score is not none and visual_diff_score > 0 %}
+        <div class="image-compare-item">
+            <h5>Difference Image</h5>
+            <p class="text-muted">Diff image not generated or not available for this comparison, but MSE ({{ "%.4f" | format(visual_diff_score) }}) indicates differences.</p>
+        </div>
+        {% elif visual_diff_score == 0.0 %}
+         <div class="image-compare-item">
+            <h5>Difference Image</h5>
+            <p class="text-muted">No visual difference (MSE is 0.0). Diff image not generated.</p>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% endblock %} 

@@ -1,0 +1,20 @@
+# Python Project Dependencies
+# Add libraries here as they are identified.
+requests
+PyYAML
+schedule
+beautifulsoup4
+Pillow
+numpy
+click
+Flask
+playwright
+diff-match-patch
+opencv-python
+scikit-image
+
+# schedule==1.2.0
+# beautifulsoup4==4.11.1
+# selenium==4.18.1
+# Pillow==9.3.0
+# PyYAML==6.0 

@@ -1,0 +1,44 @@
+log_level: INFO
+log_file_path: data/monitoring.log
+default_monitoring_interval_hours: 24
+website_list_storage_type: json
+website_list_file_path: data/websites.json
+snapshot_directory: data/snapshots
+playwright_browser_type: chromium
+playwright_headless_mode: true
+playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+  (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
+playwright_render_delay_ms: 5000
+playwright_navigation_timeout_ms: 60000
+notification_email_from: support@westlanddre.com
+notification_email_to: sarmadsahib786@gmail.com
+content_change_threshold: 1.0
+image_diff_threshold: 1000
+structure_change_threshold: 1.0
+visual_difference_threshold: 0.0
+semantic_similarity_threshold: 0.9
+ssim_similarity_threshold: 0.95
+meta_tags_to_check:
+- description
+- keywords
+- title
+visual_comparison_ignore_regions: null
+check_history_file_path: data/check_history.json
+fetch_retry_total: 3
+fetch_retry_backoff_factor: 0.3
+fetch_retry_status_forcelist:
+- 500
+- 502
+- 503
+- 504
+dashboard_port: 5001
+log_level_dashboard: INFO
+log_file_dashboard: data/dashboard.log
+dashboard_history_limit: 20
+dashboard_api_history_limit: 100
+smtp_server: mail.westlanddre.com
+smtp_port: 587
+smtp_username: support@westlanddre.com
+smtp_password: KZyxqnTVFe99XCLy3HYT
+smtp_use_tls: true
+default_notification_email: admin@example.com

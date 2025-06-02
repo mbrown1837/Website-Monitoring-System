@@ -1,0 +1,1035 @@
+[
+  {
+    "check_id": "19d00d12-4e6d-48ba-adaf-b3e380650282",
+    "site_id": "f45e0108-377e-4f85-abc2-1a22541c1f23",
+    "timestamp_utc": "2025-05-31T17:18:27.223492+00:00",
+    "timestamp_readable": "2025-05-31 17:18:27 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\f45e0108-377e-4f85-abc2-1a22541c1f23\\html\\20250531_171819_992331_utc.html",
+    "html_content_hash": "bd18a98912cf1261ea8c70d1e4bb95bd88d4458ce86cf91ccbd944087860c8db",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\f45e0108-377e-4f85-abc2-1a22541c1f23\\visual\\20250531_171819_992331_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.9702127659574468,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      " Website Monitoring System",
+      "-A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "+mOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      " Real-time Alerts",
+      "-When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "+43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      " Performance Metrics",
+      "-Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+    ],
+    "structure_diff_score": 0.5419354838709678,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -6,6 +6,7 @@",
+      "   </title>",
+      "  </head>",
+      "  <body>",
+      "+  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "   <p class=\"para1\">",
+      "@@ -18,5 +19,6 @@",
+      "   </h1>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "+  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.9421487603305785,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\n"
+      ],
+      [
+        1,
+        "mOBIITER teST "
+      ],
+      [
+        0,
+        "A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n"
+      ],
+      [
+        1,
+        "43256789"
+      ],
+      [
+        0,
+        "When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n"
+      ],
+      [
+        1,
+        "4356789076543"
+      ],
+      [
+        0,
+        "Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.7313830256462097,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\f45e0108-377e-4f85-abc2-1a22541c1f23\\diffs\\diff_20250531_171819_992331.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "added_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true
+  },
+  {
+    "check_id": "8b3853e3-9567-40e9-aea9-8110fc7ad280",
+    "site_id": "f45e0108-377e-4f85-abc2-1a22541c1f23",
+    "timestamp_utc": "2025-05-31T20:38:00.409548+00:00",
+    "timestamp_readable": "2025-05-31 20:38:00 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\f45e0108-377e-4f85-abc2-1a22541c1f23\\html\\20250531_203751_832354_utc.html",
+    "html_content_hash": "bd18a98912cf1261ea8c70d1e4bb95bd88d4458ce86cf91ccbd944087860c8db",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\f45e0108-377e-4f85-abc2-1a22541c1f23\\visual\\20250531_203751_832354_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.9702127659574468,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      " Website Monitoring System",
+      "-A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "+mOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      " Real-time Alerts",
+      "-When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "+43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      " Performance Metrics",
+      "-Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+    ],
+    "structure_diff_score": 0.5419354838709678,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -6,6 +6,7 @@",
+      "   </title>",
+      "  </head>",
+      "  <body>",
+      "+  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "   <p class=\"para1\">",
+      "@@ -18,5 +19,6 @@",
+      "   </h1>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "+  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.9421487603305785,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\n"
+      ],
+      [
+        1,
+        "mOBIITER teST "
+      ],
+      [
+        0,
+        "A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n"
+      ],
+      [
+        1,
+        "43256789"
+      ],
+      [
+        0,
+        "When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n"
+      ],
+      [
+        1,
+        "4356789076543"
+      ],
+      [
+        0,
+        "Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.7313830256462097,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\f45e0108-377e-4f85-abc2-1a22541c1f23\\diffs\\diff_20250531_203751_832354.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "added_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true,
+    "compared_with_check_id": "19d00d12-4e6d-48ba-adaf-b3e380650282",
+    "compared_against_baseline_html_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704"
+  },
+  {
+    "check_id": "b4ad90b0-c013-4aa4-a5a6-646e7b68c8b8",
+    "site_id": "7f5c8939-80b5-4f3b-982a-7944776dda84",
+    "timestamp_utc": "2025-05-31T20:39:03.631757+00:00",
+    "timestamp_readable": "2025-05-31 20:39:03 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\7f5c8939-80b5-4f3b-982a-7944776dda84\\html\\20250531_203855_583981_utc.html",
+    "html_content_hash": "bd18a98912cf1261ea8c70d1e4bb95bd88d4458ce86cf91ccbd944087860c8db",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\7f5c8939-80b5-4f3b-982a-7944776dda84\\visual\\20250531_203855_583981_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\nmOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.0,
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "1e95a13c-7721-4e91-a7c1-cb97a4d1e71b",
+    "site_id": "7f5c8939-80b5-4f3b-982a-7944776dda84",
+    "timestamp_utc": "2025-05-31T20:39:39.608660+00:00",
+    "timestamp_readable": "2025-05-31 20:39:39 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\7f5c8939-80b5-4f3b-982a-7944776dda84\\html\\20250531_203931_905490_utc.html",
+    "html_content_hash": "5f271a93247f513b9fc993e4e6946d724e6ba78b2cd06428fc296ab692592c9a",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\7f5c8939-80b5-4f3b-982a-7944776dda84\\visual\\20250531_203931_905490_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 0.7677419354838709,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -6,7 +6,6 @@",
+      "   </title>",
+      "  </head>",
+      "  <body>",
+      "-  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "   <p class=\"para1\">",
+      "@@ -19,6 +18,5 @@",
+      "   </h1>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "-  <img alt=\"Naruto Art\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\nmOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.731147289276123,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\7f5c8939-80b5-4f3b-982a-7944776dda84\\diffs\\diff_20250531_203931_905490.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "removed_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true,
+    "compared_with_check_id": "b4ad90b0-c013-4aa4-a5a6-646e7b68c8b8",
+    "compared_against_baseline_html_hash": "bd18a98912cf1261ea8c70d1e4bb95bd88d4458ce86cf91ccbd944087860c8db"
+  },
+  {
+    "check_id": "0e02e834-e829-4857-9ed8-1fb712e610c7",
+    "site_id": "a4b1435b-67d2-4510-8820-0a751eb3ae50",
+    "timestamp_utc": "2025-05-31T20:54:53.487091+00:00",
+    "timestamp_readable": "2025-05-31 20:54:53 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\html\\20250531_205446_259184_utc.html",
+    "html_content_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\visual\\20250531_205446_259184_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.9702127659574468,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      " Website Monitoring System",
+      "-mOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "+A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      " Real-time Alerts",
+      "-43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "+When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      " Performance Metrics",
+      "-4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+    ],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 0.9421487603305785,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\n"
+      ],
+      [
+        -1,
+        "mOBIITER teST "
+      ],
+      [
+        0,
+        "A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n"
+      ],
+      [
+        -1,
+        "43256789"
+      ],
+      [
+        0,
+        "When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n"
+      ],
+      [
+        -1,
+        "4356789076543"
+      ],
+      [
+        0,
+        "Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.007563616614788771,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\diffs\\diff_20250531_205446_259184.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "0d1dc7c8-a0d5-4014-a58d-f7f246651e06",
+    "site_id": "a4b1435b-67d2-4510-8820-0a751eb3ae50",
+    "timestamp_utc": "2025-05-31T22:09:24.614639+00:00",
+    "timestamp_readable": "2025-05-31 22:09:24 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\html\\20250531_220915_765668_utc.html",
+    "html_content_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\visual\\20250531_220915_765668_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.9702127659574468,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      " Website Monitoring System",
+      "-mOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "+A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      " Real-time Alerts",
+      "-43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "+When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      " Performance Metrics",
+      "-4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+    ],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 0.9421487603305785,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\n"
+      ],
+      [
+        -1,
+        "mOBIITER teST "
+      ],
+      [
+        0,
+        "A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n"
+      ],
+      [
+        -1,
+        "43256789"
+      ],
+      [
+        0,
+        "When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n"
+      ],
+      [
+        -1,
+        "4356789076543"
+      ],
+      [
+        0,
+        "Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.007563616614788771,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\diffs\\diff_20250531_220915_765668.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false,
+    "compared_with_check_id": "0e02e834-e829-4857-9ed8-1fb712e610c7",
+    "compared_against_baseline_html_hash": "5f271a93247f513b9fc993e4e6946d724e6ba78b2cd06428fc296ab692592c9a"
+  },
+  {
+    "check_id": "119edb8b-ba5c-4a0f-9b64-9fff25bfa5db",
+    "site_id": "a4b1435b-67d2-4510-8820-0a751eb3ae50",
+    "timestamp_utc": "2025-05-31T22:09:58.314462+00:00",
+    "timestamp_readable": "2025-05-31 22:09:58 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\html\\20250531_220950_330908_utc.html",
+    "html_content_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\visual\\20250531_220950_330908_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.9702127659574468,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      " Website Monitoring System",
+      "-mOBIITER teST A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "+A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      " Real-time Alerts",
+      "-43256789When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "+When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      " Performance Metrics",
+      "-4356789076543Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+    ],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 0.9421487603305785,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\n"
+      ],
+      [
+        -1,
+        "mOBIITER teST "
+      ],
+      [
+        0,
+        "A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\n"
+      ],
+      [
+        -1,
+        "43256789"
+      ],
+      [
+        0,
+        "When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\n"
+      ],
+      [
+        -1,
+        "4356789076543"
+      ],
+      [
+        0,
+        "Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.007563616614788771,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\a4b1435b-67d2-4510-8820-0a751eb3ae50\\diffs\\diff_20250531_220950_330908.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false,
+    "compared_with_check_id": "0d1dc7c8-a0d5-4014-a58d-f7f246651e06",
+    "compared_against_baseline_html_hash": "5f271a93247f513b9fc993e4e6946d724e6ba78b2cd06428fc296ab692592c9a"
+  },
+  {
+    "check_id": "860b9dc6-24f0-4298-b8c6-affca8878a59",
+    "site_id": "b12b39cc-8ac8-454a-98a8-132b279aee47",
+    "timestamp_utc": "2025-05-31T22:28:10.275291+00:00",
+    "timestamp_readable": "2025-05-31 22:28:10 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b12b39cc-8ac8-454a-98a8-132b279aee47\\html\\20250531_222802_095063_utc.html",
+    "html_content_hash": "ea0c7630c6822fa7bcfbf61eae4060b8d2de0f4df88031842a1cae17db369469",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b12b39cc-8ac8-454a-98a8-132b279aee47\\visual\\20250531_222802_095063_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.10534351145038168,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      "-Website Monitoring System",
+      "-A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "-Real-time Alerts",
+      "-When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "-Performance Metrics",
+      "-Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Advanced Monitoring Solutions",
+      "+Experience the next generation of website monitoring with our cutting-edge system. We provide comprehensive tracking of performance metrics, ensuring your digital presence remains strong and reliable.",
+      "+Intelligent Alert System",
+      "+Our sophisticated monitoring platform utilizes AI-powered algorithms to detect and analyze potential issues before they impact your users. Receive instant notifications and detailed reports for proactive problem resolution.",
+      "+Real-time Analytics Dashboard",
+      "+Access comprehensive analytics through our intuitive dashboard. Monitor key performance indicators, track uptime statistics, and visualize trending data to make informed decisions about your website's optimization."
+    ],
+    "structure_diff_score": 0.45799011532125206,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -8,15 +8,24 @@",
+      "  <body>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Small\" class=\"small-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para1\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading2\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Medium\" class=\"medium-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para2\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading3\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Small\" class=\"small-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.051351351351351354,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\n"
+      ],
+      [
+        -1,
+        "Website"
+      ],
+      [
+        1,
+        "Advanced"
+      ],
+      [
+        0,
+        " Monitoring S"
+      ],
+      [
+        -1,
+        "ystem\nA website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\nWhen issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick"
+      ],
+      [
+        1,
+        "olutions\nExperience the next generation of website monitoring with our cutting-edge system. We provide comprehensive tracking of performance metrics, ensuring your digital presence remains strong and reliable.\nIntelligent Alert System\nOur sophisticated monitoring platform utilizes AI-powered algorithms to detect and analyze potential issues before they impact your users. Receive instant notifications and detailed"
+      ],
+      [
+        0,
+        " re"
+      ],
+      [
+        -1,
+        "s"
+      ],
+      [
+        0,
+        "po"
+      ],
+      [
+        -1,
+        "nse to any problems that may arise.\nPerformance Metrics\nKey metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfac"
+      ],
+      [
+        1,
+        "rts for proactive problem resolution.\nReal-time Analytics Dashboard\nAccess comprehensive analytics through our intuitive dashboard. Monitor key performance indicators, track uptime statistics, and visualize trending data to make informed decisions about your website's optimiza"
+      ],
+      [
+        0,
+        "tion."
+      ]
+    ],
+    "visual_diff_score": 0.09589336067438126,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\b12b39cc-8ac8-454a-98a8-132b279aee47\\diffs\\diff_20250531_222802_095063.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "added_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true
+  },
+  {
+    "check_id": "d168475a-b9aa-4a4b-ae01-a03f0dfb58bd",
+    "site_id": "b12b39cc-8ac8-454a-98a8-132b279aee47",
+    "timestamp_utc": "2025-06-01T00:00:17.422105+00:00",
+    "timestamp_readable": "2025-06-01 00:00:17 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b12b39cc-8ac8-454a-98a8-132b279aee47\\html\\20250601_000009_185068_utc.html",
+    "html_content_hash": "ea0c7630c6822fa7bcfbf61eae4060b8d2de0f4df88031842a1cae17db369469",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b12b39cc-8ac8-454a-98a8-132b279aee47\\visual\\20250601_000009_185068_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.10534351145038168,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      "-Website Monitoring System",
+      "-A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "-Real-time Alerts",
+      "-When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "-Performance Metrics",
+      "-Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Advanced Monitoring Solutions",
+      "+Experience the next generation of website monitoring with our cutting-edge system. We provide comprehensive tracking of performance metrics, ensuring your digital presence remains strong and reliable.",
+      "+Intelligent Alert System",
+      "+Our sophisticated monitoring platform utilizes AI-powered algorithms to detect and analyze potential issues before they impact your users. Receive instant notifications and detailed reports for proactive problem resolution.",
+      "+Real-time Analytics Dashboard",
+      "+Access comprehensive analytics through our intuitive dashboard. Monitor key performance indicators, track uptime statistics, and visualize trending data to make informed decisions about your website's optimization."
+    ],
+    "structure_diff_score": 0.45799011532125206,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -8,15 +8,24 @@",
+      "  <body>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Small\" class=\"small-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para1\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading2\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Medium\" class=\"medium-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para2\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading3\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art Small\" class=\"small-img\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.051351351351351354,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\n"
+      ],
+      [
+        -1,
+        "Website"
+      ],
+      [
+        1,
+        "Advanced"
+      ],
+      [
+        0,
+        " Monitoring S"
+      ],
+      [
+        -1,
+        "ystem\nA website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\nWhen issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick"
+      ],
+      [
+        1,
+        "olutions\nExperience the next generation of website monitoring with our cutting-edge system. We provide comprehensive tracking of performance metrics, ensuring your digital presence remains strong and reliable.\nIntelligent Alert System\nOur sophisticated monitoring platform utilizes AI-powered algorithms to detect and analyze potential issues before they impact your users. Receive instant notifications and detailed"
+      ],
+      [
+        0,
+        " re"
+      ],
+      [
+        -1,
+        "s"
+      ],
+      [
+        0,
+        "po"
+      ],
+      [
+        -1,
+        "nse to any problems that may arise.\nPerformance Metrics\nKey metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfac"
+      ],
+      [
+        1,
+        "rts for proactive problem resolution.\nReal-time Analytics Dashboard\nAccess comprehensive analytics through our intuitive dashboard. Monitor key performance indicators, track uptime statistics, and visualize trending data to make informed decisions about your website's optimiza"
+      ],
+      [
+        0,
+        "tion."
+      ]
+    ],
+    "visual_diff_score": 0.09589336067438126,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\b12b39cc-8ac8-454a-98a8-132b279aee47\\diffs\\diff_20250601_000009_185068.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "added_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true,
+    "compared_with_check_id": "860b9dc6-24f0-4298-b8c6-affca8878a59",
+    "compared_against_baseline_html_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704"
+  },
+  {
+    "check_id": "0367bf74-17ef-47b3-8e6b-cf4a21c07bcd",
+    "site_id": "b60afa20-ac6a-4fef-b0ce-8d2527816a62",
+    "timestamp_utc": "2025-06-01T00:02:47.985729+00:00",
+    "timestamp_readable": "2025-06-01 00:02:47 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b60afa20-ac6a-4fef-b0ce-8d2527816a62\\html\\20250601_000240_859276_utc.html",
+    "html_content_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b60afa20-ac6a-4fef-b0ce-8d2527816a62\\visual\\20250601_000240_859276_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nWebsite Monitoring System\nA website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\nWhen issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\nKey metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction."
+      ]
+    ],
+    "visual_diff_score": 0.0,
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "63c6a07c-92ae-4757-b5b7-6577931b0cc9",
+    "site_id": "b60afa20-ac6a-4fef-b0ce-8d2527816a62",
+    "timestamp_utc": "2025-06-01T00:04:10.585999+00:00",
+    "timestamp_readable": "2025-06-01 00:04:10 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b60afa20-ac6a-4fef-b0ce-8d2527816a62\\html\\20250601_000401_363224_utc.html",
+    "html_content_hash": "9fbd8eda5435aa5bac5a9b23fc57f0bd362ac25ff5a6beede09d05c914e3d755",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b60afa20-ac6a-4fef-b0ce-8d2527816a62\\visual\\20250601_000401_363224_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.07680722891566265,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -1,7 +1,7 @@",
+      " Monitoring Test",
+      "-Website Monitoring System",
+      "-A website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.",
+      "-Real-time Alerts",
+      "-When issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.",
+      "-Performance Metrics",
+      "-Key metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction.",
+      "+Advanced Monitoring Solutions",
+      "+Experience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.",
+      "+Intelligent Alert System",
+      "+Our sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.",
+      "+Comprehensive Analytics Dashboard",
+      "+Gain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+    ],
+    "structure_diff_score": 0.4524003254678601,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -8,15 +8,24 @@",
+      "  <body>",
+      "   <h1 class=\"heading1\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art\" class=\"small-img float-left\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para1\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading2\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art\" class=\"medium-img float-right\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para2\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "   <h1 class=\"heading3\">",
+      "   </h1>",
+      "+  <img alt=\"Naruto Art\" class=\"small-img float-left\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "   <p class=\"para3\">",
+      "   </p>",
+      "+  <div class=\"clearfix\">",
+      "+  </div>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.0395778364116095,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\n"
+      ],
+      [
+        -1,
+        "Website"
+      ],
+      [
+        1,
+        "Advanced"
+      ],
+      [
+        0,
+        " Monitoring S"
+      ],
+      [
+        -1,
+        "ystem\nA website monitoring system helps track the performance, availability, and functionality of websites. It continuously checks various metrics to ensure optimal operation.\nReal-time Alerts\nWhen issues are detected, the monitoring system sends immediate notifications to administrators. This allows for quick response to any problems that may arise.\nPerformance Metrics\nKey metrics tracked include response time, uptime percentage, and server status. These measurements help maintain high website reliability and user satisfaction"
+      ],
+      [
+        1,
+        "olutions\nExperience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.\nIntelligent Alert System\nOur sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.\nComprehensive Analytics Dashboard\nGain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance"
+      ],
+      [
+        0,
+        "."
+      ]
+    ],
+    "visual_diff_score": 0.08097116649150848,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\b60afa20-ac6a-4fef-b0ce-8d2527816a62\\diffs\\diff_20250601_000401_363224.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {
+      "added_images": [
+        "sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png"
+      ]
+    },
+    "significant_change_detected": true,
+    "compared_with_check_id": "0367bf74-17ef-47b3-8e6b-cf4a21c07bcd",
+    "compared_against_baseline_html_hash": "a51078aeb41a8f26a6a65b32456c5b4379e6bf2965ac4ecff0c79b1e9d76f704"
+  },
+  {
+    "check_id": "dfd03811-6438-432f-8f3d-9fb5bb4620cb",
+    "site_id": "25ecabf9-240e-4f10-a8ef-57f804684142",
+    "timestamp_utc": "2025-06-02T02:48:12.051340+00:00",
+    "timestamp_readable": "2025-06-02 02:48:12 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\rooferelpasotx_com\\25ecabf9-240e-4f10-a8ef-57f804684142\\html\\20250602_024750_104326_utc.html",
+    "html_content_hash": "39e6fbf2cf72f87270f5e5b6a0301c2dd36909554c693c4eaa28c95090754b3a",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\rooferelpasotx_com\\25ecabf9-240e-4f10-a8ef-57f804684142\\visual\\20250602_024750_104326_utc.png",
+    "url": "https://rooferelpasotx.com/",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Roofing Contractor El Paso TX\n(915) 615-1580\n(915) 615-1580\nBest Service Since 1996\nTop Rated\nRoof Installation Contractor\nin El Paso, TX\nFrom Durable New Roofs to Expert Leak Repairs\u2014Free Same Day In Person Estimates in El Paso\n(915) 615-1580\nCall Now For Your Free In-Person Quote\nGet Your Quote From CM General Contracting LLC\nAre you ready to start your roof installation project? We\u2019re here to make it easy for you. Simply fill out the form to request your personalized estimate. Share the details of your project, and one of our roofing specialists will promptly provide you with a customized quote. Take the first step toward a secure, long-lasting, and expertly installed roofing system. Let us help bring your vision to life.\n\ud83d\udee0\ufe0f General roof installation services\ud83c\udfe0 New Roof Installation\ud83d\udd04 Roof Replacement\ud83e\ude79 Roof Repair (Leaks, Damage, etc.)\ud83e\uddf1 Shingle Roofing\ud83e\uddf1 Tile Roofing\ud83d\udd29 Metal Roofing\ud83c\udfe2 Flat Roofing\ud83c\udf27\ufe0f Gutter Installation & Repair\ud83d\udd0e Roof Inspection & Maintenance\u2795 Other Roofing Services\nWhat Our Customers Say?\nReasons to Choose Us\nThere are many reasons why you should go with us\nLicenseLicensed, Bonded and Insured Company\nFamily-ownedFamily-Owned and Locally-Operated\nCustomer serviceCustomer-First Service-Oriented\nFree consultationFree Consultation and Estimates Offered\nExperienceOver 29+ Years of Experience\nSatisfactionSatisfaction Guaranteed\nExperience The CM General Contracting LLC Difference\nWe are a trusted name in the roofing industry, known for delivering quality craftsmanship, durable materials, on time and within budget.\nCall Us (915) 615-1580\nOur Services\nNew Roof InstallationsOur new roof installation service delivers durable, weather-resistant protection for your home or business. From initial consultation to final installation, we use premium materials and expert techniques to ensure a flawless, long-lasting roof.\nGet Free Estimate\nRoof ReplacementsTransform your property's safety and curb appeal with a professional roof replacement. We offer tailored solutions, including a variety of roofing materials and styles, to enhance your home's protection and value.\nGet Free Estimate\nRoof Repairs & MaintenanceExtend your roof's lifespan and maintain its integrity with our expert repair and maintenance services. We address leaks, storm damage, and wear-and-tear to keep your roof in optimal condition.\nGet Free Estimate\nSpecialty Roofing SystemsAdd distinct style and superior durability to your property with our specialty roofing solutions, such as metal or tile. Choose from a variety of materials, colors, and designs to achieve a unique, high-end look that stands out.\nGet Free Estimate\nReady To Start Your Next Project?\nReach out to us for a consultation and see how we can assist you with your roofing needs.\nGet Free Estimate"
+      ]
+    ],
+    "visual_diff_score": 0.0021495253313332796,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\25ecabf9-240e-4f10-a8ef-57f804684142\\diffs\\diff_20250602_024750_104326.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": true
+  },
+  {
+    "check_id": "350b49bf-c3b1-4c9a-ae6e-db51a4389275",
+    "site_id": "78a0ace8-78ff-495f-984e-7cdd1ae0c23a",
+    "timestamp_utc": "2025-06-02T03:01:45.748678+00:00",
+    "timestamp_readable": "2025-06-02 03:01:45 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\html\\20250602_030137_755821_utc.html",
+    "html_content_hash": "9fbd8eda5435aa5bac5a9b23fc57f0bd362ac25ff5a6beede09d05c914e3d755",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\visual\\20250602_030137_755821_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nAdvanced Monitoring Solutions\nExperience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.\nIntelligent Alert System\nOur sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.\nComprehensive Analytics Dashboard\nGain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+      ]
+    ],
+    "visual_diff_score": 0.0,
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "4b195627-65b5-4337-bd43-3df94a043280",
+    "site_id": "78a0ace8-78ff-495f-984e-7cdd1ae0c23a",
+    "timestamp_utc": "2025-06-02T03:02:57.385334+00:00",
+    "timestamp_readable": "2025-06-02 03:02:57 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\html\\20250602_030250_245375_utc.html",
+    "html_content_hash": "8b53e288fac9b8b162cf5df87cc3eac1aa99225d7f8928c21f66ac540561c8a0",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\visual\\20250602_030250_245375_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.5267249757045676,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -2,6 +2,3 @@",
+      " Advanced Monitoring Solutions",
+      " Experience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.",
+      " Intelligent Alert System",
+      "-Our sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.",
+      "-Comprehensive Analytics Dashboard",
+      "-Gain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+    ],
+    "structure_diff_score": 0.669710806697108,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -15,17 +15,5 @@",
+      "   </div>",
+      "   <h1 class=\"heading2\">",
+      "   </h1>",
+      "-  <img alt=\"Naruto Art\" class=\"medium-img float-right\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "-  <p class=\"para2\">",
+      "-  </p>",
+      "-  <div class=\"clearfix\">",
+      "-  </div>",
+      "-  <h1 class=\"heading3\">",
+      "-  </h1>",
+      "-  <img alt=\"Naruto Art\" class=\"small-img float-left\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "-  <p class=\"para3\">",
+      "-  </p>",
+      "-  <div class=\"clearfix\">",
+      "-  </div>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.3575197889182058,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nAdvanced Monitoring Solutions\nExperience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.\nIntelligent Alert System"
+      ],
+      [
+        -1,
+        "\nOur sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.\nComprehensive Analytics Dashboard\nGain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+      ]
+    ],
+    "visual_diff_score": 0.05708332732319832,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\diffs\\diff_20250602_030250_245375.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": true,
+    "compared_with_check_id": "350b49bf-c3b1-4c9a-ae6e-db51a4389275",
+    "compared_against_baseline_html_hash": "9fbd8eda5435aa5bac5a9b23fc57f0bd362ac25ff5a6beede09d05c914e3d755"
+  },
+  {
+    "check_id": "fda52681-6327-4e89-9038-e58e0cf5bc8a",
+    "site_id": "78a0ace8-78ff-495f-984e-7cdd1ae0c23a",
+    "timestamp_utc": "2025-06-02T03:18:44.230538+00:00",
+    "timestamp_readable": "2025-06-02 03:18:44 UTC",
+    "status": "completed_with_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\html\\20250602_031836_721520_utc.html",
+    "html_content_hash": "8b53e288fac9b8b162cf5df87cc3eac1aa99225d7f8928c21f66ac540561c8a0",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\visual\\20250602_031836_721520_utc.png",
+    "url": "http://localhost:8000/Monitoring_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 0.5267249757045676,
+    "content_diff_details": [
+      "--- old_version",
+      "+++ new_version",
+      "@@ -2,6 +2,3 @@",
+      " Advanced Monitoring Solutions",
+      " Experience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.",
+      " Intelligent Alert System",
+      "-Our sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.",
+      "-Comprehensive Analytics Dashboard",
+      "-Gain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+    ],
+    "structure_diff_score": 0.669710806697108,
+    "structure_diff_details": [
+      "--- old_structure",
+      "+++ new_structure",
+      "@@ -15,17 +15,5 @@",
+      "   </div>",
+      "   <h1 class=\"heading2\">",
+      "   </h1>",
+      "-  <img alt=\"Naruto Art\" class=\"medium-img float-right\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "-  <p class=\"para2\">",
+      "-  </p>",
+      "-  <div class=\"clearfix\">",
+      "-  </div>",
+      "-  <h1 class=\"heading3\">",
+      "-  </h1>",
+      "-  <img alt=\"Naruto Art\" class=\"small-img float-left\" src=\"sasuke-uchiha-naruto-minimal-art-amoled-black-background-5120x2880-8859.png\"/>",
+      "-  <p class=\"para3\">",
+      "-  </p>",
+      "-  <div class=\"clearfix\">",
+      "-  </div>",
+      "  </body>",
+      " </html>"
+    ],
+    "semantic_diff_score": 0.3575197889182058,
+    "semantic_diff_details": [
+      [
+        0,
+        "Monitoring Test\nAdvanced Monitoring Solutions\nExperience state-of-the-art website monitoring with our comprehensive solution. Our platform delivers enterprise-grade surveillance and analytics to ensure your digital presence remains uninterrupted.\nIntelligent Alert System"
+      ],
+      [
+        -1,
+        "\nOur sophisticated alert system employs machine learning algorithms to detect and predict potential issues before they impact your users. Receive customized notifications through multiple channels for seamless incident management.\nComprehensive Analytics Dashboard\nGain deep insights into your website's performance through our intuitive analytics dashboard. Monitor crucial metrics, analyze trends, and generate detailed reports to optimize your web infrastructure for peak performance."
+      ]
+    ],
+    "visual_diff_score": 0.05708332732319832,
+    "visual_diff_image_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\78a0ace8-78ff-495f-984e-7cdd1ae0c23a\\diffs\\diff_20250602_031836_721520.png",
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": true,
+    "compared_with_check_id": "4b195627-65b5-4337-bd43-3df94a043280",
+    "compared_against_baseline_html_hash": "9fbd8eda5435aa5bac5a9b23fc57f0bd362ac25ff5a6beede09d05c914e3d755"
+  }
+]

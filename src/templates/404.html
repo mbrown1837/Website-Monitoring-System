@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ self.message.split(':')[0] if ':' in self.message else 'Page Not Found' }} - Website Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Oops! Error 404</h1>
+        <p class="lead">{{ message if message else "The page you are looking for does not exist or has been moved." }}</p>
+        <hr class="my-4">
+        <p>You can return to the main dashboard to see all monitored websites.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('index') }}" role="button">Go to Dashboard</a>
+    </div>
+</div>
+{% endblock %} 

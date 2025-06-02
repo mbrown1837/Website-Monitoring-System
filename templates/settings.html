@@ -1,0 +1,158 @@
+{% extends 'layout.html' %}
+
+{% block title %}Application Settings - Website Monitor{% endblock %}
+
+{% block content %}
+<h2>Application Settings</h2>
+<p class="text-muted">Configure system-wide settings for the monitoring application. Changes are saved to <code>config/config.yaml</code>.</p>
+<hr>
+
+<form method="POST" action="{{ url_for('settings') }}">
+    
+    <h4>General Settings</h4>
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <label for="log_level" class="form-label">Log Level</label>
+            <select class="form-select" id="log_level" name="log_level">
+                {% set log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] %}
+                {% for level in log_levels %}
+                    <option value="{{ level }}" {% if config.log_level == level %}selected{% endif %}>{{ level }}</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Verbosity of application logs.</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="default_monitoring_interval_hours" class="form-label">Default Monitoring Interval (hours)</label>
+            <input type="number" class="form-control" id="default_monitoring_interval_hours" name="default_monitoring_interval_hours" value="{{ config.default_monitoring_interval_hours }}" min="1">
+            <div class="form-text">Default check frequency for new websites.</div>
+        </div>
+    </div>
+
+    <hr>
+    <h4>Snapshot &amp; Browser Settings (Playwright)</h4>
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <label for="snapshot_directory" class="form-label">Snapshot Directory</label>
+            <input type="text" class="form-control" id="snapshot_directory" name="snapshot_directory" value="{{ config.snapshot_directory }}">
+            <div class="form-text">Path to store HTML and visual snapshots (e.g., data/snapshots).</div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="playwright_browser_type" class="form-label">Playwright Browser</label>
+            <select class="form-select" id="playwright_browser_type" name="playwright_browser_type">
+                {% set browsers = ['chromium', 'firefox', 'webkit'] %}
+                {% for browser in browsers %}
+                    <option value="{{ browser }}" {% if config.playwright_browser_type == browser %}selected{% endif %}>{{ browser | capitalize }}</option>
+                {% endfor %}
+            </select>
+            <div class="form-text">Browser engine for visual snapshots.</div>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+             <label for="playwright_headless_mode" class="form-label">Headless Mode</label>
+            <select class="form-select" id="playwright_headless_mode" name="playwright_headless_mode">
+                <option value="True" {% if config.playwright_headless_mode %}selected{% endif %}>Enabled (Recommended)</option>
+                <option value="False" {% if not config.playwright_headless_mode %}selected{% endif %}>Disabled (Shows browser)</option>
+            </select>
+            <div class="form-text">Run browser invisibly or visibly.</div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="playwright_render_delay_ms" class="form-label">Render Delay (ms)</label>
+            <input type="number" class="form-control" id="playwright_render_delay_ms" name="playwright_render_delay_ms" value="{{ config.playwright_render_delay_ms }}" min="0">
+            <div class="form-text">Wait time for page rendering before screenshot.</div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="playwright_navigation_timeout_ms" class="form-label">Navigation Timeout (ms)</label>
+            <input type="number" class="form-control" id="playwright_navigation_timeout_ms" name="playwright_navigation_timeout_ms" value="{{ config.playwright_navigation_timeout_ms }}" min="0">
+            <div class="form-text">Max time for page navigation.</div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="playwright_user_agent" class="form-label">Playwright User Agent</label>
+        <input type="text" class="form-control" id="playwright_user_agent" name="playwright_user_agent" value="{{ config.playwright_user_agent }}">
+        <div class="form-text">User agent string for Playwright browser.</div>
+    </div>
+
+    <hr>
+    <h4>Notification Settings (SMTP for Email Alerts)</h4>
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <label for="notification_email_from" class="form-label">Sender Email Address</label>
+            <input type="email" class="form-control" id="notification_email_from" name="notification_email_from" value="{{ config.notification_email_from }}">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="notification_email_to" class="form-label">Recipient Email Address(es)</label>
+            <input type="text" class="form-control" id="notification_email_to" name="notification_email_to" value="{{ config.notification_email_to }}">
+            <div class="form-text">Comma-separated list of emails for alerts.</div>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-5 mb-3">
+            <label for="smtp_server" class="form-label">SMTP Server</label>
+            <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ config.get('smtp_server', '') }}">
+        </div>
+        <div class="col-md-3 mb-3">
+            <label for="smtp_port" class="form-label">SMTP Port</label>
+            <input type="number" class="form-control" id="smtp_port" name="smtp_port" value="{{ config.get('smtp_port', 587) }}" min="1">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="smtp_use_tls" class="form-label">Use TLS</label>
+            <select class="form-select" id="smtp_use_tls" name="smtp_use_tls">
+                <option value="True" {% if config.get('smtp_use_tls', True) %}selected{% endif %}>Yes (Recommended)</option>
+                <option value="False" {% if not config.get('smtp_use_tls', True) %}selected{% endif %}>No</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <label for="smtp_username" class="form-label">SMTP Username</label>
+            <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="{{ config.get('smtp_username', '') }}" autocomplete="off">
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="smtp_password" class="form-label">SMTP Password</label>
+            <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="{{ config.get('smtp_password', '') }}" autocomplete="off">
+            <div class="form-text">Leave blank if not changing. For security, existing password is not shown.</div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <a href="{{ url_for('test_email') }}" class="btn btn-outline-info">Send Test Email</a>
+        <span class="form-text ms-2">Send a test email to the configured recipient address.</span>
+    </div>
+
+    <hr>
+    <h4>Comparison &amp; Change Detection</h4>
+     <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+            <label for="content_change_threshold" class="form-label">Text Content Change Threshold (%)</label>
+            <div class="input-group">
+                <input type="number" step="1" class="form-control" id="content_change_threshold" name="content_change_threshold" value="{{ (config.content_change_threshold * 100) | round(0) }}" min="0" max="100">
+                <span class="input-group-text">%</span>
+            </div>
+            <div class="form-text">Similarity score (0-100%). Lower means more sensitive. 100% = identical.</div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="structure_change_threshold" class="form-label">HTML Structure Change Threshold (%)</label>
+            <div class="input-group">
+                <input type="number" step="1" class="form-control" id="structure_change_threshold" name="structure_change_threshold" value="{{ (config.structure_change_threshold * 100) | round(0) }}" min="0" max="100">
+                <span class="input-group-text">%</span>
+            </div>
+            <div class="form-text">Similarity score (0-100%). 100% = identical.</div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="visual_difference_threshold" class="form-label">Visual Difference Threshold (MSE)</label>
+            <input type="number" step="0.01" class="form-control" id="visual_difference_threshold" name="visual_difference_threshold" value="{{ config.visual_difference_threshold }}" min="0">
+            <div class="form-text">Mean Squared Error for images. 0 = identical. Higher allows more visual difference.</div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label for="meta_tags_to_check" class="form-label">Meta Tags to Monitor (comma-separated)</label>
+        <input type="text" class="form-control" id="meta_tags_to_check" name="meta_tags_to_check" value="{{ config.meta_tags_to_check | join(', ') }}">
+        <div class="form-text">List of meta tag names to check (e.g., description, keywords, viewport, title).</div>
+    </div>
+
+    <hr>
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% endblock %} 

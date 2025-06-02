@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+
+{% set form_title = 'Add New Website' if not website else 'Edit Website: ' ~ website.name %}
+
+{% block title %}{{ form_title }} - Website Monitor{% endblock %}
+
+{% block content %}
+<h2>{{ form_title }}</h2>
+<hr>
+
+<form method="POST" action="{{ form_action }}">
+    <div class="mb-3">
+        <label for="name" class="form-label">Website Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ website.name if website else '' }}" required>
+        <div class="form-text">A descriptive name for this website.</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="url" class="form-label">URL <span class="text-danger">*</span></label>
+        <input type="url" class="form-control" id="url" name="url" value="{{ website.url if website else '' }}" placeholder="https://example.com" required>
+        <div class="form-text">The full URL of the website to monitor (e.g., http://example.com).</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="interval" class="form-label">Monitoring Interval (hours)</label>
+        <input type="number" class="form-control" id="interval" name="interval" value="{{ website.interval if website else config.default_monitoring_interval_hours }}" min="1">
+        <div class="form-text">How often to check this website for changes (in hours). Defaults to global setting if left empty on add.</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="tags" class="form-label">Tags (comma-separated)</label>
+        <input type="text" class="form-control" id="tags" name="tags" value="{{ website.tags if website else '' }}">
+        <div class="form-text">Optional comma-separated tags for categorizing (e.g., client-a, critical, blog).</div>
+    </div>
+
+    <div class="mb-3">
+        <label for="notification_emails" class="form-label">Notification Emails (comma-separated)</label>
+        <input type="text" class="form-control" id="notification_emails" name="notification_emails" value="{{ ', '.join(website.notification_emails) if website and website.notification_emails else '' }}">
+        <div class="form-text">Optional comma-separated email addresses to notify on changes.</div>
+    </div>
+
+    {% if website %}
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if website.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Is Active</label>
+        <div class="form-text">Inactive websites will not be automatically monitored or allow manual checks.</div>
+    </div>
+    {% endif %}
+
+    <hr>
+    <button type="submit" class="btn btn-primary">{% if website %}Save Changes{% else %}Add Website{% endif %}</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% endblock %} 

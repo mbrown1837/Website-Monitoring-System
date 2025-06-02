@@ -1,0 +1,162 @@
+{% extends 'layout.html' %}
+
+{% block title %}History for {{ website.name }} - Website Monitor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Check History: <a href="{{ website.url }}" target="_blank">{{ website.name }}</a></h2>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">Back to Websites</a>
+</div>
+<p class="text-muted">URL: {{ website.url }}</p>
+
+{% if history %}
+<div class="table-responsive">
+    <table class="table table-sm table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Timestamp (UTC)</th>
+                <th>Status</th>
+                <th>Changes Detected</th>
+                <th>HTML Snapshot</th>
+                <th>Visual Snapshot</th>
+                <th>Summary / Error</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in history %}
+            {# Try to make paths relative to the 'data' directory for serving #}
+            {% set html_snapshot_rel_path = record.html_snapshot_path %}
+            {% if html_snapshot_rel_path %}
+                {% set html_snapshot_rel_path = html_snapshot_rel_path.split('data/')[-1] if 'data/' in html_snapshot_rel_path else html_snapshot_rel_path %}
+                {% set html_snapshot_rel_path = html_snapshot_rel_path.replace('\\', '/') %}
+            {% endif %}
+
+            {% set visual_snapshot_rel_path = record.visual_snapshot_path %}
+            {% if visual_snapshot_rel_path %}
+                {% set visual_snapshot_rel_path = visual_snapshot_rel_path.split('data/')[-1] if 'data/' in visual_snapshot_rel_path else visual_snapshot_rel_path %}
+                {% set visual_snapshot_rel_path = visual_snapshot_rel_path.replace('\\', '/') %}
+            {% endif %}
+            <tr>
+                <td>{{ record.timestamp_readable }}</td>
+                <td>
+                    {% if record.status == 'success' or record.status == 'completed_no_changes' %}
+                        <span class="badge bg-success">Success</span>
+                    {% elif record.status == 'error' %}
+                        <span class="badge bg-danger">Error</span>
+                    {% elif record.status == 'completed_with_changes' %}
+                        <span class="badge bg-warning">Changes Detected</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ record.status | capitalize }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.status == 'success' or record.status == 'completed_no_changes' or record.status == 'completed_with_changes' %}
+                        {% if record.changes_detected or record.significant_change_detected or record.status == 'completed_with_changes' %}
+                            <span class="badge bg-warning text-dark">Yes</span>
+                        {% else %}
+                            <span class="badge bg-success">No</span>
+                        {% endif %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.html_snapshot_path and html_snapshot_rel_path %}
+                        <a href="{{ url_for('serve_data_file', filepath=html_snapshot_rel_path) }}" target="_blank" class="btn btn-link btn-sm p-0">View HTML</a>
+                        <small class="text-muted d-block">Hash: {{ record.html_content_hash[:12] }}...</small>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.visual_snapshot_path and visual_snapshot_rel_path %}
+                         <a href="{{ url_for('serve_data_file', filepath=visual_snapshot_rel_path) }}" target="_blank" class="btn btn-link btn-sm p-0">View Image</a>                   
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.status == 'error' %}
+                        <small class="text-danger">{{ record.error_message | truncate(150) }}</small>
+                    {% elif record.status == 'success' or record.status == 'completed_with_changes' or record.changes_detected or record.significant_change_detected %}
+                        <ul class="list-unstyled mb-0 small">
+                            {% if record.diff_scores %}
+                                {% if record.diff_scores.text_diff_score is defined and record.diff_scores.text_diff_score < 1 %}
+                                    <li>Text Diff: {{ "%.4f"|format(record.diff_scores.text_diff_score) }}</li>
+                                {% elif record.content_diff_score is defined and record.content_diff_score < 1 %}
+                                    <li>Text Diff: {{ "%.4f"|format(record.content_diff_score) }}</li>
+                                {% endif %}
+                                
+                                {% if record.diff_scores.structure_diff_score is defined and record.diff_scores.structure_diff_score < 1 %}
+                                    <li>Structure Diff: {{ "%.4f"|format(record.diff_scores.structure_diff_score) }}</li>
+                                {% elif record.structure_diff_score is defined and record.structure_diff_score < 1 %}
+                                    <li>Structure Diff: {{ "%.4f"|format(record.structure_diff_score) }}</li>
+                                {% endif %}
+                                
+                                {% if record.diff_scores.visual_mse_diff is defined and record.diff_scores.visual_mse_diff > 0 %}
+                                    <li>Visual MSE: {{ "%.2f"|format(record.diff_scores.visual_mse_diff) }}</li>
+                                {% elif record.visual_diff_score is defined and record.visual_diff_score > 0 %}
+                                    <li>Visual Diff: {{ "%.2f"|format(record.visual_diff_score) }}</li>
+                                {% endif %}
+                            {% elif record.content_diff_score is defined or record.structure_diff_score is defined or record.visual_diff_score is defined %}
+                                {% if record.content_diff_score is defined and record.content_diff_score < 1 %}
+                                    <li>Text Diff: {{ "%.4f"|format(record.content_diff_score) }}</li>
+                                {% endif %}
+                                
+                                {% if record.structure_diff_score is defined and record.structure_diff_score < 1 %}
+                                    <li>Structure Diff: {{ "%.4f"|format(record.structure_diff_score) }}</li>
+                                {% endif %}
+                                
+                                {% if record.visual_diff_score is defined and record.visual_diff_score > 0 %}
+                                    <li>Visual Diff: {{ "%.2f"|format(record.visual_diff_score) }}</li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if record.changed_elements %}
+                                {% for type, changes in record.changed_elements.items() %}
+                                    {% if changes %}
+                                    <li>{{ type | replace('_', ' ') | title }}: {{ changes | length }} changed</li>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            
+                            {% if record.image_src_changes and record.image_src_changes.added_images %}
+                                <li>Images: {{ record.image_src_changes.added_images | length }} added</li>
+                            {% endif %}
+                        </ul>
+                    {% elif record.status == 'success' or record.status == 'completed_no_changes' %}
+                        <small class="text-success">No significant changes detected.</small>
+                    {% else %}
+                        <small class="text-muted">{{ record.status }}</small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info" role="alert">
+  No check history found for this website yet.
+  {% if website.is_active %}
+  <form action="{{ url_for('manual_check_website', site_id=website.id) }}" method="POST" class="d-inline">
+      <button type="submit" class="btn btn-sm btn-success ms-2">Run First Check Now</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="mt-3">
+    <form action="{{ url_for('manual_check_website', site_id=website.id) }}" method="POST" class="d-inline">
+        <button type="submit" class="btn btn-info" {% if not website.is_active %}disabled title="Activate website to run check"{% endif %}>Trigger Manual Check</button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Optional: Add any JS specific to the history page here
+// For example, to auto-refresh history or provide more interactive elements.
+</script>
+{% endblock %} 

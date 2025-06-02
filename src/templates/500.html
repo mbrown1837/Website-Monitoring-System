@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Error 500 - Website Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron text-center">
+        <h1 class="display-4 text-danger">Oops! Error 500</h1>
+        <p class="lead">{{ message if message else "An unexpected error occurred on our server." }}</p>
+        <p class="text-muted"><small>We have been notified and are looking into it.</small></p>
+        <hr class="my-4">
+        <p>You can try returning to the main dashboard.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('index') }}" role="button">Go to Dashboard</a>
+    </div>
+</div>
+{% endblock %} 
