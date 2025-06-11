@@ -469,6 +469,15 @@ class CrawlerModule:
         # Check if it's internal or external
         is_internal = self._is_internal_url(normalized, results["url"])
         
+        if current_depth == 1:
+            self.logger.info(f"Initial URL processing: URL='{url}', Normalized='{normalized}', Base='{results['url']}', is_internal_check_result='{is_internal}'")
+            # For the initial URL (depth 1), it must be treated as internal.
+            # This overrides the result of _is_internal_url for the very first page,
+            # ensuring it's crawled for links even if normalization/comparison subtleties exist.
+            if not is_internal:
+                self.logger.warning(f"Initial URL {normalized} was classified as external by _is_internal_url. Forcing to internal for initial crawl.")
+                is_internal = True
+
         # Process the URL
         try:
             self.logger.debug(f"Checking URL: {url} (depth {current_depth}/{max_depth}) - Internal: {is_internal}")
@@ -512,16 +521,18 @@ class CrawlerModule:
                             "is_broken": True,
                             "error_message": error_message,
                             "referring_page": referring_url,
-                            "is_internal": True,
+                            "is_internal": True, # Explicitly True for initial URL if current_depth == 1, otherwise determined by is_internal var
                             "crawl_depth": current_depth
                         }
+                        if current_depth == 1: # Ensure initial URL record is marked internal
+                            page_record["is_internal"] = True
                         results["all_pages"].append(page_record)
                         results["broken_links"].append({
                             "url": normalized,
                             "status_code": 0,
                             "error_message": error_message,
                             "referring_page": referring_url,
-                            "is_internal": True
+                            "is_internal": True # Explicitly True
                         })
                         # Add to missing_meta_tags for unreachable page
                         results["missing_meta_tags"].append({
@@ -533,11 +544,26 @@ class CrawlerModule:
                         })
                         return # Skip further processing for this URL
                     
+
+                    # If it's the initial page (depth 1), log detailed link discovery
+                    if current_depth == 1 and isinstance(crawl_data, dict):
+                        self.logger.info(f"Initial page crawl data keys for {url}: {list(crawl_data.keys())}")
+                        initial_internal_links = crawl_data.get('internal_links', [])
+                        initial_external_links = crawl_data.get('external_links', [])
+                        num_internal_links = len(initial_internal_links) if isinstance(initial_internal_links, list) else 0
+                        num_external_links = len(initial_external_links) if isinstance(initial_external_links, list) else 0
+                        self.logger.info(f"Initial page internal links from YiraBot for {url}: {initial_internal_links}")
+                        self.logger.info(f"Initial page external links from YiraBot for {url}: {initial_external_links}")
+                        self.logger.info(f"Initial page title from YiraBot for {url}: {crawl_data.get('title')}")
+                        self.logger.info(f"YiraBot found {num_internal_links} internal links and {num_external_links} external links on initial page {url}.")
+                    elif current_depth == 1: # crawl_data might not be a dict if something went wrong but didn't except
+                        self.logger.warning(f"Initial page crawl_data for {url} was not a dictionary. Type: {type(crawl_data)}")
+
                     # Create a successful page record
                     page_record = {
                         "url": normalized,
                         "status_code": 200,  # Assume successful if we got crawl data
-                        "is_internal": True,
+                        "is_internal": True, # Explicitly True for initial URL if current_depth == 1, otherwise determined by is_internal var
                         "referring_page": referring_url,
                         "crawl_depth": current_depth,
                         "title": crawl_data.get("title", "")
@@ -559,30 +585,52 @@ class CrawlerModule:
                         # Process internal links
                         for link in crawl_data.get("internal_links", []):
                             if link and link.strip():
-                                full_url = urljoin(url, link)
-                                if self._should_filter_url(full_url):
+                                self.logger.debug(f"Processing internal link from YiraBot: '{link}' (found on '{url}')")
+                                raw_full_url = urljoin(url, link) # Keep raw for filter check before normalization
+                                self.logger.debug(f"Absolute internal link: '{raw_full_url}'")
+                                should_filter = self._should_filter_url(raw_full_url)
+                                self.logger.debug(f"Filter check for '{raw_full_url}': {should_filter}")
+                                if should_filter:
                                     continue
-                                full_url = self._normalize_url(full_url)
-                                if full_url not in results["internal_urls"]:
-                                    self._crawl_url(full_url, url, results, max_depth, current_depth + 1, respect_robots)
+
+                                normalized_full_url = self._normalize_url(raw_full_url)
+                                self.logger.debug(f"Normalized internal link to potentially crawl: '{normalized_full_url}'")
+                                is_already_in_internal = normalized_full_url in results["internal_urls"]
+                                self.logger.debug(f"Is '{normalized_full_url}' already in internal_urls: {is_already_in_internal}")
+
+                                if not is_already_in_internal:
+                                    self._crawl_url(normalized_full_url, url, results, max_depth, current_depth + 1, respect_robots)
                                 
                         # Process external links - only check status codes, don't crawl content
                         for link in crawl_data.get("external_links", []):
                             if link and link.strip() and link.startswith(('http://', 'https://')):
-                                full_url = link
-                                if self._should_filter_url(full_url):
+                                self.logger.debug(f"Processing external link from YiraBot: '{link}' (found on '{url}')")
+                                # For external links, YiraBot should provide absolute URLs.
+                                # However, we pass it through urljoin just in case it's a //domain.com/path style link.
+                                raw_full_url = urljoin(url, link)
+                                self.logger.debug(f"Absolute external link: '{raw_full_url}'")
+                                should_filter = self._should_filter_url(raw_full_url)
+                                self.logger.debug(f"Filter check for '{raw_full_url}': {should_filter}")
+                                if should_filter:
                                     continue
-                                full_url = self._normalize_url(full_url)
-                                if full_url not in results["external_urls"] and full_url not in results["internal_urls"]:
+
+                                normalized_full_url = self._normalize_url(raw_full_url)
+                                self.logger.debug(f"Normalized external link to check: '{normalized_full_url}'")
+
+                                is_in_external = normalized_full_url in results["external_urls"]
+                                is_in_internal = normalized_full_url in results["internal_urls"]
+                                self.logger.debug(f"Is '{normalized_full_url}' already in external_urls: {is_in_external}, or internal_urls: {is_in_internal}")
+
+                                if not is_in_external and not is_in_internal:
                                     # Check if the link is actually internal based on our enhanced detection
-                                    if self._is_internal_url(full_url, results["url"]):
-                                        self.logger.debug(f"Reclassifying 'external' link as internal: {full_url}")
-                                        self._crawl_url(full_url, url, results, max_depth, current_depth + 1, respect_robots)
+                                    if self._is_internal_url(normalized_full_url, results["url"]):
+                                        self.logger.debug(f"Reclassifying 'external' link as internal: {normalized_full_url}")
+                                        self._crawl_url(normalized_full_url, url, results, max_depth, current_depth + 1, respect_robots)
                                     else:
-                                        results["external_urls"].add(full_url)
+                                        results["external_urls"].add(normalized_full_url)
                                         # Just check the status code without crawling the external content
-                                        self.logger.debug(f"Only checking status code for external URL: {full_url}")
-                                        self._check_link_status(full_url, url, results, is_internal=False)
+                                        self.logger.debug(f"Only checking status code for external URL: {normalized_full_url}")
+                                        self._check_link_status(normalized_full_url, url, results, is_internal=False)
                 
                 except Exception as e: # This block should ideally not be reached if the above try/except for self.bot.crawl() is comprehensive
                     error_message = f"YiraBot Crawl Error: {type(e).__name__} - {e}"
@@ -594,16 +642,18 @@ class CrawlerModule:
                         "is_broken": True,
                         "error_message": error_message,
                         "referring_page": referring_url,
-                        "is_internal": True,
+                        "is_internal": True, # Explicitly True for initial URL if current_depth == 1, otherwise determined by is_internal var
                         "crawl_depth": current_depth
                     }
+                    if current_depth == 1: # Ensure initial URL record is marked internal
+                        page_record["is_internal"] = True
                     results["all_pages"].append(page_record)
                     results["broken_links"].append({
                         "url": normalized,
                         "status_code": 0,
                         "error_message": error_message,
                         "referring_page": referring_url,
-                        "is_internal": True
+                        "is_internal": True # Explicitly True
                     })
                     
             else:
@@ -624,7 +674,7 @@ class CrawlerModule:
                 "is_broken": True,
                 "error_message": error_message,
                 "referring_page": referring_url,
-                "is_internal": is_internal,
+                "is_internal": True if current_depth == 1 else is_internal, # Ensure initial URL is internal
                 "crawl_depth": current_depth
             }
             
@@ -635,7 +685,7 @@ class CrawlerModule:
                 "status_code": 0,
                 "error_message": error_message,
                 "referring_page": referring_url,
-                "is_internal": is_internal
+                "is_internal": True if current_depth == 1 else is_internal # Ensure initial URL is internal
             })
             
             # Add to appropriate URL set
