@@ -2,7 +2,7 @@ import os
 import json
 import sqlite3
 from datetime import datetime
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 import time
 import re
 
@@ -154,6 +154,26 @@ class CrawlerModule:
             # If the table doesn't exist yet, this will fail, which is fine
             self.logger.debug(f"Schema check: {e}")
             pass
+
+    def _normalize_url(self, url: str) -> str:
+        """Return a normalized form of the URL for deduplication."""
+        try:
+            parsed = urlparse(url)
+            scheme = parsed.scheme.lower() if parsed.scheme else "http"
+            netloc = parsed.netloc.lower()
+            path = parsed.path or "/"
+            path = re.sub(r"/+$", "", path)
+            normalized = urlunparse((scheme, netloc, path or "/", "", "", ""))
+            return normalized
+        except Exception:
+            return url
+
+    def _should_filter_url(self, url: str) -> bool:
+        """Return True if the URL should be skipped from crawling."""
+        lowered = url.lower()
+        if lowered.startswith(("mailto:", "tel:", "javascript:")):
+            return True
+        return False
         
     def crawl_website(self, website_id, url, max_depth=2, respect_robots=True, check_external_links=True, 
                    crawl_only=False, visual_check_only=False, create_baseline=False):
@@ -340,13 +360,17 @@ class CrawlerModule:
                 loc = url_tag.find('loc')
                 if loc and loc.string:
                     url_found = loc.string.strip()
-                    parsed_url = urlparse(url_found)
-                    
+                    if self._should_filter_url(url_found):
+                        continue
+
+                    normalized = self._normalize_url(url_found)
+                    parsed_url = urlparse(normalized)
+
                     # Check if it's an internal URL
                     if parsed_url.netloc == urlparse(base_url).netloc:
-                        results["internal_urls"].add(url_found)
+                        results["internal_urls"].add(normalized)
                     else:
-                        results["external_urls"].add(url_found)
+                        results["external_urls"].add(normalized)
         
         except Exception as e:
             self.logger.error(f"Error parsing sitemap content: {e}")
@@ -408,12 +432,18 @@ class CrawlerModule:
             current_depth (int): Current crawl depth
             respect_robots (bool): Whether to respect robots.txt
         """
+        # Normalize URL and check for duplicates or filters
+        if self._should_filter_url(url):
+            return
+
+        normalized = self._normalize_url(url)
+
         # Skip if we've already processed this URL
-        if url in results["internal_urls"]:
+        if normalized in results["internal_urls"] or normalized in results["external_urls"]:
             return
             
         # Check if it's internal or external
-        is_internal = self._is_internal_url(url, results["url"])
+        is_internal = self._is_internal_url(normalized, results["url"])
         
         # Process the URL
         try:
@@ -421,7 +451,7 @@ class CrawlerModule:
             
             # Use YiraBot's crawl function to get page data if it's internal
             if is_internal:
-                results["internal_urls"].add(url)
+                results["internal_urls"].add(normalized)
                 
                 try:
                     # Set up retry mechanism for HTTP2 protocol errors
@@ -451,7 +481,7 @@ class CrawlerModule:
                     
                     # Create a successful page record
                     page_record = {
-                        "url": url,
+                        "url": normalized,
                         "status_code": 200,  # Assume successful if we got crawl data
                         "is_internal": True,
                         "referring_page": referring_url,
@@ -459,6 +489,14 @@ class CrawlerModule:
                         "title": crawl_data.get("title", "")
                     }
                     results["all_pages"].append(page_record)
+
+                    # SEO analysis for every page
+                    try:
+                        seo_data = self.bot.seo_analysis(url)
+                        page_record["seo_data"] = seo_data
+                        self._process_missing_meta_tags(url, seo_data, results)
+                    except Exception as e:
+                        self.logger.debug(f"SEO analysis failed for {url}: {e}")
                     
                     # If within max depth, crawl linked pages
                     if current_depth < max_depth:
@@ -468,22 +506,24 @@ class CrawlerModule:
                         for link in crawl_data.get("internal_links", []):
                             if link and link.strip():
                                 full_url = urljoin(url, link)
-                                # Skip fragments and query parameters for comparison
-                                url_without_fragment = full_url.split('#')[0].split('?')[0]
-                                if url_without_fragment not in [u.split('#')[0].split('?')[0] for u in results["internal_urls"]]:
+                                if self._should_filter_url(full_url):
+                                    continue
+                                full_url = self._normalize_url(full_url)
+                                if full_url not in results["internal_urls"]:
                                     self._crawl_url(full_url, url, results, max_depth, current_depth + 1, respect_robots)
                                 
                         # Process external links - only check status codes, don't crawl content
                         for link in crawl_data.get("external_links", []):
                             if link and link.strip() and link.startswith(('http://', 'https://')):
                                 full_url = link
-                                if full_url not in results["external_urls"]:
+                                if self._should_filter_url(full_url):
+                                    continue
+                                full_url = self._normalize_url(full_url)
+                                if full_url not in results["external_urls"] and full_url not in results["internal_urls"]:
                                     # Check if the link is actually internal based on our enhanced detection
                                     if self._is_internal_url(full_url, results["url"]):
                                         self.logger.debug(f"Reclassifying 'external' link as internal: {full_url}")
-                                        # Process as internal link instead
-                                        if full_url not in results["internal_urls"]:
-                                            self._crawl_url(full_url, url, results, max_depth, current_depth + 1, respect_robots)
+                                        self._crawl_url(full_url, url, results, max_depth, current_depth + 1, respect_robots)
                                     else:
                                         results["external_urls"].add(full_url)
                                         # Just check the status code without crawling the external content
@@ -495,7 +535,7 @@ class CrawlerModule:
                     self.logger.error(f"Error crawling page {url}: {error_message}")
                     # Mark as broken if we couldn't crawl it
                     page_record = {
-                        "url": url,
+                        "url": normalized,
                         "status_code": 0,
                         "is_broken": True,
                         "error_message": error_message,
@@ -505,7 +545,7 @@ class CrawlerModule:
                     }
                     results["all_pages"].append(page_record)
                     results["broken_links"].append({
-                        "url": url,
+                        "url": normalized,
                         "status_code": 0,
                         "error_message": error_message,
                         "referring_page": referring_url,
@@ -515,8 +555,8 @@ class CrawlerModule:
             else:
                 # For external URLs, just validate HTTP status without crawling
                 self.logger.debug(f"External URL: {url} - checking status code only (not crawling content)")
-                results["external_urls"].add(url)
-                self._check_link_status(url, referring_url, results, is_internal=False)
+                results["external_urls"].add(normalized)
+                self._check_link_status(normalized, referring_url, results, is_internal=False)
                 
         except Exception as e:
             # Handle connection errors for individual pages
@@ -525,7 +565,7 @@ class CrawlerModule:
             
             # Create a page record for the error
             page_record = {
-                "url": url,
+                "url": normalized,
                 "status_code": 0,
                 "is_broken": True,
                 "error_message": error_message,
@@ -537,7 +577,7 @@ class CrawlerModule:
             # Add to all_pages and broken_links
             results["all_pages"].append(page_record)
             results["broken_links"].append({
-                "url": url,
+                "url": normalized,
                 "status_code": 0,
                 "error_message": error_message,
                 "referring_page": referring_url,
@@ -546,9 +586,9 @@ class CrawlerModule:
             
             # Add to appropriate URL set
             if is_internal:
-                results["internal_urls"].add(url)
+                results["internal_urls"].add(normalized)
             else:
-                results["external_urls"].add(url)
+                results["external_urls"].add(normalized)
     
     def _capture_visual_baselines(self, website_id, results):
         """
@@ -607,9 +647,18 @@ class CrawlerModule:
             self.logger.error(f"Error capturing visual baselines: {e}", exc_info=True)
             
     def _process_missing_meta_tags(self, url, seo_data, results):
-        """Process SEO data to find missing meta tags and provide detailed reports."""
+        """Process SEO data from YiraBot to find missing meta tags."""
+        # YiraBot returns some values as tuples (value, status). Handle that here
+        title_len = seo_data.get('title_length', 0)
+        if isinstance(title_len, (list, tuple)):
+            title_len = title_len[0]
+
+        meta_len = seo_data.get('meta_desc_length', 0)
+        if isinstance(meta_len, (list, tuple)):
+            meta_len = meta_len[0]
+
         # Check for missing or too short title
-        if not seo_data.get('title_length', 0):
+        if not title_len:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Title",
@@ -617,7 +666,7 @@ class CrawlerModule:
                 "importance": "critical",
                 "title_content": None
             })
-        elif seo_data.get('title_length', 0) < 30:
+        elif title_len < 30:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Title Length",
@@ -625,7 +674,7 @@ class CrawlerModule:
                 "importance": "high",
                 "title_content": seo_data.get('title_text', '')
             })
-        elif seo_data.get('title_length', 0) > 60:
+        elif title_len > 60:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Title Length",
@@ -635,7 +684,7 @@ class CrawlerModule:
             })
             
         # Check for missing meta description
-        if not seo_data.get('meta_desc_length', 0):
+        if not meta_len:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Description",
@@ -643,7 +692,7 @@ class CrawlerModule:
                 "importance": "high",
                 "meta_content": None
             })
-        elif seo_data.get('meta_desc_length', 0) < 120:
+        elif meta_len < 120:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Description Length",
@@ -651,7 +700,7 @@ class CrawlerModule:
                 "importance": "medium",
                 "meta_content": seo_data.get('meta_desc_text', '')
             })
-        elif seo_data.get('meta_desc_length', 0) > 160:
+        elif meta_len > 160:
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "Description Length",
@@ -671,7 +720,10 @@ class CrawlerModule:
             })
             
         # Check for heading structure (if available)
-        if not seo_data.get('has_h1', False):
+        headings = seo_data.get('headings', ({}, ''))
+        if isinstance(headings, (list, tuple)):
+            headings = headings[0]
+        if not getattr(headings, 'get', lambda x, y=0: y)('h1', 0):
             results["missing_meta_tags"].append({
                 "url": url,
                 "tag_type": "H1 Heading",
@@ -958,20 +1010,22 @@ class CrawlerModule:
         if not results.get("all_pages"):
             return
             
-        # Use a set to track unique URLs
+        # Use a set to track unique normalized URLs
         seen_urls = set()
         unique_pages = []
         
         # Process broken links first to ensure we keep error information
         for page in [p for p in results.get("all_pages", []) if p.get("is_broken", False)]:
-            if page["url"] not in seen_urls:
-                seen_urls.add(page["url"])
+            norm = self._normalize_url(page["url"])
+            if norm not in seen_urls:
+                seen_urls.add(norm)
                 unique_pages.append(page)
         
         # Then process remaining pages
         for page in [p for p in results.get("all_pages", []) if not p.get("is_broken", False)]:
-            if page["url"] not in seen_urls:
-                seen_urls.add(page["url"])
+            norm = self._normalize_url(page["url"])
+            if norm not in seen_urls:
+                seen_urls.add(norm)
                 unique_pages.append(page)
         
         # Replace the all_pages list with the deduplicated list
@@ -983,8 +1037,9 @@ class CrawlerModule:
             unique_broken_links = []
             
             for link in results["broken_links"]:
-                if link["url"] not in seen_broken_urls:
-                    seen_broken_urls.add(link["url"])
+                norm = self._normalize_url(link["url"])
+                if norm not in seen_broken_urls:
+                    seen_broken_urls.add(norm)
                     unique_broken_links.append(link)
             
             results["broken_links"] = unique_broken_links
