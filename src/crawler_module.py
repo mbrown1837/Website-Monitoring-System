@@ -45,7 +45,21 @@ class CrawlerModule:
         # Note: YiraBot doesn't support user_agent in __init__, so we'll set it in headers during requests
         try:
             self.bot = Yirabot()  # Initialize with default settings
-            self.logger.info(f"YiraBot initialized. Will use user agent in requests: {self.user_agent}")
+            self.logger.info(
+                f"YiraBot initialized. Will use user agent in requests: {self.user_agent}"
+            )
+            # Patch YiraBot's random user agent helper to always return the configured one
+            try:
+                from yirabot import helper_functions
+
+                helper_functions.get_random_user_agent = lambda mobile=False: self.user_agent
+                self.logger.debug(
+                    "Patched YiraBot helper to use custom user agent"
+                )
+            except Exception as inner_exc:
+                self.logger.warning(
+                    f"Could not patch YiraBot user agent: {inner_exc}"
+                )
         except Exception as e:
             self.logger.error(f"Error initializing YiraBot: {e}", exc_info=True)
             # Create a fallback instance (same code since we're not passing custom params)
