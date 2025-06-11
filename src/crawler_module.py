@@ -12,6 +12,7 @@ try:
 except ImportError:
     raise ImportError("YiraBot library not installed. Install it using: pip install yirabot")
 
+from requests.exceptions import SSLError, ConnectTimeout, ReadTimeout, ConnectionError, TooManyRedirects, RequestException
 from src.logger_setup import setup_logging
 from src.config_loader import get_config
 
@@ -177,9 +178,11 @@ class CrawlerModule:
             netloc = parsed.netloc.lower()
             path = parsed.path or "/"
             path = re.sub(r"/+$", "", path)
-            normalized = urlunparse((scheme, netloc, path or "/", "", "", ""))
-            return normalized
-        except Exception:
+            normalized_url = urlunparse((scheme, netloc, path or "/", "", "", ""))
+            self.logger.debug(f"Normalizing URL: {url} -> {normalized_url}")
+            return normalized_url
+        except Exception as e:
+            self.logger.error(f"Error normalizing URL {url}: {e}")
             return url
 
     def _should_filter_url(self, url: str) -> bool:
@@ -387,7 +390,7 @@ class CrawlerModule:
                         results["external_urls"].add(normalized)
         
         except Exception as e:
-            self.logger.error(f"Error parsing sitemap content: {e}")
+            self.logger.error(f"Error parsing sitemap content: {type(e).__name__}: {e}", exc_info=True)
     
     def _is_internal_url(self, url, base_url):
         """
@@ -410,31 +413,38 @@ class CrawlerModule:
             base_domain = parsed_base.netloc.lower()
             
             # Check if they're exactly the same
+            is_internal_flag = False
             if url_domain == base_domain:
-                return True
+                is_internal_flag = True
+            else:
+                # Check if the URL is a subdomain of the base domain
+                # Extract root domain (e.g., "example.com" from "www.example.com" or "blog.example.com")
+                url_domain_parts = url_domain.split('.')
+                base_domain_parts = base_domain.split('.')
                 
-            # Check if the URL is a subdomain of the base domain
-            # Extract root domain (e.g., "example.com" from "www.example.com" or "blog.example.com")
-            url_domain_parts = url_domain.split('.')
-            base_domain_parts = base_domain.split('.')
+                # Get the last two parts (or just the domain if it's a single-part domain)
+                url_root_parts = url_domain_parts[-2:] if len(url_domain_parts) >= 2 else url_domain_parts
+                base_root_parts = base_domain_parts[-2:] if len(base_domain_parts) >= 2 else base_domain_parts
+
+                url_root_domain = '.'.join(url_root_parts)
+                base_root_domain = '.'.join(base_root_parts)
+
+                # If root domains match, consider internal
+                # This handles cases like comparing www.example.com to blog.example.com
+                if url_root_domain == base_root_domain:
+                    is_internal_flag = True
             
-            # Get the last two parts (or just the domain if it's a single-part domain)
-            url_root_parts = url_domain_parts[-2:] if len(url_domain_parts) >= 2 else url_domain_parts
-            base_root_parts = base_domain_parts[-2:] if len(base_domain_parts) >= 2 else base_domain_parts
-            
-            url_root_domain = '.'.join(url_root_parts)
-            base_root_domain = '.'.join(base_root_parts)
-            
-            # If root domains match, consider internal
-            # This handles cases like comparing www.example.com to blog.example.com
-            return url_root_domain == base_root_domain
+            self.logger.debug(f"Checking internal status for {url} against base {base_url}. Result: {is_internal_flag}")
+            return is_internal_flag
             
         except Exception as e:
             self.logger.error(f"Error checking if URL is internal: {e}")
             # Default to external in case of parsing error
+            self.logger.debug(f"Checking internal status for {url} against base {base_url}. Result: False (due to error)")
             return False
     
     def _crawl_url(self, url, referring_url, results, max_depth, current_depth, respect_robots):
+            # This section is removed as it's incorporated into the logic above
         """
         Crawl a specific URL and extract links.
         
@@ -473,25 +483,55 @@ class CrawlerModule:
                     retry_count = 0
                     crawl_data = None
                     
-                    while retry_count < max_retries:
-                        try:
-                            # Get the page content first using YiraBot crawl with appropriate options
-                            # Set force=True to bypass robots.txt if respect_robots is False
-                            # Note: YiraBot doesn't support custom user agent in crawl directly
-                            crawl_data = self.bot.crawl(url, force=not respect_robots)
-                            break  # If successful, exit the retry loop
-                        except Exception as e:
-                            error_message = str(e)
-                            retry_count += 1
-                            if "HTTP2" in error_message or "ERR_HTTP2_PROTOCOL_ERROR" in error_message:
-                                self.logger.warning(f"HTTP2 protocol error for {url}. Retry {retry_count}/{max_retries}")
-                                time.sleep(1)  # Wait before retrying
-                            else:
-                                # For other errors, don't retry
-                                raise
-                    
-                    if not crawl_data:
-                        raise Exception(f"Failed to crawl URL after {max_retries} retries")
+                    try:
+                        while retry_count < max_retries:
+                            try:
+                                # Get the page content first using YiraBot crawl with appropriate options
+                                # Set force=True to bypass robots.txt if respect_robots is False
+                                # Note: YiraBot doesn't support custom user agent in crawl directly
+                                crawl_data = self.bot.crawl(url, force=not respect_robots)
+                                break  # If successful, exit the retry loop
+                            except Exception as e:
+                                error_message = str(e)
+                                retry_count += 1
+                                if "HTTP2" in error_message or "ERR_HTTP2_PROTOCOL_ERROR" in error_message:
+                                    self.logger.warning(f"HTTP2 protocol error for {url}. Retry {retry_count}/{max_retries}")
+                                    time.sleep(1)  # Wait before retrying
+                                else:
+                                    # For other errors, don't retry
+                                    raise
+
+                        if not crawl_data:
+                            raise Exception(f"Failed to crawl URL after {max_retries} retries")
+                    except Exception as e:
+                        self.logger.error(f"YiraBot crawl failed for {url} with {type(e).__name__}: {e}")
+                        error_message = f"YiraBot Crawl Error: {type(e).__name__} - {e}"
+                        page_record = {
+                            "url": normalized,
+                            "status_code": 0,
+                            "is_broken": True,
+                            "error_message": error_message,
+                            "referring_page": referring_url,
+                            "is_internal": True,
+                            "crawl_depth": current_depth
+                        }
+                        results["all_pages"].append(page_record)
+                        results["broken_links"].append({
+                            "url": normalized,
+                            "status_code": 0,
+                            "error_message": error_message,
+                            "referring_page": referring_url,
+                            "is_internal": True
+                        })
+                        # Add to missing_meta_tags for unreachable page
+                        results["missing_meta_tags"].append({
+                            "url": normalized,
+                            "tag_type": "Page Unreachable",
+                            "suggestion": f"Could not fetch page content to analyze meta tags. Error: {error_message}",
+                            "importance": "critical",
+                            "is_unreachable": True
+                        })
+                        return # Skip further processing for this URL
                     
                     # Create a successful page record
                     page_record = {
@@ -510,7 +550,7 @@ class CrawlerModule:
                         page_record["seo_data"] = seo_data
                         self._process_missing_meta_tags(url, seo_data, results)
                     except Exception as e:
-                        self.logger.debug(f"SEO analysis failed for {url}: {e}")
+                        self.logger.warning(f"SEO analysis failed for {url}: {type(e).__name__}: {e}")
                     
                     # If within max depth, crawl linked pages
                     if current_depth < max_depth:
@@ -544,8 +584,8 @@ class CrawlerModule:
                                         self.logger.debug(f"Only checking status code for external URL: {full_url}")
                                         self._check_link_status(full_url, url, results, is_internal=False)
                 
-                except Exception as e:
-                    error_message = str(e)
+                except Exception as e: # This block should ideally not be reached if the above try/except for self.bot.crawl() is comprehensive
+                    error_message = f"YiraBot Crawl Error: {type(e).__name__} - {e}"
                     self.logger.error(f"Error crawling page {url}: {error_message}")
                     # Mark as broken if we couldn't crawl it
                     page_record = {
@@ -574,8 +614,8 @@ class CrawlerModule:
                 
         except Exception as e:
             # Handle connection errors for individual pages
-            error_message = str(e)
-            self.logger.error(f"Error processing URL {url}: {e}")
+            error_message = str(e) # Keep this for the page_record
+            self.logger.error(f"Error processing URL {url}: {type(e).__name__}: {e}", exc_info=True)
             
             # Create a page record for the error
             page_record = {
@@ -761,7 +801,7 @@ class CrawlerModule:
         try:
             # Use proper HTTP request to check link
             import requests
-            from requests.exceptions import RequestException
+            # SSLError, ConnectTimeout, ReadTimeout, ConnectionError, TooManyRedirects, RequestException are already imported at the top
             
             self.logger.debug(f"Checking link status for: {url}")
             
@@ -779,7 +819,8 @@ class CrawlerModule:
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.5',
                 'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+                'Pragma': 'no-cache',
+                'Accept-Encoding': 'gzip, deflate'  # Added Accept-Encoding
             }
             
             for attempt in range(max_retries):
@@ -788,9 +829,9 @@ class CrawlerModule:
                     if attempt < 2:
                         # First attempts: Try HEAD request (faster)
                         response = requests.head(
-                            url, 
-                            timeout=10, 
-                            allow_redirects=True, 
+                            url,
+                            timeout=10,
+                            allow_redirects=True,
                             headers=headers,
                             verify=True  # SSL verification
                         )
@@ -800,9 +841,9 @@ class CrawlerModule:
                             # Method not allowed or common errors - try GET
                             self.logger.debug(f"HEAD request returned {response.status_code} for {url}, trying GET")
                             response = requests.get(
-                                url, 
+                                url,
                                 timeout=15,
-                                allow_redirects=True, 
+                                allow_redirects=True,
                                 headers=headers,
                                 verify=True
                             )
@@ -820,7 +861,7 @@ class CrawlerModule:
                         
                         # Use GET request for all later attempts
                         response = requests.get(
-                            url, 
+                            url,
                             timeout=timeout,
                             allow_redirects=True,
                             headers=headers,
@@ -836,6 +877,7 @@ class CrawlerModule:
                     
                     # If successful, break the retry loop
                     if status_code < 400:
+                        error_msg = "" # Clear previous error messages
                         break
                     
                     error_msg = f"HTTP Error: {status_code}"
@@ -843,33 +885,39 @@ class CrawlerModule:
                     # Only retry server errors (5xx), not client errors (4xx)
                     if status_code < 500:
                         break
-                        
+
+                except SSLError as e:
+                    self.logger.error(f"Caught SSLError for {url}: {e}")
+                    status_code = 0
+                    error_msg = "SSL Certificate Error"
+                except ConnectTimeout as e:
+                    self.logger.error(f"Caught ConnectTimeout for {url}: {e}")
+                    status_code = 0
+                    error_msg = "Connection Timeout"
+                except ReadTimeout as e:
+                    self.logger.error(f"Caught ReadTimeout for {url}: {e}")
+                    status_code = 0
+                    error_msg = "Read Timeout"
+                except ConnectionError as e:
+                    self.logger.error(f"Caught ConnectionError for {url}: {e}")
+                    status_code = 0
+                    error_msg = "Connection Refused"
+                except TooManyRedirects as e:
+                    self.logger.error(f"Caught TooManyRedirects for {url}: {e}")
+                    status_code = 0
+                    error_msg = "Too Many Redirects"
                 except RequestException as e:
-                    error_msg = str(e)
-                    self.logger.debug(f"Request error on attempt {attempt+1} for {url}: {e}")
+                    self.logger.error(f"Caught RequestException for {url}: {e}")
+                    status_code = 0
+                    error_msg = f"Request Exception: {type(e).__name__}"
+                    # Break on generic RequestException as retrying might not help
+                    break
                     
-                    # Categorize the error type for better reporting
-                    if "ConnectionError" in error_msg or "Connection refused" in error_msg:
-                        status_code = 0
-                        error_msg = "Connection Error"
-                    elif "Timeout" in error_msg:
-                        status_code = 0
-                        error_msg = "Connection Timeout"
-                    elif "SSLError" in error_msg:
-                        status_code = 0
-                        error_msg = "SSL Certificate Error"
-                    elif "ProxyError" in error_msg:
-                        status_code = 0
-                        error_msg = "Proxy Connection Error"
-                    elif "TooManyRedirects" in error_msg:
-                        status_code = 0
-                        error_msg = "Too Many Redirects"
-                    
-                # If not the last attempt, wait before retrying
+                # If not the last attempt, wait before retrying (only if not a specific RequestException that broke the loop)
                 if attempt < max_retries - 1:
                     # Increase delay with each retry (backoff strategy)
                     current_delay = retry_delay * (attempt + 1)
-                    self.logger.debug(f"Retrying {url} in {current_delay}s (attempt {attempt+1}/{max_retries})")
+                    self.logger.debug(f"Retrying {url} in {current_delay}s (attempt {attempt+1}/{max_retries}) due to: {error_msg}")
                     import time
                     time.sleep(current_delay)
             
@@ -904,7 +952,7 @@ class CrawlerModule:
                 
         except Exception as e:
             # Handle unexpected errors
-            error_message = str(e)
+            error_message_for_record = str(e) # Keep this for the page_record
             
             # Create a page record for the error
             page_record = {
@@ -921,12 +969,12 @@ class CrawlerModule:
             results["broken_links"].append({
                 "url": url,
                 "status_code": 0,
-                "error_message": error_message,
+                "error_message": error_message_for_record,
                 "referring_page": referring_url,
                 "is_internal": is_internal
             })
             
-            self.logger.debug(f"Error checking link {url}: {e}")
+            self.logger.error(f"Error checking link {url}: {type(e).__name__}: {e}", exc_info=True)
     
     def _save_crawl_results(self, website_id, results):
         """Save crawl results to database."""
@@ -1028,18 +1076,22 @@ class CrawlerModule:
         seen_urls = set()
         unique_pages = []
         
-        # Process broken links first to ensure we keep error information
-        for page in [p for p in results.get("all_pages", []) if p.get("is_broken", False)]:
+        all_current_pages = results.get("all_pages", [])
+        successful_page_entries = [p for p in all_current_pages if not p.get("is_broken", False)]
+        broken_page_entries = [p for p in all_current_pages if p.get("is_broken", False)]
+
+        # Process successful pages first
+        for page in successful_page_entries:
             norm = self._normalize_url(page["url"])
             if norm not in seen_urls:
                 seen_urls.add(norm)
                 unique_pages.append(page)
         
-        # Then process remaining pages
-        for page in [p for p in results.get("all_pages", []) if not p.get("is_broken", False)]:
+        # Then process broken pages, only adding if not already seen as successful
+        for page in broken_page_entries:
             norm = self._normalize_url(page["url"])
-            if norm not in seen_urls:
-                seen_urls.add(norm)
+            if norm not in seen_urls: # Only add if a successful version of this page wasn't already added
+                seen_urls.add(norm) # Add to seen_urls here too, in case of multiple broken entries for the same URL
                 unique_pages.append(page)
         
         # Replace the all_pages list with the deduplicated list
