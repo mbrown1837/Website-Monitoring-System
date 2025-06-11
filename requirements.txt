@@ -12,6 +12,7 @@ playwright
 diff-match-patch
 opencv-python
 scikit-image
+yirabot>=1.0.9
 
 # schedule==1.2.0
 # beautifulsoup4==4.11.1

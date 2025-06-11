@@ -126,6 +126,118 @@ class HistoryManager:
                 return record
         self.logger.debug(f"Check record with ID '{check_id}' not found.")
         return None
+        
+    def add_history_entry(self, website_id: str, check_result: dict) -> bool:
+        """
+        Add a new history entry for a website check.
+        
+        Args:
+            website_id (str): The unique identifier for the website.
+            check_result (dict): The result of the website check.
+            
+        Returns:
+            bool: True if history was successfully updated, False otherwise.
+        """
+        if not website_id or not isinstance(check_result, dict):
+            self.logger.error("Invalid parameters for add_history_entry")
+            return False
+        
+        try:
+            # Create a history entry from the check result
+            entry = self._create_history_entry(website_id, check_result)
+            
+            # Get current website history
+            current_history = self.get_history_for_site(website_id)
+            if current_history is None:
+                current_history = []
+                
+            # Make sure all paths in the history entry are properly formatted for web display
+            entry = self._normalize_paths_for_web(entry)
+                
+            # Add new entry at the beginning of the history
+            self._history.insert(0, entry)
+            
+            # Limit the number of entries for this site
+            max_entries = self.config.get('max_history_entries_per_site', 100)
+            site_entries = [record for record in self._history if record.get('site_id') == website_id]
+            if len(site_entries) > max_entries:
+                # Keep most recent max_entries for this site
+                site_ids_to_keep = set(record['check_id'] for record in site_entries[:max_entries])
+                # Filter the main history list
+                self._history = [record for record in self._history 
+                                if record.get('site_id') != website_id or record.get('check_id') in site_ids_to_keep]
+            
+            # Save history to file
+            self._save_history()
+            self.logger.info(f"Added history entry for website ID {website_id}")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error adding history entry: {e}", exc_info=True)
+            return False
+            
+    def _normalize_paths_for_web(self, entry: dict) -> dict:
+        """
+        Normalize file paths in history entry for web display.
+        Ensures paths are relative to /data directory and use forward slashes.
+        
+        Args:
+            entry (dict): The history entry to normalize
+            
+        Returns:
+            dict: The updated history entry with normalized paths
+        """
+        try:
+            # Helper function to normalize a single path
+            def normalize_path(path):
+                if not path:
+                    return None
+                    
+                # Convert Windows backslashes to forward slashes
+                path = path.replace("\\", "/")
+                
+                # Ensure path is relative to /data
+                if path.startswith("data/"):
+                    return path
+                    
+                # Check if it's an absolute path containing 'data/'
+                if "data/" in path:
+                    # Extract portion after 'data/'
+                    path_parts = path.split("data/")
+                    if len(path_parts) > 1:
+                        return "data/" + path_parts[1]
+                        
+                return path
+            
+            # Normalize paths in baseline and current HTML/visual paths
+            for path_key in ["visual_snapshot_path", "baseline_snapshot_path", 
+                             "current_html_path", "baseline_html_path", "html_diff_path"]:
+                if path_key in entry and entry[path_key]:
+                    entry[path_key] = normalize_path(entry[path_key])
+            
+            # Handle crawler results visual baselines
+            if "crawler_results" in entry and entry["crawler_results"]:
+                if "visual_baselines" in entry["crawler_results"]:
+                    for i, baseline in enumerate(entry["crawler_results"]["visual_baselines"]):
+                        if "visual_path" in baseline:
+                            entry["crawler_results"]["visual_baselines"][i]["visual_path"] = normalize_path(baseline["visual_path"])
+            
+            return entry
+            
+        except Exception as e:
+            self.logger.error(f"Error normalizing paths: {e}", exc_info=True)
+            return entry  # Return original entry if normalization fails
+            
+    def _create_history_entry(self, website_id: str, check_result: dict) -> dict:
+        """Create a history entry from a check result."""
+        # This is a stub method for now - implement based on requirements
+        return {
+            "check_id": str(uuid.uuid4()),
+            "site_id": website_id,
+            "timestamp": datetime.now().isoformat(),
+            **check_result
+        }
 
 # Example Usage (for direct script execution testing)
 if __name__ == '__main__':

@@ -1031,5 +1031,321 @@
     "significant_change_detected": true,
     "compared_with_check_id": "4b195627-65b5-4337-bd43-3df94a043280",
     "compared_against_baseline_html_hash": "9fbd8eda5435aa5bac5a9b23fc57f0bd362ac25ff5a6beede09d05c914e3d755"
+  },
+  {
+    "check_id": "45e9628f-c655-4265-b1e9-38c9cccb25d8",
+    "site_id": "241da179-fd9c-490d-8ec2-d46c8bdb23c0",
+    "timestamp_utc": "2025-06-02T17:17:56.833710+00:00",
+    "timestamp_readable": "2025-06-02 17:17:56 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\tpcbuild_com\\241da179-fd9c-490d-8ec2-d46c8bdb23c0\\html\\20250602_171735_916152_utc.html",
+    "html_content_hash": "116f50b66b86bcd70e25f09bc08f88abe80f81a3de13883401a97fa84157bf53",
+    "visual_snapshot_path": null,
+    "url": "https://tpcbuild.com/",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "TPC INC \u2013 Built on Trust. Powered by Expertise.\nSkip to content\nWelcome to TPC INC - Quality Building Solutions\nHome\nServices\nConcrete\nElectrical\nOther\nAbout\nContact\nHome\nServices\nConcrete\nElectrical\nOther\nAbout\nContact\nGet a free quote\nProudly Serving Since 1999\nConstruction & Electrical Services for Residential and Commercial Projects\nDISCOVER OUR SERVICES\nServing all of Orange County, as well as Temecula, Murrieta, Wildomar, Lake Elsinore, La Cresta, French Valley, Menifee, Canyon Lake, and surrounding areas\nRequest a quote\nAbout Company\nProviding accurate, transparent estimates with no surprise charges\nAt TPC Inc Quality Building Solutions, integrity, craftsmanship, and client satisfaction are paramount. Founded in 1999 by Tyler Phillips, we are your trusted Southern California partner for reliable general contracting and electrical expertise, building lasting relationships by understanding your vision and exceeding expectations.\nProviding realistic estimates with no surprise charges\nUsing the best materials and skilled workmanship\nMeeting project deadlines and exceeding client expectations\nTyler Phillips\nFOUNDER\nWhat we\u2019re offering\nOur Core Services\nConcrete ServicesWe provide expert reliable, robust, and beautiful concrete solutions including footings, foundations, slab work, driveways, sidewalks, pathways, stucco, block walls, and paver installations \u2014 all designed for durability and aesthetics.\nView All Our Services\nElectrical ServicesOur electrical services cover panel upgrades, circuit breaker installation and troubleshooting, interior and exterior lighting solutions, switches and outlets, dedicated circuits, and comprehensive facility electrical maintenance.\nView All Our Services\nFacility Electrical MaintenanceOur team supports ongoing facility maintenance with comprehensive and reliable electrical and power services such as exhaust fan and AC unit wiring, machine power supply, security lighting, and specialized power solutions tailored to your business needs.\nView All Our Services\nInspiring solutions\nOur Skilled Team Is Committed to Building Your Vision\nGet a free quote\nOur skilled team ensures timely, quality work with a focus on safety and client satisfaction.\nWe always work with a great team\nSkilled in commercial & residential projects\nCommitted to safety & quality\nReliable & punctual\nWe always work with a great team\nClients feedbacks\nWhat They\u2019re Talking About Company Work\nWe\u2019re ProfessionalReliable experts delivering quality construction and electrical work.\nDelivery on TimeProjects completed promptly, every time.\nQuality MaterialsOnly trusted, durable materials used.\nIndustrial Groups\nWe Create Big Things with Big Ideas\nChoosing TPC Inc. means partnering with a team dedicated to your project\u2019s success. We strive to be a leader by exceeding expectations through quality, integrity, and professionalism.\n(714) 696-2185\nOur experienced team delivers reliable, high-quality construction and electrical services tailored to your project needs. Let us help bring your vision to life with expert craftsmanship and attention to detail.\nGet a Free Estimate\u200b(714) 696-2185\nTPC Inc is dedicated to delivering high-quality construction and electrical services with integrity and expertise. We prioritize customer satisfaction and reliable results on every project. We proudly serve all of Orange County, as well as Temecula, Murrieta, Wildomar, Lake Elsinore, La Cresta, French Valley, Menifee, Canyon Lake, and nearby communities.\nQuick Links\nHome\nAbout Us\nServices\nConcrete Services\nElectric Services\nOther Services\nContact Us\nContact Info\n27860 Goetz Rd Menifee, CA 92587\nContact Us\n(714) 696-2185\nInstagram\n\u00a9 2025 TPC INC | All Rights Reserved | Powered by Digital Clics\nManage Consent\nTo provide the best experiences, we use technologies like cookies to store and/or access device information. Consenting to these technologies will allow us to process data such as browsing behavior or unique IDs on this site. Not consenting or withdrawing consent, may adversely affect certain features and functions.\nFunctional\nFunctional\nAlways active\nThe technical storage or access is strictly necessary for the legitimate purpose of enabling the use of a specific service explicitly requested by the subscriber or user, or for the sole purpose of carrying out the transmission of a communication over an electronic communications network.\nPreferences\nPreferences\nThe technical storage or access is necessary for the legitimate purpose of storing preferences that are not requested by the subscriber or user.\nStatistics\nStatistics\nThe technical storage or access that is used exclusively for statistical purposes.\nThe technical storage or access that is used exclusively for anonymous statistical purposes. Without a subpoena, voluntary compliance on the part of your Internet Service Provider, or additional records from a third party, information stored or retrieved for this purpose alone cannot usually be used to identify you.\nMarketing\nMarketing\nThe technical storage or access is required to create user profiles to send advertising, or to track the user on a website or across several websites for similar marketing purposes.\nManage options\nManage services\nManage {vendor_count} vendors\nRead more about these purposes\nAccept\nDeny\nView preferences\nSave preferences\nView preferences\n{title}\n{title}\n{title}\nManage consent"
+      ]
+    ],
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "6d9da591-4ea3-4ded-8c8d-c0e912ff6dfd",
+    "site_id": "88c4f45b-abb3-4fdd-82b8-1a3d25b21ff9",
+    "timestamp_utc": "2025-06-03T04:45:24.707381+00:00",
+    "timestamp_readable": "2025-06-03 04:45:24 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\88c4f45b-abb3-4fdd-82b8-1a3d25b21ff9\\html\\20250603_044513_059098_utc.html",
+    "html_content_hash": "bcb17f60273cd4fef21b903a872580739760a32b1bd0031b6a65449727302bbe",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\88c4f45b-abb3-4fdd-82b8-1a3d25b21ff9\\visual\\20250603_044513_059098_utc.png",
+    "url": "http://localhost:8000/link_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Link Checker Test Page\nLink Checker Test Page\nWorking Links (200 OK)\nGoogle\nGitHub\nMicrosoft\nAmazon\nWikipedia\nBroken Links (404 Not Found)\nNon-existent Page\nGoogle 404\nGitHub 404\nMicrosoft 404\nAmazon 404\nRedirect Links (302)\nGitHub (HTTP to HTTPS)\nGoogle (HTTP to HTTPS)\nMicrosoft (HTTP to HTTPS)\nYouTube (HTTP to HTTPS)\nLinkedIn (HTTP to HTTPS)\nInternal Links\nTop of Page\nHome Page\nAbout Page\nContact Page\nProducts Page\nMixed Content Links\nFTP Link\nEmail Link\nPhone Link\nJavaScript Link\nClick Event Link\nNote: This page contains various types of links to test link checking functionality."
+      ]
+    ],
+    "visual_diff_score": 0.0,
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "947435ce-b213-4412-9aaa-1aad32eb6eef",
+    "site_id": "b0c3a511-980a-4f5e-a88f-ff8b7bb97a1f",
+    "timestamp_utc": "2025-06-03T05:14:09.171264+00:00",
+    "timestamp_readable": "2025-06-03 05:14:09 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b0c3a511-980a-4f5e-a88f-ff8b7bb97a1f\\html\\20250603_051357_344825_utc.html",
+    "html_content_hash": "bcb17f60273cd4fef21b903a872580739760a32b1bd0031b6a65449727302bbe",
+    "visual_snapshot_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\localhost_8000\\b0c3a511-980a-4f5e-a88f-ff8b7bb97a1f\\visual\\20250603_051357_344825_utc.png",
+    "url": "http://localhost:8000/link_test.html",
+    "fetch_status_code": 200,
+    "content_diff_score": 1.0,
+    "content_diff_details": [],
+    "structure_diff_score": 1.0,
+    "structure_diff_details": [],
+    "semantic_diff_score": 1.0,
+    "semantic_diff_details": [
+      [
+        0,
+        "Link Checker Test Page\nLink Checker Test Page\nWorking Links (200 OK)\nGoogle\nGitHub\nMicrosoft\nAmazon\nWikipedia\nBroken Links (404 Not Found)\nNon-existent Page\nGoogle 404\nGitHub 404\nMicrosoft 404\nAmazon 404\nRedirect Links (302)\nGitHub (HTTP to HTTPS)\nGoogle (HTTP to HTTPS)\nMicrosoft (HTTP to HTTPS)\nYouTube (HTTP to HTTPS)\nLinkedIn (HTTP to HTTPS)\nInternal Links\nTop of Page\nHome Page\nAbout Page\nContact Page\nProducts Page\nMixed Content Links\nFTP Link\nEmail Link\nPhone Link\nJavaScript Link\nClick Event Link\nNote: This page contains various types of links to test link checking functionality."
+      ]
+    ],
+    "visual_diff_score": 0.0,
+    "meta_changes": {},
+    "link_changes": {},
+    "image_src_changes": {},
+    "significant_change_detected": false
+  },
+  {
+    "check_id": "04d53507-7888-461b-acf2-db86e306ceb2",
+    "site_id": "b921294e-0a60-4bb0-9c1f-a0a4597d0e48",
+    "timestamp_utc": "2025-06-03T05:46:30.929475+00:00",
+    "timestamp_readable": "2025-06-03 05:46:30 UTC",
+    "status": "baseline_captured",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://localhost:8000/link_test.html",
+    "crawler_results": {
+      "broken_links_count": 0,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 0,
+      "crawler_timestamp": "2025-06-03T10:46:30.828065"
+    }
+  },
+  {
+    "check_id": "fadaa117-692e-4bd2-b6d5-1fdda8c7171a",
+    "site_id": "b921294e-0a60-4bb0-9c1f-a0a4597d0e48",
+    "timestamp_utc": "2025-06-03T05:47:05.393823+00:00",
+    "timestamp_readable": "2025-06-03 05:47:05 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://localhost:8000/link_test.html",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-03T10:47:05.383042"
+    }
+  },
+  {
+    "check_id": "7c9e3f06-69fe-4d93-9ddf-d17a2e5c69a2",
+    "site_id": "a6583aaf-247c-488c-aff6-2a9a2d0add92",
+    "timestamp_utc": "2025-06-03T06:13:29.601124+00:00",
+    "timestamp_readable": "2025-06-03 06:13:29 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://thewebturtles.com/",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-03T11:13:29.588837"
+    }
+  },
+  {
+    "check_id": "96d314f2-abaf-41fe-99e2-a9826f545dcc",
+    "site_id": "a6583aaf-247c-488c-aff6-2a9a2d0add92",
+    "timestamp_utc": "2025-06-03T06:20:32.229225+00:00",
+    "timestamp_readable": "2025-06-03 06:20:32 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://thewebturtles.com/",
+    "crawler_results": {
+      "broken_links_count": 0,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 4,
+      "crawler_timestamp": "2025-06-03T11:19:58.151740"
+    }
+  },
+  {
+    "check_id": "6e09d90b-3acf-4c42-9403-d0bb660f92c3",
+    "site_id": "a6583aaf-247c-488c-aff6-2a9a2d0add92",
+    "timestamp_utc": "2025-06-03T06:22:54.606668+00:00",
+    "timestamp_readable": "2025-06-03 06:22:54 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://thewebturtles.com/",
+    "crawler_results": {
+      "broken_links_count": 0,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 4,
+      "crawler_timestamp": "2025-06-03T11:22:13.445462"
+    }
+  },
+  {
+    "check_id": "c7920717-8219-4d05-bcdf-877eafd3f758",
+    "site_id": "df7d6dc5-4c3e-440c-b494-c2b51901b467",
+    "timestamp_utc": "2025-06-03T06:23:08.895684+00:00",
+    "timestamp_readable": "2025-06-03 06:23:08 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://jeconveyors.com/",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-03T11:23:06.554379"
+    }
+  },
+  {
+    "check_id": "3015ba1c-174f-4e03-87ac-2a48ad329551",
+    "site_id": "500dd394-6e9f-4d83-944b-e643c774c1c4",
+    "timestamp_utc": "2025-06-03T06:27:09.914995+00:00",
+    "timestamp_readable": "2025-06-03 06:27:09 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://the-internet.herokuapp.com/status_codes",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-03T11:27:09.426084"
+    }
+  },
+  {
+    "check_id": "010d059e-59e3-42fb-ba33-062cc0f67dc1",
+    "site_id": "500dd394-6e9f-4d83-944b-e643c774c1c4",
+    "timestamp_utc": "2025-06-03T06:27:30.528832+00:00",
+    "timestamp_readable": "2025-06-03 06:27:30 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://the-internet.herokuapp.com/status_codes",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-03T11:27:30.021271"
+    }
+  },
+  {
+    "check_id": "83341676-3706-45ce-819c-6fb9ef998277",
+    "site_id": "beac0a5d-6251-475f-9755-3577df57999a",
+    "timestamp_utc": "2025-06-04T15:08:53.896795+00:00",
+    "timestamp_readable": "2025-06-04 15:08:53 UTC",
+    "status": "completed_no_changes",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://tpcbuild.com/",
+    "crawler_results": {
+      "broken_links_count": 1,
+      "missing_meta_tags_count": 0,
+      "total_pages_count": 1,
+      "crawler_timestamp": "2025-06-04T20:08:51.216391"
+    }
+  },
+  {
+    "check_id": "ddf3abff-06dd-4652-be59-8e2909d3f7a9",
+    "site_id": "6c4f927b-6e32-4b4a-86f8-ef5839770757",
+    "timestamp_utc": "2025-06-04T16:47:28.365027+00:00",
+    "timestamp_readable": "2025-06-04 16:47:28 UTC",
+    "status": "success",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "check_type": "crawl_only",
+    "crawl_results": {
+      "broken_links": 1,
+      "missing_meta_tags": 0,
+      "total_pages": 18
+    }
+  },
+  {
+    "check_id": "59d25c19-9232-4de1-96d0-d8f1c1cecd6d",
+    "site_id": "6c4f927b-6e32-4b4a-86f8-ef5839770757",
+    "timestamp_utc": "2025-06-04T16:48:24.369823+00:00",
+    "timestamp_readable": "2025-06-04 16:48:24 UTC",
+    "status": "success",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "check_type": "crawl_only",
+    "crawl_results": {
+      "broken_links": 3,
+      "missing_meta_tags": 0,
+      "total_pages": 18
+    }
+  },
+  {
+    "check_id": "f99f18ac-5dc8-4ad8-b91a-331df64208e0",
+    "site_id": "5c2b4358-5fe9-430a-9f4b-2288ff4522d7",
+    "timestamp_utc": "2025-06-04T19:42:55.100674+00:00",
+    "timestamp_readable": "2025-06-04 19:42:55 UTC",
+    "status": "success",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "check_type": "full",
+    "crawl_results": {
+      "broken_links": 2,
+      "missing_meta_tags": 0,
+      "total_pages": 12
+    }
+  },
+  {
+    "check_id": "eaa5dfbc-650f-4a90-af1e-2aa8d82b826a",
+    "site_id": "5c2b4358-5fe9-430a-9f4b-2288ff4522d7",
+    "timestamp_utc": "2025-06-04T19:56:30.886597+00:00",
+    "timestamp_readable": "2025-06-04 19:56:30 UTC",
+    "status": "success",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "check_type": "full",
+    "crawl_results": {
+      "broken_links": 1,
+      "missing_meta_tags": 0,
+      "total_pages": 1
+    }
+  },
+  {
+    "check_id": "a2e1a078-9f97-4e2c-b05a-7ca81bda3b4f",
+    "site_id": "08a2ffbd-1729-4128-8d3c-a7a1da84904e",
+    "timestamp_utc": "2025-06-04T20:04:01.796822+00:00",
+    "timestamp_readable": "2025-06-04 20:04:01 UTC",
+    "status": "success",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "check_type": "full",
+    "crawl_results": {
+      "broken_links": 0,
+      "missing_meta_tags": 0,
+      "total_pages": 4
+    }
   }
 ]

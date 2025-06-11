@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block title %}Missing Meta Tags - {{ website_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">Missing Meta Tags</h1>
+        <p class="text-muted">
+            Identify and resolve missing meta tags on {{ website_name }} to improve SEO and accessibility.
+        </p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('website_history', site_id=website_id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to History
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="card-title mb-0">Missing Meta Tags Report</h5>
+                <p class="text-muted small mb-0">
+                    Latest scan: {{ timestamp }}
+                </p>
+            </div>
+            <div class="col-auto">
+                <span class="badge rounded-pill {% if missing_tags|length > 0 %}bg-warning{% else %}bg-success{% endif %}">
+                    {{ missing_tags|length }} issues found
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if missing_tags|length == 0 %}
+        <div class="alert alert-success" role="alert">
+            <i class="bi bi-check-circle"></i> No missing meta tags detected on this website.
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Missing Tag Type</th>
+                        <th>Suggestion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tag in missing_tags %}
+                    <tr>
+                        <td class="text-break">{{ tag.url }}</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">{{ tag.tag_type }}</span>
+                        </td>
+                        <td>{{ tag.suggestion }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4">
+            <h5>Why Meta Tags Matter</h5>
+            <ul>
+                <li><strong>Title Tags:</strong> Critical for SEO and display in search results</li>
+                <li><strong>Meta Descriptions:</strong> Improve click-through rates from search engines</li>
+                <li><strong>Alt Text:</strong> Essential for accessibility and helps with image SEO</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Filter Options</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('website_missing_meta_tags', site_id=website_id) }}" method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="tagType" class="form-label">Tag Type</label>
+                <select class="form-select" id="tagType" name="tag_type">
+                    <option value="">All Tag Types</option>
+                    <option value="Title" {% if request.args.get('tag_type') == 'Title' %}selected{% endif %}>Title</option>
+                    <option value="Description" {% if request.args.get('tag_type') == 'Description' %}selected{% endif %}>Description</option>
+                    <option value="Alt Text" {% if request.args.get('tag_type') == 'Alt Text' %}selected{% endif %}>Alt Text</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchUrl" class="form-label">Search URL</label>
+                <input type="text" class="form-control" id="searchUrl" name="search_url" placeholder="Enter URL fragment" value="{{ request.args.get('search_url', '') }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{{ url_for('website_missing_meta_tags', site_id=website_id) }}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

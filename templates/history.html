@@ -19,6 +19,7 @@
                 <th>Changes Detected</th>
                 <th>HTML Snapshot</th>
                 <th>Visual Snapshot</th>
+                <th>Crawler Results</th>
                 <th>Summary / Error</th>
             </tr>
         </thead>
@@ -76,6 +77,30 @@
                     {% endif %}
                 </td>
                 <td>
+                    {% if record.crawler_results %}
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Crawler Results">
+                            <a href="{{ url_for('website_crawler', site_id=website.id) }}" class="btn btn-outline-primary btn-sm" title="View all crawler results">
+                                <i class="bi bi-search"></i> Full Report
+                            </a>
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-list"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('website_broken_links', site_id=website.id) }}">
+                                        <span class="badge bg-danger me-1">{{ record.crawler_results.broken_links_count }}</span> Broken Links
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('website_missing_meta_tags', site_id=website.id) }}">
+                                        <span class="badge bg-warning text-dark me-1">{{ record.crawler_results.missing_meta_tags_count }}</span> Missing Meta Tags
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
                     {% if record.status == 'error' %}
                         <small class="text-danger">{{ record.error_message | truncate(150) }}</small>
                     {% elif record.status == 'success' or record.status == 'completed_with_changes' or record.changes_detected or record.significant_change_detected %}
@@ -123,6 +148,18 @@
                             {% if record.image_src_changes and record.image_src_changes.added_images %}
                                 <li>Images: {{ record.image_src_changes.added_images | length }} added</li>
                             {% endif %}
+                            
+                            {% if record.has_crawler_issues %}
+                                <li class="text-danger">
+                                    {% if record.crawler_results.broken_links_count %}
+                                    <i class="bi bi-link-slash"></i> {{ record.crawler_results.broken_links_count }} broken links
+                                    {% endif %}
+                                    {% if record.crawler_results.missing_meta_tags_count %}
+                                    {% if record.crawler_results.broken_links_count %}, {% endif %}
+                                    <i class="bi bi-tag"></i> {{ record.crawler_results.missing_meta_tags_count }} missing tags
+                                    {% endif %}
+                                </li>
+                            {% endif %}
                         </ul>
                     {% elif record.status == 'success' or record.status == 'completed_no_changes' %}
                         <small class="text-success">No significant changes detected.</small>
@@ -139,24 +176,74 @@
 <div class="alert alert-info" role="alert">
   No check history found for this website yet.
   {% if website.is_active %}
-  <form action="{{ url_for('manual_check_website', site_id=website.id) }}" method="POST" class="d-inline">
-      <button type="submit" class="btn btn-sm btn-success ms-2">Run First Check Now</button>
-  </form>
+  <button type="button" class="btn btn-sm btn-success ms-2" data-bs-toggle="modal" data-bs-target="#checkOptionsModal">
+    Run First Check Now
+  </button>
   {% endif %}
 </div>
 {% endif %}
 
 <div class="mt-3">
-    <form action="{{ url_for('manual_check_website', site_id=website.id) }}" method="POST" class="d-inline">
-        <button type="submit" class="btn btn-info" {% if not website.is_active %}disabled title="Activate website to run check"{% endif %}>Trigger Manual Check</button>
-    </form>
+    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#checkOptionsModal" {% if not website.is_active %}disabled title="Activate website to run check"{% endif %}>
+        Trigger Manual Check
+    </button>
+</div>
+
+<!-- Check Options Modal -->
+<div class="modal fade" id="checkOptionsModal" tabindex="-1" aria-labelledby="checkOptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkOptionsModalLabel">Check Options</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('manual_check_website', site_id=website.id) }}" method="POST">
+                <div class="modal-body">
+                    <p>Select check type:</p>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="fullCheck" name="check_type" value="full" checked>
+                            <label class="form-check-label" for="fullCheck">
+                                <strong>Full Check</strong> - Crawl site and check for visual/content changes
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="crawlOnly" name="check_type" value="crawl">
+                            <label class="form-check-label" for="crawlOnly">
+                                <strong>Crawl Only</strong> - Check for broken links and SEO issues only
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="visualOnly" name="check_type" value="visual">
+                            <label class="form-check-label" for="visualOnly">
+                                <strong>Visual Check Only</strong> - Check for visual/content changes only
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="createBaseline" name="create_baseline">
+                        <label class="form-check-label" for="createBaseline">
+                            <strong>Create Baseline</strong> - Take snapshots of all internal URLs (useful for first check)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Run Check</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Optional: Add any JS specific to the history page here
-// For example, to auto-refresh history or provide more interactive elements.
+document.addEventListener('DOMContentLoaded', function() {
+    // No need for the checkbox conflict handling since we're using radio buttons now
+});
 </script>
 {% endblock %} 

@@ -134,43 +134,130 @@ def save_visual_snapshot(site_id: str, url: str, timestamp: datetime = None, is_
         logger.error(f"Could not create directory {site_visual_dir} for visual snapshots: {e}")
         return None
 
-    try:
-        with sync_playwright() as p:
-            browser_type = config.get('playwright_browser_type', 'chromium') # chromium, firefox, webkit
-            headless_mode = config.get('playwright_headless_mode', True)
-            user_agent = config.get('playwright_user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36')
-            render_delay_ms = config.get('playwright_render_delay_ms', 3000) # milliseconds
+    # Implement retry logic for more reliability
+    max_retries = 3
+    retry_delay = 2  # seconds
+    
+    for attempt in range(1, max_retries + 1):
+        try:
+            with sync_playwright() as p:
+                browser_type = config.get('playwright_browser_type', 'chromium') # chromium, firefox, webkit
+                headless_mode = config.get('playwright_headless_mode', True)
+                user_agent = config.get('playwright_user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36')
+                render_delay_ms = config.get('playwright_render_delay_ms', 3000) # milliseconds
+                navigation_timeout_ms = config.get('playwright_navigation_timeout_ms', 60000)
+                
+                # Increase timeouts for later attempts
+                if attempt > 1:
+                    navigation_timeout_ms += (attempt - 1) * 20000  # Add 20 seconds per retry
+                    render_delay_ms += (attempt - 1) * 1000  # Add 1 second per retry
+                
+                logger.info(f"Attempt {attempt}/{max_retries}: Capturing snapshot for {url} with {browser_type}")
+                browser = None
+                if browser_type == 'chromium':
+                    browser = p.chromium.launch(headless=headless_mode)
+                elif browser_type == 'firefox':
+                    browser = p.firefox.launch(headless=headless_mode)
+                elif browser_type == 'webkit':
+                    browser = p.webkit.launch(headless=headless_mode)
+                else:
+                    logger.error(f"Unsupported browser type '{browser_type}' in config. Using Chromium.")
+                    browser = p.chromium.launch(headless=headless_mode)
+                
+                # Use larger viewport for better screenshots
+                viewport_size = {"width": 1920, "height": 1080}
+                context = browser.new_context(
+                    user_agent=user_agent, 
+                    viewport=viewport_size,
+                    ignore_https_errors=True  # More permissive for sites with certificate issues
+                )
+                
+                # Add extra headers that might help with sites blocking scrapers
+                context.set_extra_http_headers({
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Cache-Control": "no-cache",
+                    "Pragma": "no-cache"
+                })
+                
+                page = context.new_page()
+                
+                logger.debug(f"Navigating to {url} with Playwright ({browser_type}), timeout: {navigation_timeout_ms}ms")
+                
+                try:
+                    # Try with network idle state for better rendering
+                    page.goto(url, wait_until='networkidle', timeout=navigation_timeout_ms)
+                except Exception as e:
+                    # If networkidle fails, fallback to load
+                    logger.debug(f"Navigation with 'networkidle' failed, trying with 'load': {str(e)}")
+                    page.goto(url, wait_until='load', timeout=navigation_timeout_ms)
+                
+                if render_delay_ms > 0:
+                    logger.debug(f"Waiting for {render_delay_ms}ms for page rendering.")
+                    time.sleep(render_delay_ms / 1000)
+                
+                # Scroll through the page to ensure all lazy-loaded elements are loaded
+                logger.debug("Scrolling page to load any lazy elements")
+                page.evaluate("""
+                    () => {
+                        window.scrollTo(0, 0);
+                        let lastHeight = document.body.scrollHeight;
+                        let scrollStep = Math.floor(window.innerHeight / 2);
+                        
+                        for (let i = 0; i < document.body.scrollHeight; i += scrollStep) {
+                            window.scrollTo(0, i);
+                        }
+                        window.scrollTo(0, 0);
+                    }
+                """)
+                
+                # Wait after scrolling
+                time.sleep(1)
+                
+                # Take the screenshot
+                page.screenshot(path=image_path, full_page=True)
+                logger.info(f"Successfully saved {log_prefix.lower()} snapshot for site ID {site_id} to: {image_path}")
+                
+                browser.close()
+                
+                # Ensure file exists
+                if os.path.exists(image_path) and os.path.getsize(image_path) > 0:
+                    # Convert absolute path to relative data path for web UI
+                    relative_path = image_path
+                    snapshot_dir = get_snapshot_directory()
+                    if relative_path.startswith(snapshot_dir):
+                        # Get path relative to snapshot directory
+                        relative_path = os.path.join("data/snapshots", os.path.relpath(relative_path, snapshot_dir))
+                        # Normalize for web display
+                        relative_path = relative_path.replace("\\", "/")
+                        
+                    logger.info(f"Snapshot path for web display: {relative_path}")
+                    return relative_path  # Return web-friendly path
+                else:
+                    logger.error(f"Screenshot file was not created or is empty: {image_path}")
+                    
+                    if attempt < max_retries:
+                        # Try again
+                        logger.info(f"Will retry in {retry_delay} seconds")
+                        time.sleep(retry_delay)
+                        continue
+                    return None
 
-            browser = None
-            if browser_type == 'chromium':
-                browser = p.chromium.launch(headless=headless_mode)
-            elif browser_type == 'firefox':
-                browser = p.firefox.launch(headless=headless_mode)
-            elif browser_type == 'webkit':
-                browser = p.webkit.launch(headless=headless_mode)
+        except Exception as e:
+            logger.error(f"Error capturing {log_prefix.lower()} snapshot for site ID {site_id} ({url}) with Playwright (attempt {attempt}/{max_retries}): {e}", exc_info=True)
+            
+            if attempt < max_retries:
+                # Try again after delay
+                logger.info(f"Will retry in {retry_delay} seconds")
+                time.sleep(retry_delay)
+                # Increase delay for next attempt
+                retry_delay *= 2
             else:
-                logger.error(f"Unsupported browser type '{browser_type}' in config. Using Chromium.")
-                browser = p.chromium.launch(headless=headless_mode)
-            
-            context = browser.new_context(user_agent=user_agent)
-            page = context.new_page()
-            
-            logger.debug(f"Navigating to {url} with Playwright ({browser_type})")
-            page.goto(url, wait_until='load', timeout=config.get('playwright_navigation_timeout_ms', 60000))
-            
-            if render_delay_ms > 0:
-                logger.debug(f"Waiting for {render_delay_ms}ms for page rendering.")
-                time.sleep(render_delay_ms / 1000)
-
-            page.screenshot(path=image_path, full_page=True)
-            logger.info(f"Successfully saved {log_prefix.lower()} snapshot for site ID {site_id} to: {image_path}")
-            
-            browser.close()
-            return image_path
-
-    except Exception as e:
-        logger.error(f"Error capturing {log_prefix.lower()} snapshot for site ID {site_id} ({url}) with Playwright: {e}", exc_info=True)
-        return None
+                # All retries failed
+                return None
+    
+    # If we get here, all attempts failed
+    return None
 
 if __name__ == '__main__':
     logger.info("----- Snapshot Tool Demo (Playwright) -----")

@@ -8,7 +8,7 @@ playwright_browser_type: chromium
 playwright_headless_mode: true
 playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
   (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
-playwright_render_delay_ms: 5000
+playwright_render_delay_ms: 8000
 playwright_navigation_timeout_ms: 60000
 notification_email_from: support@westlanddre.com
 notification_email_to: sarmadsahib786@gmail.com
@@ -42,3 +42,7 @@ smtp_username: support@westlanddre.com
 smtp_password: KZyxqnTVFe99XCLy3HYT
 smtp_use_tls: true
 default_notification_email: admin@example.com
+crawler_max_depth: 2
+crawler_respect_robots: false
+crawler_check_external_links: true
+crawler_user_agent: SiteMonitor Bot

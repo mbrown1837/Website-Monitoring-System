@@ -11,269 +11,234 @@ from urllib.parse import urlparse
 
 class WebsiteManager:
     def __init__(self, config_path=None):
-        # Set up basics
+        # If a specific config_path is provided for this instance, use it.
+        # Otherwise, the global config (if already loaded by another module) or default path will be used.
+        # This allows flexibility if multiple manager instances with different configs were needed.
         if config_path:
-            self.config = get_config(config_path=config_path)
+            self.config = get_config(config_path=config_path) # specific config for this instance
             self.logger = setup_logging(config_path=config_path)
         else:
-            self.config = get_config()
-            self.logger = setup_logging()
+            self.config = get_config() # Uses global/default config
+            self.logger = setup_logging() # Uses global/default logger setup
         
         self.websites_file_path = self._initialize_website_list_path()
-        self._websites = []  # Cache
-        self._websites_loaded = False
-        self._load_websites()  # Initial load
+        self._websites = []  # Internal cache for websites
+        self._websites_loaded = False  # Flag to check if initial load happened
+        self._load_websites() # Initial load
 
     def _initialize_website_list_path(self):
-        """Initialize path to store websites list file."""
-        path = self.config.get("websites_file_path", "data/websites.json")
+        path = self.config.get('website_list_file_path', 'data/websites.json')
         if not os.path.isabs(path):
-            # Get the project root (assumes this module is in src/)
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            # Assuming project root is one level up from 'src' where this file is expected
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             path = os.path.join(project_root, path)
-            
-        # Ensure directory exists
+        
         directory = os.path.dirname(path)
         if directory and not os.path.exists(directory):
             try:
-                os.makedirs(directory, exist_ok=True)
-                self.logger.info(f"Created directory for websites data: {directory}")
+                os.makedirs(directory)
+                self.logger.info(f"Created directory for website list: {directory}")
             except OSError as e:
-                self.logger.error(f"Error creating directory {directory} for websites data: {e}")
+                self.logger.error(f"Error creating directory {directory} for website list: {e}")
                 raise
-                
         return path
 
     def _load_websites(self, force_reload=False):
-        """Load websites from the JSON file into self._websites."""
-        if self._websites_loaded and not force_reload:
-            return self._websites
-            
         try:
             if not os.path.exists(self.websites_file_path):
-                self.logger.info(f"Websites file not found at {self.websites_file_path}. Starting with empty list.")
-                with open(self.websites_file_path, "w", encoding="utf-8") as f:
+                self.logger.info(f"Website list file not found at {self.websites_file_path}. Creating an empty list.")
+                with open(self.websites_file_path, 'w', encoding='utf-8') as f:
                     json.dump([], f)
                 self._websites = []
             else:
-                with open(self.websites_file_path, "r", encoding="utf-8") as f:
+                with open(self.websites_file_path, 'r', encoding='utf-8') as f:
                     self._websites = json.load(f)
-                self.logger.debug(f"Successfully loaded {len(self._websites)} websites from {self.websites_file_path}")
             self._websites_loaded = True
             return self._websites
         except (IOError, json.JSONDecodeError) as e:
             self.logger.error(f"Error loading websites from {self.websites_file_path}: {e}")
-            self._websites = []
-            self._websites_loaded = True
+            self._websites = [] 
+            self._websites_loaded = True 
             return self._websites
-            
+
     def _save_websites(self):
-        """Save self._websites to the JSON file."""
         try:
-            with open(self.websites_file_path, "w", encoding="utf-8") as f:
+            with open(self.websites_file_path, 'w', encoding='utf-8') as f:
                 json.dump(self._websites, f, indent=2)
-            self.logger.debug(f"Successfully saved {len(self._websites)} websites to {self.websites_file_path}")
-            return True
+            self.logger.info(f"Successfully saved {len(self._websites)} websites to {self.websites_file_path}")
         except IOError as e:
             self.logger.error(f"Error saving websites to {self.websites_file_path}: {e}")
-            return False
 
     def add_website(self, url: str, name: str = "", interval: int = None, is_active: bool = True, tags: list = None, notification_emails: list = None):
-        """
-        Add a new website to the monitoring list.
-        
-        Args:
-            url (str): The URL of the website.
-            name (str, optional): The name of the website. If empty, the domain will be used.
-            interval (int, optional): The monitoring interval in hours. If None, default from config is used.
-            is_active (bool, optional): Whether the website should be actively monitored. Defaults to True.
-            tags (list, optional): List of tags to categorize the website. Defaults to empty list.
-            notification_emails (list, optional): List of email addresses for notifications. Defaults to empty list.
-            
-        Returns:
-            dict: The newly created website record, or None if creation failed.
-        """
-        self._load_websites()
-        
-        # Validate URL
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-            self.logger.info(f"URL modified to include https:// scheme: {url}")
-            
-        # Check for duplicates
-        if self.get_website_by_url(url):
-            self.logger.warning(f"Website with URL '{url}' already exists. Skipping creation.")
+        self._load_websites() # Ensure list is current before add
+        if not url:
+            self.logger.warning("Attempted to add a website with no URL.")
             return None
-            
-        # Set default name if not provided
-        if not name:
-            parsed_url = urlparse(url)
-            name = parsed_url.netloc
-            
-        # Set default interval if not provided
-        if interval is None:
-            interval = self.config.get('default_monitoring_interval_hours', 24)
-            
-        # Set default for tags and notification_emails if not provided
-        if tags is None:
-            tags = []
-        if notification_emails is None:
-            notification_emails = []
-            
-        # Create new website record
-        new_website = {
-            'id': str(uuid.uuid4()),
-            'url': url,
-            'name': name,
-            'interval': interval,
-            'is_active': is_active,
-            'tags': tags,
-            'notification_emails': notification_emails,
-            'created_utc': datetime.now(timezone.utc).isoformat(),
-            'last_updated_utc': datetime.now(timezone.utc).isoformat()
+
+        for site in self._websites:
+            if site['url'] == url:
+                self.logger.warning(f"Website with URL '{url}' already exists (ID: {site['id']}). Returning existing.")
+                return site
+
+        default_interval = self.config.get('default_monitoring_interval_hours', 24)
+        
+        new_site = {
+            "id": str(uuid.uuid4()),
+            "url": url,
+            "name": name if name else url,
+            "interval": interval if interval is not None else default_interval,
+            "last_checked_utc": None,
+            "is_active": is_active,
+            "tags": tags if tags is not None else [],
+            "notification_emails": notification_emails if notification_emails is not None else [],
+            "date_added_utc": datetime.now(timezone.utc).isoformat(),
+            "baseline_html_path": None, # New field for baseline
+            "baseline_visual_path": None, # New field for baseline
+            "baseline_html_hash": None, # New field for baseline
+            "crawl_only": False # Default to full checks unless specified otherwise
         }
-        
-        self._websites.append(new_website)
+        self._websites.append(new_site)
         self._save_websites()
-        self.logger.info(f"Added new website: {name} ({url})")
+        self.logger.info(f"Added new website: {new_site['name']} ({new_site['url']}) with ID {new_site['id']}.")
         
-        return new_website
+        # Get the site to update with crawl_only status if needed
+        site_id = new_site['id']
+        
+        # Automatically capture baseline for the new site (only if not marked as crawl_only)
+        # We'll check for crawl_only after any updates to ensure we respect the final setting
+        
+        # Returning the site object
+        # Need to re-fetch it after saving, as capture_baseline_for_site modifies and saves it.
+        return self.get_website(site_id)
 
     def get_website(self, site_id: str):
-        """Get a website by its ID."""
-        self._load_websites()
+        self._load_websites() # Ensure list is current
         for site in self._websites:
-            if site.get('id') == site_id:
+            if site['id'] == site_id:
                 return site
+        self.logger.debug(f"Website with ID '{site_id}' not found.")
         return None
-        
+    
     def get_website_by_url(self, url: str):
-        """Get a website by its URL."""
-        self._load_websites()
+        self._load_websites() # Ensure list is current
         for site in self._websites:
-            if site.get('url') == url:
+            if site['url'] == url:
                 return site
+        self.logger.debug(f"Website with URL '{url}' not found.")
         return None
-        
+
     def list_websites(self, active_only: bool = False):
-        """
-        Get a dictionary of all websites, keyed by site ID.
-        
-        Args:
-            active_only (bool, optional): If True, only return active websites.
-            
-        Returns:
-            dict: Dictionary of websites, keyed by site ID.
-        """
-        self._load_websites()
-        websites_dict = {}
-        
+        self._load_websites() # Ensure list is current
+        # Prepare data for UI, especially for last_checked
+        processed_sites = {}
         for site in self._websites:
-            if not active_only or site.get('is_active', False):
-                website_id = site.get('id')
-                if website_id:  # Skip entries without a valid ID
-                    websites_dict[website_id] = site
-                    
-        # Quick validation - make sure there are no duplicate IDs
-        if len(websites_dict) != len([s for s in self._websites if (not active_only or s.get('is_active', False)) and s.get('id')]):
-            self.logger.warning("Detected duplicate website IDs in database. This may cause unexpected behavior.")
+            if active_only and not site.get('is_active', True):
+                continue
+            site_copy = site.copy() # Avoid modifying cache
+            if site_copy.get('last_checked_utc'):
+                try:
+                    dt_obj = datetime.fromisoformat(site_copy['last_checked_utc'].replace('Z', '+00:00'))
+                    site_copy['last_checked_simple'] = dt_obj.strftime('%Y-%m-%d %H:%M:%S %Z').strip()
+                except ValueError:
+                    site_copy['last_checked_simple'] = site_copy['last_checked_utc'] # fallback
+            else:
+                site_copy['last_checked_simple'] = 'Never'
             
-        return websites_dict
+            # Add baseline info for display if available
+            site_copy['baseline_html_available'] = bool(site_copy.get('baseline_html_path'))
+            site_copy['baseline_visual_available'] = bool(site_copy.get('baseline_visual_path'))
+            site_copy['notification_emails'] = site_copy.get('notification_emails', []) # Ensure it's in output
+
+            processed_sites[site_copy['id']] = site_copy
+        return processed_sites
 
     def update_website(self, site_id: str, updates: dict):
-        """
-        Update a website's properties.
-        
-        Args:
-            site_id (str): The ID of the website to update.
-            updates (dict): Dictionary of properties to update.
-            
-        Returns:
-            dict: The updated website record, or None if update failed.
-        """
-        self._load_websites()
-        
-        # Find the website to update
-        current_site_idx = -1
+        self._load_websites() # Ensure list is current
+        site_found_idx = -1
         for i, site in enumerate(self._websites):
-            if site.get('id') == site_id:
-                current_site_idx = i
+            if site['id'] == site_id:
+                site_found_idx = i
                 break
-                
-        if current_site_idx == -1:
-            self.logger.warning(f"Cannot update website: Site ID {site_id} not found.")
+        
+        if site_found_idx == -1:
+            self.logger.warning(f"Failed to update. Website with ID '{site_id}' not found.")
             return None
+
+        # Handle potential baseline recapture
+        recapture_baseline_flag = updates.pop('recapture_baseline', False)
+
+        # Check if crawl_only is being changed from true to false
+        # If so, we'll need to create a baseline after the update
+        current_crawl_only = self._websites[site_found_idx].get('crawl_only', False)
+        new_crawl_only = updates.get('crawl_only', current_crawl_only)
+        crawl_only_disabled = current_crawl_only and not new_crawl_only
+
+        # Prevent updating immutable fields directly, or validate
+        if 'id' in updates and updates['id'] != site_id: 
+            self.logger.warning(f"Attempt to change site ID for {site_id} was ignored.")
+            del updates['id']
+        if 'date_added_utc' in updates: 
+            del updates['date_added_utc']
+        # Ensure notification_emails is a list if provided
+        if 'notification_emails' in updates and not isinstance(updates['notification_emails'], list):
+            self.logger.warning(f"Invalid format for notification_emails for site {site_id}. Expected a list. Ignoring update to this field.")
+            del updates['notification_emails']
         
-        current_site = self._websites[current_site_idx]
+        # Check for URL collision if URL is being changed
+        if 'url' in updates and updates['url'] != self._websites[site_found_idx]['url']:
+            for other_site in self._websites:
+                if other_site['id'] != site_id and other_site['url'] == updates['url']:
+                    self.logger.error(f"Cannot update URL for site ID '{site_id}'. New URL '{updates['url']}' already exists for site '{other_site['name']}' (ID: {other_site['id']}).")
+                    return None
         
-        # Special case: if URL is being changed, check for duplicates
-        if 'url' in updates and updates['url'] != current_site.get('url'):
-            # Check for duplicates
-            if self.get_website_by_url(updates['url']):
-                self.logger.warning(f"Cannot update URL: Website with URL '{updates['url']}' already exists.")
-                return None
-        
-        # Handle name update - if new name is empty, generate from URL
-        if 'name' in updates and not updates['name'] and 'url' in updates:
-            parsed_url = urlparse(updates['url'])
-            updates['name'] = parsed_url.netloc
-        elif 'name' in updates and not updates['name']:
-            parsed_url = urlparse(current_site.get('url', ''))
-            updates['name'] = parsed_url.netloc
-        
-        # Update the website record
-        for key, value in updates.items():
-            # Skip unknown or immutable properties
-            if key == 'id':
-                continue  # Don't allow changing the ID
-            if key == 'created_utc':
-                continue  # Don't allow changing the creation timestamp
-                
-            current_site[key] = value
-        
-        # Update the last_updated timestamp
-        current_site['last_updated_utc'] = datetime.now(timezone.utc).isoformat()
-        
+        self._websites[site_found_idx].update(updates)
+        self._websites[site_found_idx]["last_updated_utc"] = datetime.now(timezone.utc).isoformat()
         self._save_websites()
-        self.logger.info(f"Updated website: {current_site.get('name')} (ID: {site_id})")
+        self.logger.info(f"Updated website ID: {site_id} with details: {updates}")
+
+        # If crawl_only was turned off, create a baseline
+        if crawl_only_disabled:
+            self.logger.info(f"Crawl-only flag disabled for site ID: {site_id}. Creating baseline.")
+            baseline_success = self.capture_baseline_for_site(site_id)
+            if baseline_success:
+                self.logger.info(f"Successfully created baseline for site ID: {site_id} after crawl-only was disabled.")
+            else:
+                self.logger.warning(f"Failed to create baseline for site ID: {site_id} after crawl-only was disabled.")
+        # Otherwise, handle recapture_baseline flag if it was set
+        elif recapture_baseline_flag and not new_crawl_only:
+            self.logger.info(f"Recapture baseline flag set for site ID: {site_id}. Attempting to update baseline.")
+            baseline_success = self.capture_baseline_for_site(site_id)
+            if baseline_success:
+                self.logger.info(f"Successfully updated baseline for site ID: {site_id}")
+            else:
+                self.logger.warning(f"Failed to update baseline for site ID: {site_id} during update operation.")
         
-        return current_site
+        return self.get_website(site_id) # Return the potentially updated site from cache
 
     def remove_website(self, site_id: str):
-        """
-        Remove a website from the monitoring list.
+        self._load_websites() # Ensure list is current
+        site_to_remove = self.get_website(site_id) # Get details before removing from list
+        original_length = len(self._websites)
+        self._websites = [site for site in self._websites if site['id'] != site_id]
         
-        Args:
-            site_id (str): The ID of the website to remove.
-            
-        Returns:
-            bool: True if removal was successful, False otherwise.
-        """
-        self._load_websites()
-        
-        # Find the website to remove
-        website = self.get_website(site_id)
-        if website:
-            # Get domain name for cleanup
-            domain_name = None
-            try:
-                parsed_url = urlparse(website.get('url', ''))
-                domain_name = parsed_url.netloc.replace('.', '_').replace(':', '_')
-            except:
-                self.logger.warning(f"Could not parse URL for site {site_id} during removal.")
-            
-            # Remove from the list
-            self._websites = [site for site in self._websites if site.get('id') != site_id]
+        if len(self._websites) < original_length:
             self._save_websites()
-            self.logger.info(f"Removed website: {website.get('name', site_id)} (ID: {site_id})")
-            
-            # Clean up snapshot directories
+            self.logger.info(f"Removed website data for ID: {site_id}")
+
+            # Get base snapshot directory
             snapshot_base_dir = self.config.get('snapshot_directory', 'data/snapshots')
-            if not os.path.isabs(snapshot_base_dir):
-                # Get the project root (assumes this module is in src/)
-                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-                snapshot_base_dir = os.path.join(project_root, snapshot_base_dir)
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             
+            # Ensure snapshot_base_dir is absolute
+            if not os.path.isabs(snapshot_base_dir):
+                snapshot_base_dir = os.path.join(project_root, snapshot_base_dir)
+
+            # Now, remove associated snapshot directory - multiple approaches
+            domain_name = None
+            if site_to_remove and site_to_remove.get('url', ''):
+                parsed_url = urlparse(site_to_remove.get('url', ''))
+                domain_name = parsed_url.netloc.replace('.', '_').replace(':', '_')
+
             # List of potential paths to check and remove
             potential_paths = []
 
@@ -341,13 +306,13 @@ class WebsiteManager:
             return False
 
         # Check if site is marked as crawl-only - if so, don't create any baseline
-        crawl_only = site_details.get("crawl_only", False)
+        crawl_only = site_details.get('crawl_only', False)
         if crawl_only:
             self.logger.info(f"Site {site_id} is marked as crawl-only. Skipping baseline creation completely.")
             # Still return True to indicate success (no baseline needed for crawl-only sites)
             return True
 
-        url = site_details["url"]
+        url = site_details['url']
         self.logger.info(f"Fetching content for baseline for {url} (Site ID: {site_id})...")
         status_code, _, html_content, fetch_error = content_retriever.fetch_website_content(url)
 
@@ -373,14 +338,14 @@ class WebsiteManager:
         
         update_payload = {}
         if baseline_html_path:
-            update_payload["baseline_html_path"] = baseline_html_path
-            update_payload["baseline_html_hash"] = baseline_html_hash
+            update_payload['baseline_html_path'] = baseline_html_path
+            update_payload['baseline_html_hash'] = baseline_html_hash
             self.logger.info(f"Baseline HTML for site {site_id} stored at: {baseline_html_path} with hash {baseline_html_hash}")
         else:
             self.logger.warning(f"Failed to save baseline HTML for site ID: {site_id}")
 
         if baseline_visual_path:
-            update_payload["baseline_visual_path"] = baseline_visual_path
+            update_payload['baseline_visual_path'] = baseline_visual_path
             self.logger.info(f"Baseline visual for site {site_id} stored at: {baseline_visual_path}")
         else:
             self.logger.warning(f"Failed to save baseline visual for site ID: {site_id}")
@@ -393,7 +358,7 @@ class WebsiteManager:
         # Internal update without triggering another baseline capture
         current_site_idx = -1
         for i, site in enumerate(self._websites):
-            if site["id"] == site_id:
+            if site['id'] == site_id:
                 current_site_idx = i
                 break
         
@@ -409,13 +374,13 @@ class WebsiteManager:
             return False
 
 # Example Usage (for direct script execution testing)
-if __name__ == "__main__":
+if __name__ == '__main__':
     print("Running WebsiteManager class directly for demonstration...")
     
     # Create a dummy config for the test if a global one isn't sufficient
     # For this demo, we assume a config.yaml exists or default_config works.
     # You might want to point to a specific test config for isolated testing.
-    test_config_path = os.path.join(os.path.dirname(__file__), "..", "config", "config.yaml")
+    test_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.yaml')
     
     # Ensure a clean slate for demo file if it exists from prior runs
     demo_manager_for_path = WebsiteManager(config_path=test_config_path)
@@ -444,7 +409,7 @@ if __name__ == "__main__":
     logger.info(f"Active websites (map): {json.dumps(active_sites_map, indent=2)}")
 
     if site1:
-        retrieved_site = manager.get_website(site1["id"])
+        retrieved_site = manager.get_website(site1['id'])
         logger.info(f"Retrieved site by ID ({site1['id']}): {json.dumps(retrieved_site, indent=2)}")
 
     retrieved_by_url = manager.get_website_by_url("https://openai.com")
@@ -452,18 +417,18 @@ if __name__ == "__main__":
 
     if site2:
         update_payload = {"name": "OpenAI Official Site", "interval": 12, "is_active": True, "tags": ["ai", "official"], "new_field": "test"}
-        updated_site = manager.update_website(site2["id"], update_payload)
+        updated_site = manager.update_website(site2['id'], update_payload)
         logger.info(f"Updated site ({site2['id']}): {json.dumps(updated_site, indent=2)}")
         
         logger.info(f"Attempting to update URL of site {site1['id']} to {site2['url']} (should fail or warn)")
-        failed_update = manager.update_website(site1["id"], {"url": site2["url"]})
+        failed_update = manager.update_website(site1['id'], {"url": site2['url']})
         if failed_update is None:
             logger.info("URL update to existing URL correctly prevented.")
         else:
             logger.error("URL update to existing URL was NOT prevented.")
 
     if site1:
-        manager.remove_website(site1["id"])
+        manager.remove_website(site1['id'])
         logger.info(f"Attempted to remove site ID: {site1['id']}")
     
     manager.remove_website("non_existent_id")

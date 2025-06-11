@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "08a2ffbd-1729-4128-8d3c-a7a1da84904e",
+    "url": "https://thewebturtles.com/",
+    "name": "The Webturtles",
+    "interval": 24,
+    "last_checked_utc": "2025-06-04T20:04:01.792940+00:00",
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "date_added_utc": "2025-06-04T20:02:33.641223+00:00",
+    "baseline_html_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\thewebturtles_com\\08a2ffbd-1729-4128-8d3c-a7a1da84904e\\baseline\\baseline.html",
+    "baseline_visual_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\thewebturtles_com\\08a2ffbd-1729-4128-8d3c-a7a1da84904e\\baseline\\baseline.png",
+    "baseline_html_hash": "2b3207295ac9825920eb8f5b78d00fc6202563f3f6ae9b117b3b5a856dd3a976",
+    "crawl_only": false,
+    "last_updated_utc": "2025-06-04T20:04:01.793272+00:00"
+  }
+]
