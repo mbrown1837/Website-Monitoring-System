@@ -8,6 +8,10 @@ DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'c
 _default_config_cache = None
 _default_config_loaded = False
 
+# Legacy compatibility dictionary used by unit tests
+# Mirrors the default configuration cache for easier test resets
+_config_cache = {}
+
 def load_config(config_path: str = DEFAULT_CONFIG_PATH, force_reload: bool = False) -> dict:
     """
     Loads configuration from the specified YAML file.
@@ -58,6 +62,8 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, force_reload: bool = Fal
     if config_path == DEFAULT_CONFIG_PATH:
         _default_config_cache = loaded_data
         _default_config_loaded = True
+        _config_cache.clear()
+        _config_cache.update(loaded_data)
         
     return loaded_data
 
@@ -103,7 +109,9 @@ def save_config(config_data: dict, config_path: str = DEFAULT_CONFIG_PATH) -> No
         # If saved to the default path, update the cache
         if config_path == DEFAULT_CONFIG_PATH:
             _default_config_cache = config_data
-            _default_config_loaded = True # Mark as loaded/current
+            _default_config_loaded = True  # Mark as loaded/current
+            _config_cache.clear()
+            _config_cache.update(config_data)
         print(f"Configuration saved to {config_path}")
     except Exception as e:
         print(f"Error saving configuration to {config_path}: {e}")
