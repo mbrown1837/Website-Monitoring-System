@@ -119,6 +119,34 @@ def format_alert_message(site_url: str, site_name: str, check_record: dict) -> t
         "Summary of Changes:"
     ]
 
+    # Add crawler results if available
+    if check_record.get('crawler_results'):
+        crawler_results = check_record.get('crawler_results', {})
+        broken_links_count = crawler_results.get('broken_links_count', 0)
+        missing_meta_tags_count = crawler_results.get('missing_meta_tags_count', 0)
+        
+        # Add crawler summary to the alert
+        if broken_links_count > 0 or missing_meta_tags_count > 0:
+            html_body_parts.append("<h3>Crawler Issues Detected:</h3>")
+            text_body_parts.append("\nCrawler Issues Detected:")
+            
+        if broken_links_count > 0:
+            html_body_parts.append(f"<li><strong>Broken Links:</strong> {broken_links_count} broken links detected</li>")
+            text_body_parts.append(f"- Broken Links: {broken_links_count} broken links detected")
+            
+        if missing_meta_tags_count > 0:
+            html_body_parts.append(f"<li><strong>Missing Meta Tags:</strong> {missing_meta_tags_count} missing meta tags detected</li>")
+            text_body_parts.append(f"- Missing Meta Tags: {missing_meta_tags_count} missing meta tags detected")
+            
+        # Add a link to view detailed crawler results
+        html_body_parts.append(f"<p><a href=\"http://localhost:5000/website/{check_record.get('site_id')}/crawler\">View Detailed Crawler Results</a></p>")
+        text_body_parts.append(f"\nView Detailed Crawler Results: http://localhost:5000/website/{check_record.get('site_id')}/crawler")
+    
+    # Crawler error if any
+    if check_record.get('crawler_error'):
+        html_body_parts.append(f"<li><strong>Crawler Error:</strong> {html.escape(check_record.get('crawler_error'))}</li>")
+        text_body_parts.append(f"- Crawler Error: {check_record.get('crawler_error')}")
+
     if check_record.get('html_content_hash'):
         html_body_parts.append(f"<li>New HTML content hash: {html.escape(str(check_record.get('html_content_hash')))}</li>")
         text_body_parts.append(f"- New HTML content hash: {check_record.get('html_content_hash')}")

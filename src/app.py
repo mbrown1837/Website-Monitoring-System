@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import json
 
 # Ensure src directory is in Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -16,6 +17,7 @@ from src.logger_setup import setup_logging
 from src.website_manager import WebsiteManager
 from src.history_manager import HistoryManager
 from src.scheduler import perform_website_check # We'll call this directly for manual checks
+from src.crawler_module import CrawlerModule # Import the crawler module
 # from src.alerter import send_email_alert # For testing alerts
 
 app = Flask(__name__, template_folder=os.path.join(project_root, 'templates'))
@@ -37,7 +39,43 @@ def get_app_config():
 def index():
     current_config = get_app_config()
     websites = website_manager.list_websites()
-    return render_template('index.html', websites=websites, config=current_config)
+    
+    # Initialize crawler module
+    crawler = CrawlerModule(config_path='config/config.yaml')
+    
+    # Get crawler stats
+    crawler_stats = {}
+    active_sites = 0
+    websites_with_issues = 0
+    
+    # Count active sites
+    for site_id, site_data in websites.items():
+        if site_data.get('is_active'):
+            active_sites += 1
+    
+    # Get crawler stats for each website and mark sites with issues
+    for site_id, site_data in websites.items():
+        site_stats = crawler.get_crawl_stats(site_id)
+        crawler_stats[site_id] = {
+            'broken_links_count': site_stats.get('total_broken_links', 0),
+            'missing_meta_tags_count': site_stats.get('total_missing_meta_tags', 0),
+            'total_pages_crawled': site_stats.get('total_pages_crawled', 0)
+        }
+        
+        # Mark websites with issues
+        has_issues = (crawler_stats[site_id]['broken_links_count'] > 0 or 
+                      crawler_stats[site_id]['missing_meta_tags_count'] > 0)
+        
+        if has_issues:
+            websites_with_issues += 1
+            websites[site_id]['crawler_issues'] = True
+    
+    return render_template('index.html', 
+                           websites=websites, 
+                           config=current_config, 
+                           crawler_stats=crawler_stats,
+                           active_sites=active_sites,
+                           websites_with_issues=websites_with_issues)
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
@@ -58,7 +96,7 @@ def settings():
             
             # Update Notification (SMTP) settings
             current_config['notification_email_from'] = request.form.get('notification_email_from', current_config['notification_email_from'])
-            current_config['notification_email_to'] = request.form.get('notification_email_to', current_config['notification_email_to'])
+            current_config['notification_email_to'] = request.form.get('notification_email_to', current_config.get('notification_email_to'))
             current_config['smtp_server'] = request.form.get('smtp_server', current_config.get('smtp_server'))
             current_config['smtp_port'] = int(request.form.get('smtp_port', current_config.get('smtp_port', 587)))
             current_config['smtp_username'] = request.form.get('smtp_username', current_config.get('smtp_username'))
@@ -75,7 +113,12 @@ def settings():
             
             current_config['visual_difference_threshold'] = float(request.form.get('visual_difference_threshold', current_config['visual_difference_threshold']))
             current_config['meta_tags_to_check'] = [tag.strip() for tag in request.form.get('meta_tags_to_check', '').split(',') if tag.strip()]
-
+            
+            # Update Crawler settings
+            current_config['crawler_max_depth'] = int(request.form.get('crawler_max_depth', current_config.get('crawler_max_depth', 2)))
+            current_config['crawler_respect_robots'] = request.form.get('crawler_respect_robots') == 'True'
+            current_config['crawler_check_external_links'] = request.form.get('crawler_check_external_links') == 'True'
+            current_config['crawler_user_agent'] = request.form.get('crawler_user_agent', current_config.get('crawler_user_agent', 'SiteMonitor Bot'))
 
             save_config(current_config, config_path='config/config.yaml')
             flash('Settings updated successfully!', 'success')
@@ -105,13 +148,44 @@ def add_website():
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
             notification_emails_str = request.form.get('notification_emails', '')
             notification_emails = [email.strip() for email in notification_emails_str.split(',') if email.strip()]
+            crawl_only = request.form.get('crawl_only') == 'on'
             
             if not name or not url:
                 flash('Name and URL are required.', 'danger')
             else:
-                website_manager.add_website(url, name, interval, True, tags, notification_emails)
-                flash(f'Website "{name}" added successfully!', 'success')
-                return redirect(url_for('index'))
+                # First add the website without the crawl_only flag
+                website = website_manager.add_website(url, name, interval, True, tags, notification_emails)
+                
+                # If website was added successfully
+                if website:
+                    # Update with crawl_only option immediately before any baselines are created
+                    website_manager.update_website(website['id'], {'crawl_only': crawl_only})
+                    website = website_manager.get_website(website['id'])  # Refresh website data
+                    
+                    # Now that crawl_only is set, capture baseline if appropriate
+                    if not website.get('crawl_only', False):
+                        logger.info(f"Creating baseline for new website ID: {website['id']}")
+                        baseline_success = website_manager.capture_baseline_for_site(website['id'])
+                        if not baseline_success:
+                            logger.warning(f"Failed to create baseline for website ID: {website['id']}")
+                    else:
+                        logger.info(f"Skipping baseline for crawl-only website ID: {website['id']}")
+                    
+                    # Run an initial crawl regardless of crawl-only setting
+                    crawler_options = {
+                        'max_depth': 2,
+                        'crawl_only': website.get('crawl_only', False),
+                        'visual_check_only': False,
+                        'create_baseline': False  # Never create baseline during initial crawl
+                    }
+                    
+                    logger.info(f"Running initial crawl for website ID: {website['id']}")
+                    # Execute crawl in the background to avoid blocking the response
+                    # The actual crawl will happen when the scheduler triggers
+                    flash(f'Website "{name}" added successfully! Initial crawl scheduled.', 'success')
+                    
+                    # Return to index page
+                    return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error adding website: {e}", exc_info=True)
             flash(f'Error adding website: {str(e)}', 'danger')
@@ -134,7 +208,8 @@ def edit_website(site_id):
                 'interval': int(request.form.get('interval', website.get('interval'))),
                 'tags': [tag.strip() for tag in request.form.get('tags', '').split(',') if tag.strip()],
                 'notification_emails': notification_emails,
-                'is_active': request.form.get('is_active') == 'on' # Checkbox value
+                'is_active': request.form.get('is_active') == 'on',  # Checkbox value
+                'crawl_only': request.form.get('crawl_only') == 'on'  # Crawl only option
             }
             if not updated_data['name'] or not updated_data['url']:
                  flash('Name and URL are required.', 'danger')
@@ -182,71 +257,80 @@ def website_history(site_id):
         
     return render_template('history.html', website=website, history=history_records, config=current_config)
 
-@app.route('/website/check/<site_id>', methods=['POST'])
+@app.route('/website/<site_id>/manual_check', methods=['POST'])
 def manual_check_website(site_id):
     website = website_manager.get_website(site_id)
     if not website:
-        flash(f'Website with ID "{site_id}" not found to perform check.', 'danger')
+        flash(f'Website with ID "{site_id}" not found.', 'danger')
         return redirect(url_for('index'))
+
+    # Get check type and options
+    check_type = request.form.get('check_type', 'full')
+    create_baseline = 'create_baseline' in request.form
     
-    if not website.get('is_active', True):
-        flash(f'Website "{website.get("name")}" is marked as inactive. Activate it first to perform a manual check.', 'warning')
-        return redirect(url_for('index'))
-
+    # Check if this website is configured as crawl-only
+    website_is_crawl_only = website.get('crawl_only', False)
+    
+    # Set crawler options based on the selected check type
+    crawler_options = {
+        'create_baseline': create_baseline and not website_is_crawl_only,  # Skip baseline if site is crawl-only
+        'max_depth': 2  # Default depth
+    }
+    
+    # Configure options based on check type, but respect website's crawl_only setting
+    if website_is_crawl_only:
+        # For crawl-only websites, force crawl-only mode regardless of check type
+        crawler_options['crawl_only'] = True
+        crawler_options['visual_check_only'] = False
+        crawler_options['create_baseline'] = False
+        logger.info(f"Enforcing crawl-only mode for website {website.get('name')} (ID: {site_id})")
+    elif check_type == 'crawl':
+        # Regular website, but manual crawl selected
+        crawler_options['crawl_only'] = True
+        crawler_options['visual_check_only'] = False
+    elif check_type == 'visual':
+        # Visual check only
+        crawler_options['crawl_only'] = False
+        crawler_options['visual_check_only'] = True
+    else:  # 'full' check
+        crawler_options['crawl_only'] = False
+        crawler_options['visual_check_only'] = False
+    
     try:
-        site_name = website.get("name", website.get("url")) # Get name for messages
-        logger.info(f"Manually triggering check for {site_name} ({site_id})")
+        # Run the check using the scheduler's function
+        check_result = perform_website_check(site_id, crawler_options)
         
-        # Call the imported perform_website_check from scheduler.py
-        # It now takes only site_id and returns a dictionary with the outcome.
-        check_outcome = perform_website_check(site_id=site_id)
-        
-        # Process the check_outcome dictionary
-        status = check_outcome.get('status')
-        changes_detected = check_outcome.get('significant_change_detected', False) # significant_change_detected
-        error_message = check_outcome.get('error_message')
-        
-        # Always send email notification for manual checks
-        if status != "failed_fetch" and status != "error":
-            logger.info(f"Sending manual check email notification for {site_name} ({site_id})")
+        # Handle results based on status
+        if check_result.get('status') == 'failed_fetch':
+            flash(f'Failed to fetch content from {website["url"]}: {check_result.get("error_message")}', 'danger')
+        else:
+            # Determine message based on check type and baseline creation
+            if website_is_crawl_only:
+                message = "Crawl-only check completed for website configured in crawl-only mode."
+            elif create_baseline and not website_is_crawl_only:
+                message = "Website baseline creation completed."
+            elif check_type == 'crawl':
+                message = "Crawl-only check completed."
+            elif check_type == 'visual':
+                message = "Visual check completed."
+            else:
+                message = "Full website check completed."
+                
+            # Add details about changes if available
+            if check_result.get('significant_change_detected'):
+                message += " Significant changes were detected."
+                
+            # Add broken link and SEO issue counts if available
+            if 'broken_links' in check_result:
+                message += f" Found {check_result.get('broken_links', 0)} broken links."
+            if 'missing_meta_tags' in check_result:
+                message += f" Found {check_result.get('missing_meta_tags', 0)} SEO issues."
             
-            # Get email addresses from website settings
-            site_notification_emails = website.get('notification_emails', [])
+            flash(message, 'success')
             
-            # Format the email
-            from src.alerter import format_alert_message, send_email_alert
-            subject, alert_html_body, alert_text_body = format_alert_message(
-                site_url=website.get('url'),
-                site_name=site_name,
-                check_record=check_outcome
-            )
-            
-            # Modify subject for manual checks
-            subject = f"[Manual Check] {subject}"
-            
-            # Send the email alert
-            send_email_alert(
-                subject, 
-                alert_html_body, 
-                alert_text_body, 
-                recipient_emails=site_notification_emails
-            )
-        
-        if status == "failed_fetch" or status == "error": # General error status from perform_website_check
-            flash(f'Manual check for "{site_name}" encountered an error: {error_message or "Unknown error"}', 'danger')
-        elif status == "initial_check_completed":
-            flash(f'Manual check for "{site_name}" completed (initial check). Changes detected: {changes_detected}', 'info')
-        elif status == "completed_no_changes":
-            flash(f'Manual check for "{site_name}" completed. No significant changes detected.', 'success')
-        elif status == "completed_with_changes":
-            flash(f'Manual check for "{site_name}" completed. Significant changes detected!', 'warning')
-        else: # Fallback for any other status or if outcome is None (should not happen ideally)
-            flash(f'Manual check for "{site_name}" run. Outcome: {status or "Unknown"}', 'info')
-
     except Exception as e:
-        # This catches exceptions from the call to perform_website_check itself, or other logic here
-        logger.error(f"Error during manual check route for {site_id}: {e}", exc_info=True)
-        flash(f'Error triggering manual check for "{website.get("name")}": {str(e)}', 'danger')
+        logger.error(f"Error during manual check for {website.get('name', site_id)}: {e}", exc_info=True)
+        flash(f"Error performing manual check: {str(e)}", 'danger')
     
     return redirect(url_for('website_history', site_id=site_id))
 
@@ -323,6 +407,205 @@ def test_email():
         flash(f'Failed to send test email: {str(e)}', 'danger')
     
     return redirect(url_for('settings'))
+
+@app.route('/website/<site_id>/crawler')
+def website_crawler(site_id):
+    current_config = get_app_config()
+    website = website_manager.get_website(site_id)
+    if not website:
+        flash(f'Website with ID "{site_id}" not found.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Initialize the crawler module
+    crawler = CrawlerModule(config_path='config/config.yaml')
+    
+    # Get the latest crawler results
+    crawler_results = crawler.get_latest_crawl_results(site_id)
+    
+    # If no results found, run a crawl-only check automatically
+    if not crawler_results:
+        try:
+            logger.info(f"No crawler results found for {website.get('name')} - running automatic crawl")
+            
+            # Determine appropriate max depth (start with more reasonable 2)
+            max_depth = 2
+            
+            # Show message to user
+            flash(f'Running initial crawl for "{website.get("name")}". This may take a moment...', 'info')
+            
+            # Check if this is a crawl_only website
+            website_is_crawl_only = website.get('crawl_only', False)
+            
+            # Run the crawl with standard options
+            crawler_results = crawler.crawl_website(
+                site_id, 
+                website.get('url'),
+                max_depth=max_depth,
+                respect_robots=True,
+                check_external_links=True,
+                crawl_only=True,  # Always set to True for initial crawl
+                visual_check_only=False,  # Never do visual checks in initial crawl
+                create_baseline=False  # Never create baseline in initial crawl
+            )
+            
+            if crawler_results:
+                total_pages = len(crawler_results.get("all_pages", []))
+                flash(f'Initial crawl completed for "{website.get("name")}". Found {total_pages} pages with {len(crawler_results.get("broken_links", []))} broken links.', 'success')
+            else:
+                flash(f'No crawler results found for website "{website.get("name")}". Try running a manual check.', 'warning')
+                return redirect(url_for('website_history', site_id=site_id))
+                
+        except Exception as e:
+            logger.error(f"Error during automatic crawl: {e}", exc_info=True)
+            flash(f'Error during automatic crawl: {str(e)}', 'danger')
+            return redirect(url_for('website_history', site_id=site_id))
+    
+    # Get the crawl_id from the results
+    crawl_id = crawler_results.get('crawl_id')
+    
+    # Extract broken links and missing meta tags
+    broken_links = crawler_results.get('broken_links', [])
+    missing_tags = crawler_results.get('missing_meta_tags', [])
+    timestamp = crawler_results.get('timestamp', 'Unknown')
+    
+    # Get status code counts for the crawl
+    status_counts = crawler.get_status_code_counts(crawl_id)
+    
+    # Apply filters if provided
+    status_code_filter = request.args.get('status_code')
+    search_url = request.args.get('search_url')
+    link_type_filter = request.args.get('link_type')  # 'internal' or 'external'
+    
+    # Get all pages, filtered if needed
+    if status_code_filter:
+        try:
+            status_code_filter = int(status_code_filter)
+            all_pages = crawler.get_pages_by_status_code(crawl_id, status_code_filter)
+        except ValueError:
+            all_pages = crawler.get_pages_by_status_code(crawl_id)
+    else:
+        all_pages = crawler.get_pages_by_status_code(crawl_id)
+    
+    # Filter by URL if search query provided
+    if search_url:
+        all_pages = [page for page in all_pages if search_url.lower() in page.get('url', '').lower()]
+        broken_links = [link for link in broken_links if search_url.lower() in link.get('url', '').lower()]
+        missing_tags = [tag for tag in missing_tags if search_url.lower() in tag.get('url', '').lower()]
+    
+    # Filter by internal/external link type if specified
+    if link_type_filter:
+        if link_type_filter == 'internal':
+            all_pages = [page for page in all_pages if page.get('is_internal', True)]
+            broken_links = [link for link in broken_links if 
+                           any(page.get('url') == link.get('url') and page.get('is_internal', True) 
+                               for page in crawler_results.get('all_pages', []))]
+        elif link_type_filter == 'external':
+            all_pages = [page for page in all_pages if not page.get('is_internal', True)]
+            broken_links = [link for link in broken_links if 
+                           any(page.get('url') == link.get('url') and not page.get('is_internal', True) 
+                               for page in crawler_results.get('all_pages', []))]
+    
+    # Calculate counts for display
+    internal_pages_count = len([p for p in all_pages if p.get('is_internal', True)])
+    external_pages_count = len([p for p in all_pages if not p.get('is_internal', True)])
+    
+    return render_template('crawler_results.html',
+                         website_name=website.get('name'),
+                         website_url=website.get('url'),
+                         website_id=site_id,
+                         crawler_results=crawler_results,
+                         status_counts=status_counts,
+                         all_pages=all_pages,
+                         broken_links=broken_links,
+                         missing_tags=missing_tags,
+                         timestamp=timestamp,
+                         internal_pages_count=internal_pages_count,
+                         external_pages_count=external_pages_count,
+                         current_link_type=link_type_filter)
+
+@app.route('/website/<site_id>/broken-links')
+def website_broken_links(site_id):
+    current_config = get_app_config()
+    website = website_manager.get_website(site_id)
+    if not website:
+        flash(f'Website with ID "{site_id}" not found.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Initialize the crawler module
+    crawler = CrawlerModule(config_path='config/config.yaml')
+    
+    # Get the latest crawler results
+    crawler_results = crawler.get_latest_crawl_results(site_id)
+    
+    if not crawler_results:
+        # No crawler results found, show appropriate message
+        flash(f'No crawler results found for website "{website.get("name")}". Try running a manual check.', 'warning')
+        return redirect(url_for('website_history', site_id=site_id))
+    
+    # Extract broken links
+    broken_links = crawler_results.get('broken_links', [])
+    timestamp = crawler_results.get('timestamp', 'Unknown')
+    
+    # Apply filters if provided
+    status_code_filter = request.args.get('status_code')
+    search_url = request.args.get('search_url')
+    
+    if status_code_filter:
+        try:
+            status_code_filter = int(status_code_filter)
+            broken_links = [link for link in broken_links if link.get('status_code') == status_code_filter]
+        except ValueError:
+            pass
+    
+    if search_url:
+        broken_links = [link for link in broken_links if search_url.lower() in link.get('url', '').lower()]
+    
+    return render_template('broken_links.html',
+                         website_name=website.get('name'),
+                         website_url=website.get('url'),
+                         website_id=site_id,
+                         broken_links=broken_links,
+                         timestamp=timestamp)
+
+@app.route('/website/<site_id>/missing-meta-tags')
+def website_missing_meta_tags(site_id):
+    current_config = get_app_config()
+    website = website_manager.get_website(site_id)
+    if not website:
+        flash(f'Website with ID "{site_id}" not found.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Initialize the crawler module
+    crawler = CrawlerModule(config_path='config/config.yaml')
+    
+    # Get the latest crawler results
+    crawler_results = crawler.get_latest_crawl_results(site_id)
+    
+    if not crawler_results:
+        # No crawler results found, show appropriate message
+        flash(f'No crawler results found for website "{website.get("name")}". Try running a manual check.', 'warning')
+        return redirect(url_for('website_history', site_id=site_id))
+    
+    # Extract missing meta tags
+    missing_tags = crawler_results.get('missing_meta_tags', [])
+    timestamp = crawler_results.get('timestamp', 'Unknown')
+    
+    # Apply filters if provided
+    tag_type_filter = request.args.get('tag_type')
+    search_url = request.args.get('search_url')
+    
+    if tag_type_filter:
+        missing_tags = [tag for tag in missing_tags if tag.get('tag_type') == tag_type_filter]
+    
+    if search_url:
+        missing_tags = [tag for tag in missing_tags if search_url.lower() in tag.get('url', '').lower()]
+    
+    return render_template('missing_meta_tags.html',
+                         website_name=website.get('name'),
+                         website_url=website.get('url'),
+                         website_id=site_id,
+                         missing_tags=missing_tags,
+                         timestamp=timestamp)
 
 # --- API Endpoints (Optional, for AJAX or other integrations) ---
 @app.route('/api/websites', methods=['GET'])

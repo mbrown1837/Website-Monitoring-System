@@ -39,6 +39,12 @@
         <div class="form-text">Optional comma-separated email addresses to notify on changes.</div>
     </div>
 
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="crawl_only" name="crawl_only" {% if website and website.crawl_only %}checked{% endif %}>
+        <label class="form-check-label" for="crawl_only">Crawl Only Site</label>
+        <div class="form-text">If checked, this site will only be crawled for broken links and SEO issues, without visual/content comparison.</div>
+    </div>
+
     {% if website %}
     <div class="mb-3 form-check">
         <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if website.is_active %}checked{% endif %}>

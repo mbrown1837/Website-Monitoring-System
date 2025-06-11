@@ -17,6 +17,9 @@ import src.alerter as alerter
 import os # For reading previous snapshot files
 from bs4 import BeautifulSoup
 
+# Import crawler module
+from src.crawler_module import CrawlerModule
+
 logger = setup_logging()
 config = get_config()
 
@@ -24,6 +27,7 @@ config = get_config()
 # These will use the default application configuration
 website_manager = WebsiteManager() 
 history_manager = HistoryManager()
+crawler_module = CrawlerModule()  # Initialize the crawler module
 
 # Event to signal shutdown
 _shutdown_event = threading.Event()
@@ -136,300 +140,44 @@ def determine_significance(results: dict, site_config: dict) -> bool:
         return False
 
 # Main monitoring function, significantly enhanced
-def perform_website_check(site_id: str):
-    """Performs a full check for a given website ID."""
-    logger.info(f"MONITOR_TASK: Initiating check for site_id: {site_id}")
-    # Use the instantiated manager
-    site_details = website_manager.get_website(site_id) 
-    if not site_details:
-        logger.error(f"MONITOR_TASK: Site ID {site_id} not found. Cannot perform check.")
-        return {
-            "site_id": site_id,
-            "status": "error",
-            "error_message": f"Site ID {site_id} not found.",
-            "significant_change_detected": False # Ensure this key exists
-        }
-
-    url = site_details['url']
-    current_ts = datetime.now(timezone.utc)
-    # Result dictionary for this check
-    check_outcome = {
-        "site_id": site_id, 
-        "url": url,
-        "timestamp_utc": current_ts.isoformat(),
-        "status": "pending", # Initial status
-        "changes_detected": False,
-        "error_message": None
-    }
-
-
-    # Use the instantiated manager
-    old_check_record = history_manager.get_latest_check_for_site(site_id)
-
-    # Determine if we are using a baseline or the last check for comparison
-    use_baseline_for_comparison = False
-    old_html_content_for_comparison = ""
-    old_visual_path_for_comparison = None
-    comparison_source_log = ""
-    old_html_content_source_for_log = "None (no baseline or prior history eligible for comparison)"
-
-    if site_details.get('baseline_html_path') and os.path.exists(site_details['baseline_html_path']):
-        logger.info(f"MONITOR_TASK [{url}]: Found baseline HTML at {site_details['baseline_html_path']}. Attempting to use it for comparison.")
-        try:
-            with open(site_details['baseline_html_path'], 'r', encoding='utf-8') as f:
-                old_html_content_for_comparison = f.read()
-            # We can still note the last check ID if available, even if comparing against baseline content
-            if old_check_record:
-                 check_outcome['compared_with_check_id'] = old_check_record.get('check_id') # Or a new field like 'based_on_last_check_id'
-                 check_outcome['compared_against_baseline_html_hash'] = site_details.get('baseline_html_hash')
-            use_baseline_for_comparison = True
-            comparison_source_log = "baseline HTML"
-            old_html_content_source_for_log = f"Baseline HTML: {site_details['baseline_html_path']}"
-        except Exception as e:
-            logger.error(f"MONITOR_TASK [{url}]: Error reading baseline HTML snapshot {site_details['baseline_html_path']}: {e}. Falling back to last check if available.")
-            old_html_content_for_comparison = "" # Reset on error
-            old_html_content_source_for_log = "Error reading baseline, attempting fallback."
+def perform_website_check(site_id: str, crawler_options: dict = None):
+    """
+    Manually perform a check on a website.
     
-    if site_details.get('baseline_visual_path') and os.path.exists(site_details['baseline_visual_path']):
-        logger.info(f"MONITOR_TASK [{url}]: Found baseline visual snapshot at {site_details['baseline_visual_path']}. Using it for visual comparison.")
-        old_visual_path_for_comparison = site_details['baseline_visual_path']
-        use_baseline_for_comparison = True # If either HTML or visual baseline is used
-        comparison_source_log += (" and baseline visual" if comparison_source_log else "baseline visual")
-    
-    # Fallback to last check if baseline content wasn't loaded or if only visual baseline was found (need HTML too)
-    if not old_html_content_for_comparison:
-        valid_comparison_statuses = ["initial_check_completed", "completed_no_changes", "completed_with_changes", "baseline_captured"]
-        if old_check_record and old_check_record.get('status') in valid_comparison_statuses and old_check_record.get('html_snapshot_path'):
-            old_html_path_from_history = old_check_record.get('html_snapshot_path')
-            if old_html_path_from_history and os.path.exists(old_html_path_from_history):
-                logger.info(f"MONITOR_TASK [{url}]: Using HTML from last check ID: {old_check_record['check_id']} (Status: {old_check_record.get('status')}) at path {old_html_path_from_history}")
-                try:
-                    with open(old_html_path_from_history, 'r', encoding='utf-8') as f:
-                        old_html_content_for_comparison = f.read()
-                    check_outcome['compared_with_check_id'] = old_check_record['check_id']
-                    comparison_source_log = "last check's HTML"
-                    old_html_content_source_for_log = f"Last check's HTML: {old_html_path_from_history} (Check ID: {old_check_record['check_id']})"
-                except Exception as e:
-                    logger.error(f"MONITOR_TASK [{url}]: Error reading old HTML snapshot {old_html_path_from_history} from history: {e}")
-                    old_html_content_source_for_log = f"Error reading last check's HTML: {old_html_path_from_history}"
-            else:
-                logger.warning(f"MONITOR_TASK [{url}]: Last check's HTML snapshot not found or path missing: {old_html_path_from_history}")
-                old_html_content_source_for_log = f"Last check's HTML path missing/invalid: {old_html_path_from_history}"
-        else:
-            logger.info(f"MONITOR_TASK [{url}]: No suitable baseline or previous check HTML found for comparison (Old check record: {bool(old_check_record)}, Status: {old_check_record.get('status') if old_check_record else 'N/A'}).")
-            old_html_content_source_for_log = "No valid baseline or previous history HTML found."
-    
-    # Visual comparison: use baseline visual if available, otherwise fallback to last check's visual if HTML also came from last check
-    if not old_visual_path_for_comparison: # If baseline visual was not used
-        if old_check_record and old_check_record.get('visual_snapshot_path') and check_outcome.get('compared_with_check_id') == old_check_record.get('check_id'):
-            # Only use last check's visual if we are also using its HTML
-            old_visual_path_from_history = old_check_record.get('visual_snapshot_path')
-            if old_visual_path_from_history and os.path.exists(old_visual_path_from_history):
-                logger.info(f"MONITOR_TASK [{url}]: Using visual snapshot from last check ID: {old_check_record['check_id']}")
-                old_visual_path_for_comparison = old_visual_path_from_history
-                comparison_source_log += (" and last check's visual" if comparison_source_log else "last check's visual")
-            else:
-                logger.warning(f"MONITOR_TASK [{url}]: Last check's visual snapshot not found or path missing: {old_visual_path_from_history}")
-        else:
-            logger.info(f"MONITOR_TASK [{url}]: No suitable baseline or previous check visual found for comparison.")
-
-
-    # 1. Retrieve Content
-    logger.info(f"MONITOR_TASK [{url}]: Fetching content...")
-    status_code, content_type, new_html_content, fetch_error = content_retriever.fetch_website_content(url)
-    
-    if fetch_error or not new_html_content:
-        logger.error(f"MONITOR_TASK [{url}]: Failed to fetch content. Error: {fetch_error}")
-        check_outcome.update({"status": "failed_fetch", "error_message": fetch_error})
-        history_manager.add_check_record(
-            site_id=site_id, 
-            status="failed_fetch", 
-            errors=fetch_error,
-            url=url # Add url to history for context
-        )
-        website_manager.update_website(site_id, {"last_checked_utc": current_ts.isoformat(), "last_status": "Failed Fetch"})
-        return check_outcome # Return the outcome for app.py
-
-    check_outcome["fetch_status_code"] = status_code
-
-    # 2. Create Snapshots of Current Content
-    logger.info(f"MONITOR_TASK [{url}]: Saving HTML snapshot...")
-    html_snapshot_path, html_content_hash = snapshot_tool.save_html_snapshot(site_id, url, new_html_content, current_ts)
-    check_outcome["html_snapshot_path"] = html_snapshot_path
-    check_outcome["html_content_hash"] = html_content_hash
-    if not html_snapshot_path:
-        logger.warning(f"MONITOR_TASK [{url}]: Failed to save HTML snapshot.")
-        # Continue if possible, but log this as an issue.
-
-    logger.info(f"MONITOR_TASK [{url}]: Saving visual snapshot...")
-    visual_snapshot_path = snapshot_tool.save_visual_snapshot(site_id, url, current_ts)
-    check_outcome["visual_snapshot_path"] = visual_snapshot_path
-    if not visual_snapshot_path:
-        logger.warning(f"MONITOR_TASK [{url}]: Failed to save visual snapshot.")
-
-    # 3. Comparisons (if there is a previous check or baseline to compare against)
-    if old_html_content_for_comparison:
-        logger.info(f"MONITOR_TASK [{url}]: Comparing current content with {comparison_source_log}. Source of old HTML for comparison: {old_html_content_source_for_log}")
-        comparison_results_dict = {} 
-
-        # HTML content based comparisons
-        comparison_results_dict['content_diff_score'], comparison_results_dict['content_diff_details'] = comparators.compare_html_text_content(old_html_content_for_comparison, new_html_content)
-        old_text_for_semantic = comparators.extract_text_from_html(old_html_content_for_comparison)
-        new_text_for_semantic = comparators.extract_text_from_html(new_html_content)
-        if old_text_for_semantic or new_text_for_semantic: # Proceed if at least one has text
-            semantic_sim_score, semantic_diffs = comparators.compare_text_semantic(old_text_for_semantic, new_text_for_semantic)
-            comparison_results_dict['semantic_diff_score'] = semantic_sim_score
-            # Convert semantic_diffs to a JSON-serializable format (list of lists)
-            comparison_results_dict['semantic_diff_details'] = [[op, text] for op, text in semantic_diffs]
-        else:
-            logger.debug(f"MONITOR_TASK [{url}]: Both old and new HTML yielded no text for semantic comparison.")
-            comparison_results_dict['semantic_diff_score'] = 1.0 # No text means no change in text
-            comparison_results_dict['semantic_diff_details'] = []
-
-        comparison_results_dict['structure_diff_score'], comparison_results_dict['structure_diff_details'] = comparators.compare_html_structure(old_html_content_for_comparison, new_html_content)
-        comparison_results_dict['meta_changes'] = comparators.compare_meta_tags(old_html_content_for_comparison, new_html_content, config.get('meta_tags_to_check', ['description', 'keywords']))
+    Args:
+        site_id (str): ID of website to check
+        crawler_options (dict, optional): Dictionary of crawler options
         
-        # Convert sets to lists for link_changes
-        link_changes_raw = comparators.compare_links(old_html_content_for_comparison, new_html_content)
-        comparison_results_dict['link_changes'] = {
-            k: list(v) if isinstance(v, set) else v 
-            for k, v in link_changes_raw.items()
-        }
-
-        # Convert sets to lists for image_src_changes
-        image_src_changes_raw = comparators.compare_image_sources(old_html_content_for_comparison, new_html_content)
-        comparison_results_dict['image_src_changes'] = {
-            k: list(v) if isinstance(v, set) else v
-            for k, v in image_src_changes_raw.items()
-        }
-        
-        comparison_results_dict['canonical_url_change'] = comparators.compare_canonical_urls(old_html_content_for_comparison, new_html_content)
-        
-        # Visual comparison using selected old_visual_path_for_comparison
-        if old_visual_path_for_comparison and os.path.exists(old_visual_path_for_comparison) and visual_snapshot_path and os.path.exists(visual_snapshot_path):
-            diff_img_save_dir = os.path.join(snapshot_tool.get_snapshot_directory(), site_id, "diffs")
-            os.makedirs(diff_img_save_dir, exist_ok=True)
-            diff_img_filename = f"diff_{current_ts.strftime('%Y%m%d_%H%M%S_%f')}.png"
-            diff_img_full_path = os.path.join(diff_img_save_dir, diff_img_filename)
-
-            # Get ignore regions from config
-            ignore_regions_global = config.get('visual_comparison_ignore_regions', [])
-            # TODO: Implement per-site ignore regions and merge with global if needed
-            # current_site_config_ignore_regions = site_details.get('config', {}).get('visual_ignore_regions', [])
-            # effective_ignore_regions = ignore_regions_global + current_site_config_ignore_regions
-            effective_ignore_regions = ignore_regions_global
-            
-            # MSE based comparison
-            mse_score, _ = comparators.compare_screenshots(
-                old_visual_path_for_comparison, 
-                visual_snapshot_path, 
-                diff_image_path=diff_img_full_path,
-                ignore_regions=effective_ignore_regions
-            )
-            comparison_results_dict['visual_diff_score'] = float(mse_score) if mse_score is not None else None # visual_diff_score is MSE
-            if mse_score is not None and mse_score > 0:
-                 comparison_results_dict['visual_diff_image_path'] = diff_img_full_path
-            
-            # Perform SSIM comparison if libraries are available
-            if comparators.OPENCV_SKIMAGE_AVAILABLE:
-                ssim_val = comparators.compare_screenshots_ssim(
-                    old_visual_path_for_comparison, 
-                    visual_snapshot_path, 
-                    ignore_regions=effective_ignore_regions
-                )
-                if ssim_val is not None:
-                    comparison_results_dict['ssim_score'] = float(ssim_val)
-                    logger.info(f"MONITOR_TASK [{url}]: SSIM comparison score: {ssim_val:.4f}")
-                else:
-                    logger.warning(f"MONITOR_TASK [{url}]: SSIM comparison returned None.")
-            else:
-                logger.debug(f"MONITOR_TASK [{url}]: OpenCV/scikit-image not available. Skipping SSIM comparison.")
-
-        elif not old_visual_path_for_comparison:
-             logger.warning(f"MONITOR_TASK [{url}]: Current visual snapshot not taken, cannot compare visuals.")
-
-        # Determine significance based on the collected comparison results
-        is_significant = determine_significance(comparison_results_dict, site_details)
-        check_outcome['significant_change_detected'] = is_significant
-        check_outcome['status'] = "completed_with_changes" if is_significant else "completed_no_changes"
-        
-        # Update check_outcome with all comparison results for history logging
-        check_outcome.update(comparison_results_dict)
-
-    else: # This is the first successful check AND no baseline was found for comparison
-        logger.info(f"MONITOR_TASK [{url}]: This is the initial successful check. No comparison performed because no valid old HTML content was available. Source evaluated for old HTML: {old_html_content_source_for_log}")
-        check_outcome['status'] = "initial_check_completed"
-        check_outcome['significant_change_detected'] = config.get('alert_on_initial_check', False)
-
-    # 4. Log Check Record
-    # The history_manager.add_check_record will take care of most details
-    # We need to pass all relevant pieces from `check_outcome` and `snapshot_results`
-    history_add_payload = {
-        "site_id": site_id,
-        "url": url,
-        "status": check_outcome['status'],
-        "html_snapshot_path": check_outcome.get("html_snapshot_path"),
-        "html_content_hash": check_outcome.get("html_content_hash"),
-        "visual_snapshot_path": check_outcome.get("visual_snapshot_path"),
-        "fetch_status_code": check_outcome.get('fetch_status_code'),
-        "content_diff_score": check_outcome.get('content_diff_score'),
-        "content_diff_details": check_outcome.get('content_diff_details'),
-        "structure_diff_score": check_outcome.get('structure_diff_score'),
-        "structure_diff_details": check_outcome.get('structure_diff_details'),
-        "semantic_diff_score": check_outcome.get('semantic_diff_score'),
-        "semantic_diff_details": check_outcome.get('semantic_diff_details'),
-        "visual_diff_score": check_outcome.get('visual_diff_score'), # MSE
-        "visual_diff_image_path": check_outcome.get('visual_diff_image_path'),
-        "ssim_score": check_outcome.get('ssim_score'),
-        "meta_changes": check_outcome.get('meta_changes'),
-        "link_changes": check_outcome.get('link_changes'),
-        "image_src_changes": check_outcome.get('image_src_changes'),
-        "canonical_url_change": check_outcome.get('canonical_url_change'),
-        "significant_change_detected": check_outcome['significant_change_detected'],
-        "errors": check_outcome.get('error_message'),
-        "compared_with_check_id": check_outcome.get('compared_with_check_id'),
-        "compared_against_baseline_html_hash": check_outcome.get('compared_against_baseline_html_hash')
-    }
-    # Remove None values to keep history clean
-    history_add_payload = {k: v for k, v in history_add_payload.items() if v is not None}
-
-    final_check_record = history_manager.add_check_record(**history_add_payload)
-    logger.info(f"MONITOR_TASK [{url}]: Check record {final_check_record['check_id']} saved with status: {check_outcome['status']}")
-    check_outcome['check_id'] = final_check_record['check_id'] # Add check_id to outcome
-
-    # 5. Update Website's Last Checked Info
-    website_manager.update_website(site_id, {"last_checked_utc": current_ts.isoformat(), "last_status": check_outcome['status']})
-
-    # 6. Send Alert for all checks, regardless of whether changes were detected
-    logger.info(f"MONITOR_TASK [{url}]: Preparing notification for site check.")
-    site_notification_emails = site_details.get('notification_emails', [])
+    Returns:
+        dict: Results of the check
+    """
+    # Get configuration
+    config = get_config()
+    logger = setup_logging()
     
-    # Create appropriate subject
-    if check_outcome['significant_change_detected']:
-        subject_prefix = "Alert: Change Detected"
-    else:
-        subject_prefix = "Website Check Report"
-        
-    alert_subject, alert_html_body, alert_text_body = alerter.format_alert_message(
-        site_url=url,
-        site_name=site_details.get('name', url),
-        check_record=final_check_record
-    )
+    # Get website data
+    website_manager = WebsiteManager()
+    site = website_manager.get_website(site_id)
     
-    # Override the subject to include the appropriate prefix
-    alert_subject = f"{subject_prefix} - {site_details.get('name', url)}"
+    if not site:
+        logger.error(f"MONITOR_TASK: Website with ID {site_id} not found for manual check")
+        return {"status": "error", "message": f"Website with ID {site_id} not found"}
     
-    # Send the email notification
-    alerter.send_email_alert(
-        alert_subject, 
-        alert_html_body, 
-        alert_text_body, 
-        recipient_emails=site_notification_emails
-    )
+    # Default crawler options
+    if crawler_options is None:
+        crawler_options = {}
     
-    logger.info(f"MONITOR_TASK: Check completed for site_id: {site_id}, URL: {url}")
-
-    return check_outcome
+    # Check if the website is configured as crawl-only
+    website_is_crawl_only = site.get('crawl_only', False)
+    
+    # If website is set to crawl-only, override options to ensure we don't do visual checks
+    if website_is_crawl_only:
+        logger.info(f"MONITOR_TASK: Website {site['url']} is configured as crawl-only. Enforcing crawl-only mode")
+        crawler_options['crawl_only'] = True
+        crawler_options['visual_check_only'] = False
+        crawler_options['create_baseline'] = False
+    
+    return _perform_check(site_id, site, crawler_options)
 
 def schedule_website_monitoring_tasks():
     """Loads websites and schedules monitoring tasks for active ones."""
@@ -523,6 +271,156 @@ def run_scheduler():
     logger.info("SCHEDULER: Shutdown signal received or no more tasks. Exiting scheduler loop.")
     schedule.clear() # Clear all schedules
     logger.info("SCHEDULER: All scheduled tasks cleared. Scheduler stopped.")
+
+def _perform_check(site_id, site, crawler_options=None):
+    """
+    Perform the actual check of a website, including crawling and comparison.
+    
+    Args:
+        site_id (str): ID of website to check
+        site (dict): Website data
+        crawler_options (dict): Crawler options
+        
+    Returns:
+        dict: Results of the check
+    """
+    logger.info(f"MONITOR_TASK: Initiating check for site_id: {site_id}")
+    
+    if not site:
+        logger.error(f"MONITOR_TASK: Site data is missing for ID {site_id}")
+        return {"status": "error", "message": "Site data missing"}
+    
+    url = site.get('url')
+    if not url:
+        logger.error(f"MONITOR_TASK: URL missing for site ID {site_id}")
+        return {"status": "error", "message": "URL missing"}
+    
+    # Check if this is a crawl-only website
+    website_is_crawl_only = site.get('crawl_only', False)
+    
+    # Set default crawler options if needed
+    if crawler_options is None:
+        crawler_options = {}
+        
+    # If site is crawl-only, enforce crawl_only=True regardless of what was passed
+    if website_is_crawl_only:
+        crawler_options['crawl_only'] = True
+        crawler_options['visual_check_only'] = False
+        crawler_options['create_baseline'] = False
+    
+    # Perform crawler operations
+    try:
+        # Configure crawler options
+        max_depth = crawler_options.get('max_depth', 2)
+        crawl_only = crawler_options.get('crawl_only', website_is_crawl_only)
+        visual_check_only = crawler_options.get('visual_check_only', False)
+        create_baseline = crawler_options.get('create_baseline', False)
+        
+        # Ensure we're not doing visual checks for crawl-only sites
+        if website_is_crawl_only:
+            visual_check_only = False
+            create_baseline = False
+            
+        logger.info(f"MONITOR_TASK [{url}]: Starting crawler with options: max_depth={max_depth}, crawl_only={crawl_only}, visual_check_only={visual_check_only}, create_baseline={create_baseline}")
+        
+        # Use the crawler module
+        crawler = CrawlerModule()
+        
+        # If create_baseline is true, ensure we capture a snapshot
+        if create_baseline and not website_is_crawl_only:
+            logger.info(f"MONITOR_TASK [{url}]: Creating new baseline")
+            website_manager = WebsiteManager()
+            baseline_success = website_manager.capture_baseline_for_site(site_id)
+            if not baseline_success:
+                logger.warning(f"MONITOR_TASK [{url}]: Failed to create baseline")
+        
+        # Execute crawler
+        crawler_results = crawler.crawl_website(
+            site_id, 
+            url,
+            max_depth=max_depth,
+            respect_robots=True,
+            check_external_links=True,
+            crawl_only=crawl_only,
+            visual_check_only=visual_check_only,
+            create_baseline=create_baseline and not website_is_crawl_only
+        )
+        
+        # Log crawler results
+        if crawler_results:
+            logger.info(f"MONITOR_TASK [{url}]: Crawler completed. Found {len(crawler_results.get('broken_links', []))} broken links, {len(crawler_results.get('missing_meta_tags', []))} missing meta tags, and {len(crawler_results.get('all_pages', []))} total pages.")
+        else:
+            logger.warning(f"MONITOR_TASK [{url}]: Crawler returned no results")
+            
+        # Create results object with crawler data
+        results = {
+            "status": "success",
+            "url": url,
+            "crawl_data": crawler_results,
+            "broken_links": len(crawler_results.get('broken_links', [])),
+            "missing_meta_tags": len(crawler_results.get('missing_meta_tags', [])),
+            "total_pages": len(crawler_results.get('all_pages', [])),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Update website's last_checked timestamp
+        website_manager = WebsiteManager()
+        website_manager.update_website(site_id, {"last_checked_utc": datetime.now(timezone.utc).isoformat()})
+        
+        # Save results to history - using the correct method add_check_record
+        history_manager = HistoryManager()
+        history_manager.add_check_record(
+            site_id=site_id,
+            status="success",
+            html_snapshot_path=None,  # We're not capturing snapshots here
+            html_content_hash=None,
+            visual_snapshot_path=None,
+            check_type="crawl_only" if website_is_crawl_only else "full",
+            crawl_results={
+                "broken_links": len(crawler_results.get('broken_links', [])),
+                "missing_meta_tags": len(crawler_results.get('missing_meta_tags', [])),
+                "total_pages": len(crawler_results.get('all_pages', []))
+            }
+        )
+        
+        # Send notification if needed
+        if (len(crawler_results.get('broken_links', [])) > 0 or len(crawler_results.get('missing_meta_tags', [])) > 0) and site.get('notification_emails'):
+            try:
+                notification_emails = site.get('notification_emails', [])
+                if notification_emails:
+                    logger.info(f"MONITOR_TASK [{url}]: Sending notification to {', '.join(notification_emails)}")
+                    alerter.send_email_alert(
+                        site, 
+                        f"Website Monitor Alert: Issues Found on {site.get('name', url)}",
+                        f"The following issues were found on your website {url}:\n\n" +
+                        f"- {len(crawler_results.get('broken_links', []))} broken links\n" +
+                        f"- {len(crawler_results.get('missing_meta_tags', []))} missing meta tags\n\n" +
+                        f"Please check the dashboard for more details."
+                    )
+            except Exception as e:
+                logger.error(f"MONITOR_TASK [{url}]: Failed to send notification: {e}")
+        
+        return results
+    except Exception as e:
+        logger.error(f"MONITOR_TASK [{url}]: Error performing check: {e}", exc_info=True)
+        
+        # Save error to history - using the correct method add_check_record
+        history_manager = HistoryManager()
+        history_manager.add_check_record(
+            site_id=site_id,
+            status="error",
+            html_snapshot_path=None,
+            html_content_hash=None,
+            visual_snapshot_path=None,
+            check_type="crawl_only" if website_is_crawl_only else "full",
+            error_message=str(e)
+        )
+        
+        return {
+            "status": "failed_fetch",
+            "error_message": str(e),
+            "url": url
+        }
 
 if __name__ == '__main__':
     logger.info("----- Scheduler Service Starting -----")

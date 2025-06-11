@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block title %}Broken Links - {{ website_name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3">Broken Links</h1>
+        <p class="text-muted">
+            Identify and fix broken links on {{ website_name }} to improve user experience and SEO.
+        </p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('website_history', site_id=website_id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to History
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="card-title mb-0">Broken Links Report</h5>
+                <p class="text-muted small mb-0">
+                    Latest scan: {{ timestamp }}
+                </p>
+            </div>
+            <div class="col-auto">
+                <span class="badge rounded-pill {% if broken_links|length > 0 %}bg-danger{% else %}bg-success{% endif %}">
+                    {{ broken_links|length }} issues found
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if broken_links|length == 0 %}
+        <div class="alert alert-success" role="alert">
+            <i class="bi bi-check-circle"></i> No broken links detected on this website.
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>URL</th>
+                        <th>Status Code</th>
+                        <th>Error Message</th>
+                        <th>Referring Page</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in broken_links %}
+                    <tr>
+                        <td class="text-break">{{ link.url }}</td>
+                        <td>
+                            <span class="badge bg-danger">{{ link.status_code }}</span>
+                        </td>
+                        <td>{{ link.error_message }}</td>
+                        <td class="text-break">{{ link.referring_page }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4">
+            <h5>How to Fix Broken Links</h5>
+            <ol>
+                <li>Correct the URLs in your website's HTML</li>
+                <li>Redirect old URLs to new pages</li>
+                <li>Remove references to non-existent pages</li>
+                <li>Contact external site owners if the broken links are on other domains</li>
+            </ol>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Filter Options</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('website_broken_links', site_id=website_id) }}" method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="statusCode" class="form-label">Status Code</label>
+                <select class="form-select" id="statusCode" name="status_code">
+                    <option value="">All Status Codes</option>
+                    <option value="404" {% if request.args.get('status_code') == '404' %}selected{% endif %}>404 Not Found</option>
+                    <option value="500" {% if request.args.get('status_code') == '500' %}selected{% endif %}>500 Internal Server Error</option>
+                    <option value="0" {% if request.args.get('status_code') == '0' %}selected{% endif %}>Connection Errors</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchUrl" class="form-label">Search URL</label>
+                <input type="text" class="form-control" id="searchUrl" name="search_url" placeholder="Enter URL fragment" value="{{ request.args.get('search_url', '') }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                <a href="{{ url_for('website_broken_links', site_id=website_id) }}" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
