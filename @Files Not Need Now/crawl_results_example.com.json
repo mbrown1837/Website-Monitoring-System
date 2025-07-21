@@ -1,0 +1,110 @@
+{
+  "website_id": "test-site",
+  "url": "https://example.com",
+  "timestamp": "2025-06-15T05:12:15.433551",
+  "broken_links": [],
+  "missing_meta_tags": [
+    {
+      "url": "https://example.com/",
+      "type": "missing_meta_description",
+      "element": "meta",
+      "details": "Missing or empty meta description"
+    },
+    {
+      "url": "https://example.com/",
+      "type": "missing_meta_keywords",
+      "element": "meta",
+      "details": "Missing or empty meta keywords"
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "type": "missing_title",
+      "element": "title",
+      "details": "Missing or empty title tag"
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "type": "missing_meta_description",
+      "element": "meta",
+      "details": "Missing or empty meta description"
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "type": "missing_meta_keywords",
+      "element": "meta",
+      "details": "Missing or empty meta keywords"
+    },
+    {
+      "url": "http://www.iana.org/help/example-domains",
+      "type": "missing_title",
+      "element": "title",
+      "details": "Missing or empty title tag"
+    },
+    {
+      "url": "http://www.iana.org/help/example-domains",
+      "type": "missing_meta_description",
+      "element": "meta",
+      "details": "Missing or empty meta description"
+    },
+    {
+      "url": "http://www.iana.org/help/example-domains",
+      "type": "missing_meta_keywords",
+      "element": "meta",
+      "details": "Missing or empty meta keywords"
+    }
+  ],
+  "all_pages": [
+    {
+      "url": "https://example.com/",
+      "status_code": 200,
+      "title": "Example Domain",
+      "is_internal": true,
+      "referring_page": "",
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "status_code": 301,
+      "title": "",
+      "is_internal": false,
+      "referring_page": "",
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    },
+    {
+      "url": "http://www.iana.org/help/example-domains",
+      "status_code": 200,
+      "title": "",
+      "is_internal": false,
+      "referring_page": "",
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    }
+  ],
+  "internal_urls": [
+    "https://example.com/"
+  ],
+  "external_urls": [
+    "https://www.iana.org/domains/example",
+    "http://www.iana.org/help/example-domains"
+  ],
+  "visual_baselines": [],
+  "visual_baselines_count": 0,
+  "crawl_stats": {
+    "pages_crawled": 3,
+    "total_links": 3,
+    "total_images": 0,
+    "status_code_counts": {
+      "200": 2,
+      "301": 1
+    },
+    "sitemap_found": false
+  }
+}

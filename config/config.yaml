@@ -7,17 +7,17 @@ snapshot_directory: data/snapshots
 playwright_browser_type: chromium
 playwright_headless_mode: true
 playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-  (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36
-playwright_render_delay_ms: 8000
+  (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
+playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
 notification_email_from: support@westlanddre.com
 notification_email_to: sarmadsahib786@gmail.com
 content_change_threshold: 1.0
 image_diff_threshold: 1000
 structure_change_threshold: 1.0
-visual_difference_threshold: 0.0
 semantic_similarity_threshold: 0.9
 ssim_similarity_threshold: 0.95
+visual_change_alert_threshold_percent: 0.01
 meta_tags_to_check:
 - description
 - keywords
@@ -46,3 +46,55 @@ crawler_max_depth: 2
 crawler_respect_robots: false
 crawler_check_external_links: true
 crawler_user_agent: SiteMonitor Bot
+greenflare_timeout: 30
+greenflare_retries: 3
+greenflare_backoff_base: 2
+greenflare_extract_images: true
+greenflare_extract_alt_text: true
+greenflare_extract_meta_tags:
+- title
+- description
+- keywords
+- og:title
+- og:description
+- twitter:title
+- twitter:description
+playwright_retries: 2
+snapshot_format: png
+monitoring_interval_seconds: 300
+enable_scheduler: true
+blur_detection_threshold: 100
+blur_detection_percentage_threshold: 15
+blur_detection_min_image_size: 100
+blur_detection_resize_dimensions:
+- 1280
+- 720
+blur_detection_cleanup_days: 30
+blur_detection_email_template: 'Subject: Blurry Images Detected - {website_name}
+
+
+  Dear Administrator,
+
+
+  Our website monitoring system has detected {blurry_count} blurry images on {website_name}.
+
+
+  Details:
+
+  - Total images analyzed: {total_images}
+
+  - Blurry images found: {blurry_count}
+
+  - Average blur score: {avg_blur_score}
+
+
+  Please review the images in your dashboard for more details.
+
+
+  Best regards,
+
+  Website Monitoring System
+
+  '
+visual_difference_threshold: 5.0
+google_pagespeed_api_key: AIzaSyBalq6kgTjMTDlulVWnJ69Pu8mT3sZ_kZU

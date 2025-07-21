@@ -1,0 +1,8 @@
+[
+  {
+    "url": "https://example.com",
+    "type": "missing_meta_description",
+    "element": "meta",
+    "details": "Missing or empty meta description"
+  }
+]

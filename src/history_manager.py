@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
+import threading
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
 
@@ -14,6 +15,7 @@ class HistoryManager:
             self.config = get_config()
             self.logger = setup_logging()
         
+        self.lock = threading.Lock()
         self.history_file_path = self._initialize_history_file_path()
         self._history = []  # Internal cache
         self._history_loaded = False  # Flag for cache state
@@ -39,30 +41,32 @@ class HistoryManager:
         if self._history_loaded and not force_reload:
             return self._history
 
-        try:
-            if not os.path.exists(self.history_file_path):
-                self.logger.info(f"History file not found at {self.history_file_path}. Creating an empty list.")
-                with open(self.history_file_path, 'w', encoding='utf-8') as f:
-                    json.dump([], f)
+        with self.lock:
+            try:
+                if not os.path.exists(self.history_file_path):
+                    self.logger.info(f"History file not found at {self.history_file_path}. Creating an empty list.")
+                    with open(self.history_file_path, 'w', encoding='utf-8') as f:
+                        json.dump([], f)
+                    self._history = []
+                else:
+                    with open(self.history_file_path, 'r', encoding='utf-8') as f:
+                        self._history = json.load(f)
+                self._history_loaded = True
+                return self._history
+            except (IOError, json.JSONDecodeError) as e:
+                self.logger.error(f"Error loading check history from {self.history_file_path}: {e}")
                 self._history = []
-            else:
-                with open(self.history_file_path, 'r', encoding='utf-8') as f:
-                    self._history = json.load(f)
-            self._history_loaded = True
-            return self._history
-        except (IOError, json.JSONDecodeError) as e:
-            self.logger.error(f"Error loading check history from {self.history_file_path}: {e}")
-            self._history = []
-            self._history_loaded = True
-            return self._history
+                self._history_loaded = True
+                return self._history
 
     def _save_history(self):
-        try:
-            with open(self.history_file_path, 'w', encoding='utf-8') as f:
-                json.dump(self._history, f, indent=2)
-            self.logger.info(f"Successfully saved {len(self._history)} entries to check history: {self.history_file_path}")
-        except IOError as e:
-            self.logger.error(f"Error saving check history to {self.history_file_path}: {e}")
+        with self.lock:
+            try:
+                with open(self.history_file_path, 'w', encoding='utf-8') as f:
+                    json.dump(self._history, f, indent=2)
+                self.logger.info(f"Successfully saved {len(self._history)} entries to check history: {self.history_file_path}")
+            except IOError as e:
+                self.logger.error(f"Error saving check history to {self.history_file_path}: {e}")
 
     def add_check_record(
         self,
