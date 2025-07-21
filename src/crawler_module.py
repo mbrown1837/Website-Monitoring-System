@@ -62,7 +62,7 @@ class CrawlerModule:
         cursor = conn.cursor()
         
         # Check if we need to run migrations
-        self._check_and_migrate_schema(cursor)
+        # self._check_and_migrate_schema(cursor)  # Comment out this line
         
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS crawl_history (
