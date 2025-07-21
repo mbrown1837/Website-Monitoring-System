@@ -1215,7 +1215,7 @@ if __name__ == '__main__':
     app_port = app_specific_config.get('dashboard_port', 5001)
     
     # 2. CHANGED: Default debug mode is now False for production
-    app_debug = app_specific_config.get('dashboard_debug_mode', False)
+    app_debug = app_specific_config.get('dashboard_debug_mode', True)
     
     logger.info(f"Starting Flask web server on http://{app_host}:{app_port}, Debug: {app_debug}")
     app.run(host=app_host, port=app_port, debug=app_debug)
