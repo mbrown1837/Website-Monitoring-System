@@ -1,0 +1,316 @@
+{% extends 'layout.html' %}
+
+{% block title %}Blur Detection Results - {{ website.name }} - Website Monitor{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('website_history', site_id=website.id) }}">{{ website.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Blur Detection Results</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Blur Detection Results</h2>
+    <div>
+        <a href="{{ url_for('website_history', site_id=website.id) }}" class="btn btn-secondary">Back to History</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-image"></i> {{ website.name }} - Blur Detection Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-primary">{{ blur_stats.total_images }}</h3>
+                            <small class="text-muted">Total Images</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="{% if blur_stats.blurry_images > 0 %}text-warning{% else %}text-success{% endif %}">
+                                {{ blur_stats.blurry_images }}
+                            </h3>
+                            <small class="text-muted">Blurry Images</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-info">{{ blur_stats.avg_laplacian_score }}</h3>
+                            <small class="text-muted">Avg Laplacian Score</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-info">{{ blur_stats.avg_blur_percentage }}%</h3>
+                            <small class="text-muted">Avg Blur Percentage</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if blur_results %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-check"></i> Detailed Results
+                    <span class="badge bg-primary ms-2">{{ blur_results|length }} images</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- View Controls -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <!-- Filter tabs -->
+                        <ul class="nav nav-tabs" id="blurTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-images" type="button" role="tab">
+                                    All Images <span class="badge bg-secondary ms-1">{{ blur_results|length }}</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="blurry-tab" data-bs-toggle="tab" data-bs-target="#blurry-images" type="button" role="tab">
+                                    Blurry Images <span class="badge bg-warning ms-1">{{ blur_results|selectattr('is_blurry')|list|length }}</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="clear-tab" data-bs-toggle="tab" data-bs-target="#clear-images" type="button" role="tab">
+                                    Clear Images <span class="badge bg-success ms-1">{{ blur_results|rejectattr('is_blurry')|list|length }}</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <!-- View Toggle -->
+                        <div class="btn-group" role="group" aria-label="View toggle">
+                            <input type="radio" class="btn-check" name="view-toggle" id="table-view" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="table-view">
+                                <i class="bi bi-table"></i> Table
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="view-toggle" id="grid-view" autocomplete="off">
+                            <label class="btn btn-outline-primary btn-sm" for="grid-view">
+                                <i class="bi bi-grid-3x3-gap"></i> Grid
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab content -->
+                <div class="tab-content" id="blurTabsContent">
+                    <!-- All Images Tab -->
+                    <div class="tab-pane fade show active" id="all-images" role="tabpanel">
+                        <div class="table-view-content">
+                            {% include 'partials/blur_results_table.html' %}
+                        </div>
+                        <div class="grid-view-content" style="display: none;">
+                            {% include 'partials/blur_results_grid.html' %}
+                        </div>
+                    </div>
+                    
+                    <!-- Blurry Images Tab -->
+                    <div class="tab-pane fade" id="blurry-images" role="tabpanel">
+                        {% with filtered_results = blur_results|selectattr('is_blurry')|list %}
+                            {% if filtered_results %}
+                                <div class="table-view-content">
+                                    {% include 'partials/blur_results_table.html' %}
+                                </div>
+                                <div class="grid-view-content" style="display: none;">
+                                    {% include 'partials/blur_results_grid.html' %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle"></i> No blurry images found! All images appear to be clear.
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    
+                    <!-- Clear Images Tab -->
+                    <div class="tab-pane fade" id="clear-images" role="tabpanel">
+                        {% with filtered_results = blur_results|rejectattr('is_blurry')|list %}
+                            {% if filtered_results %}
+                                <div class="table-view-content">
+                                    {% include 'partials/blur_results_table.html' %}
+                                </div>
+                                <div class="grid-view-content" style="display: none;">
+                                    {% include 'partials/blur_results_grid.html' %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> No clear images found. All images appear to be blurry.
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No blur detection results found for this website. 
+    Blur detection may not be enabled or no images were found during the last crawl.
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tabs
+    var triggerTabList = [].slice.call(document.querySelectorAll('#blurTabs button'))
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+    });
+    
+    // View toggle functionality
+    const tableViewRadio = document.getElementById('table-view');
+    const gridViewRadio = document.getElementById('grid-view');
+    const tableViewContents = document.querySelectorAll('.table-view-content');
+    const gridViewContents = document.querySelectorAll('.grid-view-content');
+    
+    function toggleView() {
+        if (tableViewRadio.checked) {
+            tableViewContents.forEach(el => el.style.display = 'block');
+            gridViewContents.forEach(el => el.style.display = 'none');
+        } else if (gridViewRadio.checked) {
+            tableViewContents.forEach(el => el.style.display = 'none');
+            gridViewContents.forEach(el => el.style.display = 'block');
+        }
+        
+        // Re-attach image preview handlers after view change
+        attachImagePreviewHandlers();
+    }
+    
+    tableViewRadio.addEventListener('change', toggleView);
+    gridViewRadio.addEventListener('change', toggleView);
+    
+    // Function to attach image preview handlers
+    function attachImagePreviewHandlers() {
+        const imageLinks = document.querySelectorAll('.image-preview-link');
+        imageLinks.forEach(link => {
+            // Remove existing handlers to prevent duplicates
+            link.removeEventListener('click', handleImagePreview);
+            link.addEventListener('click', handleImagePreview);
+        });
+    }
+    
+    // Image preview handler function
+    function handleImagePreview(e) {
+        e.preventDefault();
+        const imageUrl = this.getAttribute('href');
+        const modal = document.getElementById('imagePreviewModal');
+        const modalImage = modal.querySelector('#modalImage');
+        const modalTitle = modal.querySelector('#modalTitle');
+        
+        modalImage.src = imageUrl;
+        modalTitle.textContent = this.getAttribute('data-title') || 'Image Preview';
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+    }
+    
+    // Initial setup
+    attachImagePreviewHandlers();
+});
+
+// Export function for CSV (accessible from both views)
+function exportBlurResults() {
+    // Get data from the currently visible view
+    const isGridView = document.getElementById('grid-view').checked;
+    let data = [];
+    
+    if (isGridView) {
+        // Export from grid view
+        const cards = document.querySelectorAll('.grid-view-content:not([style*="display: none"]) .card');
+        cards.forEach(card => {
+            const imageUrl = card.querySelector('a[target="_blank"]')?.href || '';
+            const pageUrl = card.querySelector('a[title]')?.title || '';
+            const status = card.querySelector('.badge')?.textContent.trim() || '';
+            const laplacianScore = card.querySelector('.col-6:first-child strong')?.textContent.trim() || '';
+            const blurPercentage = card.querySelector('.col-6:last-child strong')?.textContent.trim() || '';
+            const dimensions = card.querySelector('.small .d-flex span:first-child')?.textContent.trim() || '';
+            const size = card.querySelector('.small .d-flex span:last-child')?.textContent.trim() || '';
+            const date = card.querySelector('.card-footer small')?.textContent.trim() || '';
+            
+            data.push([imageUrl, pageUrl, status, laplacianScore, blurPercentage, dimensions, size, date]);
+        });
+    } else {
+        // Export from table view (existing functionality)
+        const table = document.querySelector('.table-view-content:not([style*="display: none"]) .table');
+        if (table) {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 1) {
+                    const rowData = [
+                        cells[1].textContent.trim(), // Image URL
+                        cells[2].textContent.trim(), // Page URL
+                        cells[3].textContent.trim(), // Status
+                        cells[4].textContent.trim(), // Laplacian Score
+                        cells[5].textContent.trim(), // Blur %
+                        cells[6].textContent.trim(), // Dimensions
+                        cells[7].textContent.trim(), // Size
+                        cells[8].textContent.trim()  // Date
+                    ];
+                    data.push(rowData);
+                }
+            });
+        }
+    }
+    
+    // Create CSV
+    const headers = ['Image URL', 'Page URL', 'Status', 'Laplacian Score', 'Blur %', 'Dimensions', 'Size (KB)', 'Analysis Date'];
+    const csv = [headers.join(',')];
+    
+    data.forEach(row => {
+        csv.push(row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+    });
+    
+    // Download CSV
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blur_detection_results.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+</script>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Image Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" class="img-fluid" alt="Image preview">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

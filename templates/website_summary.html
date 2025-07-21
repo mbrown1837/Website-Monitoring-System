@@ -1,0 +1,513 @@
+{% extends 'layout.html' %}
+
+{% block title %}Site Summary - {{ website.name }} - Website Monitor{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('website_history', site_id=website.id) }}">{{ website.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Site Summary</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Site Summary</h2>
+    <div>
+        <a href="{{ url_for('website_history', site_id=website.id) }}" class="btn btn-secondary">Back to History</a>
+        <a href="{{ url_for('edit_website', site_id=website.id) }}" class="btn btn-primary">Edit Website</a>
+    </div>
+</div>
+
+<!-- Website Overview -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-globe"></i> {{ website.name }} - Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>URL:</strong></td>
+                                <td><a href="{{ website.url }}" target="_blank">{{ website.url }}</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    {% if website.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Monitoring Mode:</strong></td>
+                                <td>
+                                    <span class="badge bg-info">{{ website.monitoring_mode|default('full')|title }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Check Interval:</strong></td>
+                                <td>{{ website.interval }} hours</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Created:</strong></td>
+                                <td>{{ website.created_utc|humanize_datetime if website.created_utc else 'Unknown' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Last Updated:</strong></td>
+                                <td>{{ website.last_updated_utc|humanize_datetime if website.last_updated_utc else 'Unknown' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tags:</strong></td>
+                                <td>
+                                    {% if website.tags %}
+                                        {% for tag in website.tags %}
+                                            <span class="badge bg-secondary me-1">{{ tag }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">None</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Notifications:</strong></td>
+                                <td>
+                                    {% if website.notification_emails %}
+                                        {{ website.notification_emails|length }} email(s) configured
+                                    {% else %}
+                                        <span class="text-muted">None configured</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <!-- Monitoring History Stats -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Checks</h5>
+                <p class="display-4">{{ history_summary.total_checks }}</p>
+                <small>Historical monitoring checks</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Uptime Stats -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card {% if history_summary.uptime_percentage >= 95 %}bg-success{% elif history_summary.uptime_percentage >= 80 %}bg-warning{% else %}bg-danger{% endif %} text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Uptime</h5>
+                <p class="display-4">{{ history_summary.uptime_percentage }}%</p>
+                <small>Success rate of checks</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Crawler Stats -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Pages Crawled</h5>
+                <p class="display-4">{{ crawler_stats.pages_crawled|default(0) }}</p>
+                <small>Total pages discovered</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Issues Summary -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card {% if (crawler_stats.total_broken_links|default(0) + crawler_stats.total_missing_meta_tags|default(0)) > 0 %}bg-warning{% else %}bg-success{% endif %} text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Total Issues</h5>
+                <p class="display-4">{{ (crawler_stats.total_broken_links|default(0) + crawler_stats.total_missing_meta_tags|default(0)) }}</p>
+                <small>Broken links + Missing meta tags</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Metrics -->
+<div class="row mb-4">
+    <!-- Crawler Metrics -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-search"></i> Crawler Metrics
+                    <a href="{{ url_for('website_crawler', site_id=website.id) }}" class="btn btn-sm btn-outline-primary float-end">View Details</a>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if has_recent_data %}
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <h4 class="text-primary">{{ crawler_stats.pages_crawled|default(0) }}</h4>
+                            <small class="text-muted">Pages Crawled</small>
+                        </div>
+                        <div class="col-4">
+                            <a href="{{ url_for('website_broken_links', site_id=website.id) }}" class="text-decoration-none">
+                            <h4 class="{% if crawler_stats.total_broken_links|default(0) > 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ crawler_stats.total_broken_links|default(0) }}
+                                    <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.6em;"></i>
+                            </h4>
+                            </a>
+                            <small class="text-muted">Broken Links</small>
+                        </div>
+                        <div class="col-4">
+                            <a href="{{ url_for('website_missing_meta_tags', site_id=website.id) }}" class="text-decoration-none">
+                            <h4 class="{% if crawler_stats.total_missing_meta_tags|default(0) > 0 %}text-warning{% else %}text-success{% endif %}">
+                                {{ crawler_stats.total_missing_meta_tags|default(0) }}
+                                    <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.6em;"></i>
+                            </h4>
+                            </a>
+                            <small class="text-muted">Missing Meta Tags</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Health Score Visualization -->
+                    {% set health_score = 100 - (crawler_stats.total_broken_links|default(0) * 10) - (crawler_stats.total_missing_meta_tags|default(0) * 5) %}
+                    {% set health_score = [health_score, 0]|max %}
+                    <div class="mb-3">
+                        <h6>Site Health Score</h6>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar {% if health_score >= 80 %}bg-success{% elif health_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ health_score }}%">
+                                {{ health_score|round(0) }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">Based on broken links and missing meta tags</small>
+                    </div>
+                    
+                    <hr>
+                    <p class="text-muted mb-0">
+                        <small>Last crawl: {{ crawler_results.timestamp|humanize_datetime if crawler_results.timestamp else 'Unknown' }}</small>
+                    </p>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No recent crawler data available. Run a check to see metrics.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-speedometer2"></i> Performance Metrics
+                    {% if website.auto_performance_enabled or website.auto_full_check_enabled %}
+                        <a href="{{ url_for('website_performance', site_id=website.id) }}" class="btn btn-sm btn-outline-success float-end">View Details</a>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if website.auto_performance_enabled or website.auto_full_check_enabled %}
+                    {% if performance_stats %}
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <h4 class="{% if performance_stats.mobile_score >= 90 %}text-success{% elif performance_stats.mobile_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ performance_stats.mobile_score|default('N/A') }}
+                                </h4>
+                                <small class="text-muted">Mobile Score</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="{% if performance_stats.desktop_score >= 90 %}text-success{% elif performance_stats.desktop_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ performance_stats.desktop_score|default('N/A') }}
+                                </h4>
+                                <small class="text-muted">Desktop Score</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Core Web Vitals -->
+                        <div class="mb-3">
+                            <h6>Core Web Vitals (Mobile)</h6>
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="text-center">
+                                        <div class="badge {% if performance_stats.mobile_fcp <= 1.8 %}bg-success{% elif performance_stats.mobile_fcp <= 3.0 %}bg-warning{% else %}bg-danger{% endif %} mb-1">
+                                            {{ performance_stats.mobile_fcp|round(1) }}s
+                                        </div>
+                                        <br><small class="text-muted">FCP</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center">
+                                        <div class="badge {% if performance_stats.mobile_lcp <= 2.5 %}bg-success{% elif performance_stats.mobile_lcp <= 4.0 %}bg-warning{% else %}bg-danger{% endif %} mb-1">
+                                            {{ performance_stats.mobile_lcp|round(1) }}s
+                                        </div>
+                                        <br><small class="text-muted">LCP</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-center">
+                                        <div class="badge {% if performance_stats.mobile_cls <= 0.1 %}bg-success{% elif performance_stats.mobile_cls <= 0.25 %}bg-warning{% else %}bg-danger{% endif %} mb-1">
+                                            {{ performance_stats.mobile_cls|round(3) }}
+                                        </div>
+                                        <br><small class="text-muted">CLS</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <p class="text-muted mb-0">
+                            <small>Last check: {{ performance_stats.last_check|humanize_datetime if performance_stats.last_check else 'Unknown' }}</small>
+                        </p>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> No performance data available. Performance will be analyzed during the next check.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-speedometer2"></i> Performance monitoring is not enabled for this website.
+                        <a href="{{ url_for('edit_website', site_id=website.id) }}" class="alert-link">Enable it in settings</a>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Metrics Row -->
+<div class="row mb-4">
+    <!-- Blur Detection Metrics -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-image"></i> Blur Detection Metrics
+                    {% if website.enable_blur_detection or website.auto_blur_enabled or website.auto_full_check_enabled %}
+                        <a href="{{ url_for('website_blur_detection', site_id=website.id) }}" class="btn btn-sm btn-outline-warning float-end">View Details</a>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if website.enable_blur_detection or website.auto_blur_enabled or website.auto_full_check_enabled %}
+                    {% if blur_stats and blur_stats.total_images > 0 %}
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <h4 class="text-primary">{{ blur_stats.total_images }}</h4>
+                                <small class="text-muted">Total Images</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="{% if blur_stats.blurry_images > 0 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ blur_stats.blurry_images }}
+                                </h4>
+                                <small class="text-muted">Blurry Images</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="text-info">{{ blur_stats.avg_laplacian_score|round(1) if blur_stats.avg_laplacian_score else 'N/A' }}</h4>
+                                <small class="text-muted">Avg Quality Score</small>
+                            </div>
+                        </div>
+                        <div class="progress mb-2">
+                            {% set blur_percentage = (blur_stats.blurry_images / blur_stats.total_images * 100) if blur_stats.total_images > 0 else 0 %}
+                            <div class="progress-bar {% if blur_percentage > 20 %}bg-danger{% elif blur_percentage > 10 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ blur_percentage }}%"></div>
+                        </div>
+                        <p class="text-muted mb-0">
+                            <small>{{ blur_percentage|round(1) }}% of images are blurry</small>
+                        </p>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> No blur detection data available. Images will be analyzed during the next check.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-image"></i> Blur detection is not enabled for this website.
+                        <a href="{{ url_for('edit_website', site_id=website.id) }}" class="alert-link">Enable it in settings</a>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Visual Change Metrics -->
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-eye"></i> Visual Change Metrics
+                    <a href="{{ url_for('website_history', site_id=website.id) }}" class="btn btn-sm btn-outline-info float-end">View History</a>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if history_summary.visual_changes_detected > 0 %}
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <h4 class="text-primary">{{ history_summary.visual_changes_detected }}</h4>
+                            <small class="text-muted">Changes Detected</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info">{{ history_summary.avg_visual_diff|round(2) if history_summary.avg_visual_diff else 'N/A' }}%</h4>
+                            <small class="text-muted">Avg Change</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ history_summary.max_visual_diff|round(2) if history_summary.max_visual_diff else 'N/A' }}%</h4>
+                            <small class="text-muted">Max Change</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Stability Score -->
+                    {% set stability_score = 100 - (history_summary.visual_changes_detected * 5) %}
+                    {% set stability_score = [stability_score, 0]|max %}
+                    <div class="mb-3">
+                        <h6>Visual Stability Score</h6>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar {% if stability_score >= 80 %}bg-success{% elif stability_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ stability_score }}%">
+                                {{ stability_score|round(0) }}%
+                            </div>
+                        </div>
+                        <small class="text-muted">Based on frequency of visual changes</small>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> No visual changes detected recently. Your website appears stable.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <button type="button" class="btn btn-success w-100 check-now-btn" 
+                                data-site-id="{{ website.id }}" 
+                                data-site-name="{{ website.name }}"
+                                {% if not website.is_active %}disabled{% endif %}>
+                            <i class="bi bi-play-circle"></i> Run Full Check
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('website_crawler', site_id=website.id) }}" class="btn btn-info w-100">
+                            <i class="bi bi-search"></i> View Crawler Results
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('website_history', site_id=website.id) }}" class="btn btn-secondary w-100">
+                            <i class="bi bi-clock-history"></i> View History
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('edit_website', site_id=website.id) }}" class="btn btn-primary w-100">
+                            <i class="bi bi-pencil"></i> Edit Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Last Check Details -->
+{% if history_summary.last_check %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock"></i> Last Check Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">
+                    <strong>Last Check:</strong> {{ history_summary.last_check|humanize_datetime }}
+                </p>
+                <small class="text-muted">
+                    Next scheduled check will run based on the {{ website.interval }}-hour interval.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle Check Now button (reuse from index.html)
+    const checkNowButton = document.querySelector('.check-now-btn');
+    if (checkNowButton) {
+        checkNowButton.addEventListener('click', function() {
+            const siteId = this.getAttribute('data-site-id');
+            const siteName = this.getAttribute('data-site-name');
+            
+            // Show confirmation and run check
+            if (confirm(`Run a full check for "${siteName}"?`)) {
+                // Add spinner to the button
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
+                this.disabled = true;
+                
+                // Submit form via AJAX
+                const formData = new FormData();
+                formData.append('check_type', 'full');
+                
+                fetch(`/website/${siteId}/manual_check`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Check initiated:', data);
+                    alert(`Check initiated for ${siteName}. You will see results in the history page.`);
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="bi bi-play-circle"></i> Run Full Check';
+                        this.disabled = false;
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error starting check. Please try again.');
+                    this.innerHTML = '<i class="bi bi-play-circle"></i> Run Full Check';
+                    this.disabled = false;
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

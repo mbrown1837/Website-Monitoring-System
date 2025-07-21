@@ -3,22 +3,26 @@ import time
 from datetime import datetime, timezone
 import signal # For graceful shutdown
 import threading # For graceful shutdown
+import os # For reading previous snapshot files
 # Import manager CLASSES
 from src.website_manager import WebsiteManager
 from src.history_manager import HistoryManager
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
+from src.image_processor import create_visual_diff_report # Import the new function
 
 # Import newly relevant modules
 import src.content_retriever as content_retriever
 import src.snapshot_tool as snapshot_tool
 import src.comparators as comparators
 import src.alerter as alerter
-import os # For reading previous snapshot files
 from bs4 import BeautifulSoup
 
 # Import crawler module
 from src.crawler_module import CrawlerModule
+from src.comparators import compare_screenshots, compare_html_text_content
+from src.snapshot_tool import save_visual_snapshot, save_html_snapshot
+from src.history_manager import HistoryManager
 
 logger = setup_logging()
 config = get_config()
@@ -40,12 +44,53 @@ def _signal_handler(signum, frame):
 signal.signal(signal.SIGINT, _signal_handler)
 signal.signal(signal.SIGTERM, _signal_handler)
 
-def determine_significance(results: dict, site_config: dict) -> bool:
+def make_json_serializable(obj):
+    """
+    Recursively convert a Python object to make it JSON serializable.
+    Handles sets, custom objects, and other non-serializable types.
+    
+    Args:
+        obj: The Python object to convert
+        
+    Returns:
+        A JSON serializable version of the object
+    """
+    import PIL.Image
+    
+    if isinstance(obj, dict):
+        return {k: make_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_serializable(i) for i in obj]
+    elif isinstance(obj, tuple):
+        return [make_json_serializable(i) for i in obj]
+    elif isinstance(obj, set):
+        return [make_json_serializable(i) for i in obj]
+    elif isinstance(obj, PIL.Image.Image):
+        # Handle PIL Image objects - convert to path string if possible or just return None
+        return None
+    elif hasattr(obj, '__dict__'):
+        # For custom objects
+        return make_json_serializable(obj.__dict__)
+    elif hasattr(obj, 'isoformat'):
+        # For datetime objects
+        return obj.isoformat()
+    else:
+        # Handle other non-serializable types as needed
+        try:
+            # Check if it's a basic type that JSON can handle
+            import json
+            json.dumps(obj)
+            return obj
+        except TypeError:
+            # If it can't be serialized, convert to string
+            return str(obj)
+
+def determine_significance(results: dict, site_config: dict) -> list:
     """Determines if detected changes are significant based on thresholds."""
     # Get general thresholds from global config
     content_sim_threshold = config.get('content_change_threshold', 0.95) # Expects similarity score
     structure_sim_threshold = config.get('structure_change_threshold', 0.98) # Expects similarity score
-    visual_diff_threshold = config.get('visual_difference_threshold', 0.05) # Expects difference score (0-1) MSE
+    visual_change_percent_threshold = config.get('visual_change_alert_threshold_percent', 1.0) # Default to 1%
     semantic_sim_threshold = config.get('semantic_similarity_threshold', 0.90) # Expects similarity score
     ssim_sim_threshold = config.get('ssim_similarity_threshold', 0.95) # Expects similarity score (SSIM)
     # TODO: Site-specific thresholds could override general ones (e.g., site_config.get('thresholds', {}).get('content_change_threshold'))
@@ -82,15 +127,15 @@ def determine_significance(results: dict, site_config: dict) -> bool:
     else:
         logger.debug("SIGNIFICANCE: Structure diff score not available, cannot determine structure significance.")
 
-    # Visual Difference Check (MSE)
-    visual_diff_score = results.get('visual_diff_score') # This is MSE
-    if visual_diff_score is not None:
-        if visual_diff_score > visual_diff_threshold: # MSE: higher means more different
-            reason = f"Visual difference (MSE) {visual_diff_score:.4f} > threshold {visual_diff_threshold:.4f}"
+    # Visual Difference Check (Percentage)
+    visual_diff_percent = results.get('visual_diff_percent') # This is our new percentage diff
+    if visual_diff_percent is not None:
+        if visual_diff_percent > visual_change_percent_threshold:
+            reason = f"Visual difference ({visual_diff_percent:.4f}%) > threshold ({visual_change_percent_threshold:.4f}%)"
             logger.info(f"SIGNIFICANCE: {reason}")
             significant_changes_found.append(reason)
     else:
-        logger.debug("SIGNIFICANCE: Visual diff score (MSE) not available, cannot determine visual significance.")
+        logger.debug("SIGNIFICANCE: Visual diff percentage not available, cannot determine visual significance.")
 
     # SSIM (Structural Similarity Index) Check
     ssim_score = results.get('ssim_score')
@@ -132,52 +177,112 @@ def determine_significance(results: dict, site_config: dict) -> bool:
         logger.info(f"SIGNIFICANCE: {reason}")
         significant_changes_found.append(reason)
     
+    if results.get('crawler_results', {}).get('total_broken_links', 0) > 0:
+        reason = f"Broken links found: {results.get('crawler_results', {}).get('total_broken_links', 0)}"
+        logger.info(f"SIGNIFICANCE: {reason}")
+        significant_changes_found.append(reason)
+    
     if significant_changes_found:
         logger.info(f"SIGNIFICANCE: Overall, significant changes detected. Reasons: {'; '.join(significant_changes_found)}")
-        return True
     else:
         logger.info("SIGNIFICANCE: No significant changes detected based on current thresholds and checks.")
-        return False
 
-# Main monitoring function, significantly enhanced
-def perform_website_check(site_id: str, crawler_options: dict = None):
+    return significant_changes_found
+
+def perform_website_check(site_id: str, crawler_options_override: dict = None):
     """
-    Manually perform a check on a website.
+    Performs a comprehensive check for a single website.
+    """
+    website = website_manager.get_website(site_id)
+    if not website:
+        logger.error(f"check_website_task: Website with ID {site_id} not found.")
+        return {"status": "error", "message": "Website not found"}
+
+    # Determine if this is a scheduled check or manual check
+    is_scheduled = not crawler_options_override or crawler_options_override.get('is_scheduled', True)
     
-    Args:
-        site_id (str): ID of website to check
-        crawler_options (dict, optional): Dictionary of crawler options
+    # Use appropriate check configuration based on whether this is scheduled or manual
+    if is_scheduled:
+        # For scheduled checks, use automated configuration
+        check_config = website_manager.get_automated_check_config(site_id)
+    else:
+        # For manual checks, use the provided check configuration
+        check_config = crawler_options_override.get('check_config', website_manager.get_automated_check_config(site_id))
+    
+    final_crawler_options = {
+        'create_baseline': False, 
+        'capture_subpages': website.get('capture_subpages', True),
+        'max_depth': website.get('max_crawl_depth', 2),
+        'check_config': check_config,
+        'is_scheduled': is_scheduled
+    }
+    
+    # Override with any provided options (but preserve the check_config we determined above)
+    if crawler_options_override: 
+        # Don't let the override change check_config for manual checks
+        preserved_check_config = final_crawler_options['check_config']
+        final_crawler_options.update(crawler_options_override)
+        if not is_scheduled:
+            final_crawler_options['check_config'] = preserved_check_config
+
+    logger.info(f"Performing check for '{website.get('name')}' (ID: {site_id}) with options: {final_crawler_options}")
+    check_result = {
+        "site_id": site_id, "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "status": "pending", "url": website.get('url'), "significant_change_detected": False,
+    }
+
+    try:
+        all_results = crawler_module.crawl_website(
+            website_id=site_id, 
+            url=website.get('url'), 
+            check_config=final_crawler_options.get('check_config'),
+            is_scheduled=final_crawler_options.get('is_scheduled'),
+            max_depth=final_crawler_options.get('max_depth'),
+            crawl_only=final_crawler_options.get('crawl_only'),
+            visual_check_only=final_crawler_options.get('visual_check_only'),
+            create_baseline=final_crawler_options.get('create_baseline')
+        )
+        check_result.update(all_results)
         
-    Returns:
-        dict: Results of the check
-    """
-    # Get configuration
-    config = get_config()
-    logger = setup_logging()
-    
-    # Get website data
-    website_manager = WebsiteManager()
-    site = website_manager.get_website(site_id)
-    
-    if not site:
-        logger.error(f"MONITOR_TASK: Website with ID {site_id} not found for manual check")
-        return {"status": "error", "message": f"Website with ID {site_id} not found"}
-    
-    # Default crawler options
-    if crawler_options is None:
-        crawler_options = {}
-    
-    # Check if the website is configured as crawl-only
-    website_is_crawl_only = site.get('crawl_only', False)
-    
-    # If website is set to crawl-only, override options to ensure we don't do visual checks
-    if website_is_crawl_only:
-        logger.info(f"MONITOR_TASK: Website {site['url']} is configured as crawl-only. Enforcing crawl-only mode")
-        crawler_options['crawl_only'] = True
-        crawler_options['visual_check_only'] = False
-        crawler_options['create_baseline'] = False
-    
-    return _perform_check(site_id, site, crawler_options)
+        if final_crawler_options.get('create_baseline'):
+            check_result['status'] = 'Baseline Created'
+            logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
+            serializable_result = make_json_serializable(check_result)
+            history_manager.add_check_record(**serializable_result)
+            return serializable_result
+
+        significant_changes = determine_significance(check_result, website)
+        if significant_changes:
+            check_result.update({
+                'significant_change_detected': True, 
+                'status': 'Change Detected',
+                'reasons': significant_changes
+            })
+            logger.info(f"Significant changes detected for {website.get('name')}, preparing to send alert.")
+            
+            # The visual diff report is now generated during the comparison step (in crawler_module),
+            # so we just need to pass the results to the alerter.
+            # The path to the diff image is already in check_result['visual_diff_image_path'] if one was created.
+            
+            alerter.send_report(website, check_result)
+        else:
+            check_result['status'] = 'No significant change'
+            logger.info(f"No significant changes detected for {website.get('name')}.")
+
+        # Record the final, processed result in history
+        serializable_result = make_json_serializable(check_result)
+        history_manager.add_check_record(**serializable_result)
+
+        logger.info(f"Check for '{website.get('name')}' completed. Status: {check_result['status']}")
+        return serializable_result
+
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during check for site {site_id}: {e}", exc_info=True)
+        check_result['status'] = 'Error'
+        check_result['error_message'] = str(e)
+        serializable_result = make_json_serializable(check_result)
+        history_manager.add_check_record(**serializable_result)
+        return serializable_result
 
 def schedule_website_monitoring_tasks():
     """Loads websites and schedules monitoring tasks for active ones."""
@@ -185,9 +290,8 @@ def schedule_website_monitoring_tasks():
     schedule.clear() # Clear any existing schedules before setting new ones
 
     try:
-        # Use the instantiated manager
-        all_websites_map = website_manager.list_websites() # Get all to check active status internally
-        active_websites = [site for site_id, site in all_websites_map.items() if site.get('is_active', True)]
+        all_websites_map = website_manager.list_websites()
+        active_websites = [site for site in all_websites_map.values() if site.get('is_active', True)]
     except Exception as e:
         logger.error(f"SCHEDULER: Failed to load website list: {e}", exc_info=True)
         active_websites = []
@@ -197,256 +301,56 @@ def schedule_website_monitoring_tasks():
         return
 
     default_interval = config.get('default_monitoring_interval_hours', 24)
-    successful_schedules = 0
-
     for site in active_websites:
         site_id = site.get('id')
-        site_name = site.get('name', site.get('url'))
         interval = site.get('interval', default_interval)
-
         if not site_id:
-            logger.error(f"SCHEDULER: Skipping site due to missing ID: {site_name}")
+            logger.error(f"SCHEDULER: Skipping site due to missing ID: {site.get('name')}")
             continue
         
         if not isinstance(interval, (int, float)) or interval <= 0:
-            logger.warning(f"SCHEDULER: Invalid monitoring interval ({interval} hours) for {site_name} (ID: {site_id}). Using default: {default_interval} hours.")
+            logger.warning(f"SCHEDULER: Invalid monitoring interval for {site.get('name')}. Using default.")
             interval = default_interval
 
         try:
-            logger.info(f"SCHEDULER: Scheduling check for {site_name} (ID: {site_id}) every {interval} hours.")
-            # The `schedule` library uses a fluent API.
+            logger.info(f"SCHEDULER: Scheduling check for {site.get('name')} every {interval} hours.")
             schedule.every(interval).hours.do(perform_website_check, site_id=site_id)
-            successful_schedules += 1
         except Exception as e:
-            logger.error(f"SCHEDULER: Error scheduling task for {site_name} (ID: {site_id}): {e}", exc_info=True)
+            logger.error(f"SCHEDULER: Error scheduling task for {site.get('name')}: {e}", exc_info=True)
     
-    logger.info(f"SCHEDULER: Successfully scheduled tasks for {successful_schedules}/{len(active_websites)} active websites.")
-    if successful_schedules > 0:
+    logger.info(f"SCHEDULER: Successfully scheduled tasks for {len(active_websites)} active websites.")
+    if schedule.jobs:
         logger.info(f"SCHEDULER: Next run for scheduled tasks: {schedule.next_run()}")
 
 def run_scheduler():
     """Runs the main scheduling loop. Handles graceful shutdown."""
     logger.info("SCHEDULER: Initializing and scheduling tasks...")
-    # Ensure managers are ready (already instantiated at module level)
-    if not website_manager or not history_manager:
-        logger.error("SCHEDULER: WebsiteManager or HistoryManager not initialized. Cannot start scheduler.")
-        return
-
-    schedule_website_monitoring_tasks() # Initial setup of schedules
+    schedule_website_monitoring_tasks()
+    logger.info("SCHEDULER: Starting main scheduling loop.")
     
-    logger.info("SCHEDULER: Starting main scheduling loop. Waiting for scheduled tasks or shutdown signal.")
-    
-    next_run_time = schedule.next_run()
-    if next_run_time:
-        logger.info(f"SCHEDULER: Next scheduled run at: {next_run_time}")
-    else:
-        logger.info("SCHEDULER: No tasks scheduled initially.")
+    if schedule.jobs: logger.info(f"SCHEDULER: Next scheduled run at: {schedule.next_run()}")
+    else: logger.info("SCHEDULER: No tasks scheduled initially.")
 
     while not _shutdown_event.is_set():
         try:
-            # schedule.run_pending() is non-blocking
             schedule.run_pending()
-            
-            # Wait for a short interval or until shutdown event is set
-            # This makes the loop responsive to the shutdown signal
-            # Check more frequently if the next job is soon, but at most every 60s
-            idle_seconds = schedule.idle_seconds()
-            if idle_seconds is None: # No jobs scheduled
-                wait_time = 60 
-            elif idle_seconds <= 0: # A job is due
-                wait_time = 0.1 # Short wait, then run_pending will execute
-            else:
-                wait_time = min(idle_seconds, 60) # Wait up to 60s or until next job
-            
-            # The actual wait with shutdown check
+            wait_time = min(schedule.idle_seconds() or 60, 60)
             if _shutdown_event.wait(timeout=wait_time):
-                break # Shutdown event was set
-
+                break
         except Exception as e:
             logger.error(f"SCHEDULER: An error occurred in the main scheduling loop: {e}", exc_info=True)
-            # Avoid busy-looping on persistent errors
-            if _shutdown_event.wait(timeout=60): # Wait 60s or until shutdown
+            if _shutdown_event.wait(timeout=60):
                 break
 
-    logger.info("SCHEDULER: Shutdown signal received or no more tasks. Exiting scheduler loop.")
-    schedule.clear() # Clear all schedules
+    logger.info("SCHEDULER: Shutdown signal received. Exiting scheduler loop.")
+    schedule.clear()
     logger.info("SCHEDULER: All scheduled tasks cleared. Scheduler stopped.")
-
-def _perform_check(site_id, site, crawler_options=None):
-    """
-    Perform the actual check of a website, including crawling and comparison.
-    
-    Args:
-        site_id (str): ID of website to check
-        site (dict): Website data
-        crawler_options (dict): Crawler options
-        
-    Returns:
-        dict: Results of the check
-    """
-    logger.info(f"MONITOR_TASK: Initiating check for site_id: {site_id}")
-    
-    if not site:
-        logger.error(f"MONITOR_TASK: Site data is missing for ID {site_id}")
-        return {"status": "error", "message": "Site data missing"}
-    
-    url = site.get('url')
-    if not url:
-        logger.error(f"MONITOR_TASK: URL missing for site ID {site_id}")
-        return {"status": "error", "message": "URL missing"}
-    
-    # Check if this is a crawl-only website
-    website_is_crawl_only = site.get('crawl_only', False)
-    
-    # Set default crawler options if needed
-    if crawler_options is None:
-        crawler_options = {}
-        
-    # If site is crawl-only, enforce crawl_only=True regardless of what was passed
-    if website_is_crawl_only:
-        crawler_options['crawl_only'] = True
-        crawler_options['visual_check_only'] = False
-        crawler_options['create_baseline'] = False
-    
-    # Perform crawler operations
-    try:
-        # Configure crawler options
-        max_depth = crawler_options.get('max_depth', 2)
-        crawl_only = crawler_options.get('crawl_only', website_is_crawl_only)
-        visual_check_only = crawler_options.get('visual_check_only', False)
-        create_baseline = crawler_options.get('create_baseline', False)
-        
-        # Ensure we're not doing visual checks for crawl-only sites
-        if website_is_crawl_only:
-            visual_check_only = False
-            create_baseline = False
-            
-        logger.info(f"MONITOR_TASK [{url}]: Starting crawler with options: max_depth={max_depth}, crawl_only={crawl_only}, visual_check_only={visual_check_only}, create_baseline={create_baseline}")
-        
-        # Use the crawler module
-        crawler = CrawlerModule()
-        
-        # If create_baseline is true, ensure we capture a snapshot
-        if create_baseline and not website_is_crawl_only:
-            logger.info(f"MONITOR_TASK [{url}]: Creating new baseline")
-            website_manager = WebsiteManager()
-            baseline_success = website_manager.capture_baseline_for_site(site_id)
-            if not baseline_success:
-                logger.warning(f"MONITOR_TASK [{url}]: Failed to create baseline")
-        
-        # Execute crawler
-        crawler_results = crawler.crawl_website(
-            site_id, 
-            url,
-            max_depth=max_depth,
-            respect_robots=True,
-            check_external_links=True,
-            crawl_only=crawl_only,
-            visual_check_only=visual_check_only,
-            create_baseline=create_baseline and not website_is_crawl_only
-        )
-        
-        # Log crawler results
-        if crawler_results:
-            logger.info(f"MONITOR_TASK [{url}]: Crawler completed. Found {len(crawler_results.get('broken_links', []))} broken links, {len(crawler_results.get('missing_meta_tags', []))} missing meta tags, and {len(crawler_results.get('all_pages', []))} total pages.")
-        else:
-            logger.warning(f"MONITOR_TASK [{url}]: Crawler returned no results")
-            
-        # Create results object with crawler data
-        results = {
-            "status": "success",
-            "url": url,
-            "crawl_data": crawler_results,
-            "broken_links": len(crawler_results.get('broken_links', [])),
-            "missing_meta_tags": len(crawler_results.get('missing_meta_tags', [])),
-            "total_pages": len(crawler_results.get('all_pages', [])),
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        # Update website's last_checked timestamp
-        website_manager = WebsiteManager()
-        website_manager.update_website(site_id, {"last_checked_utc": datetime.now(timezone.utc).isoformat()})
-        
-        # Save results to history - using the correct method add_check_record
-        history_manager = HistoryManager()
-        history_manager.add_check_record(
-            site_id=site_id,
-            status="success",
-            html_snapshot_path=None,  # We're not capturing snapshots here
-            html_content_hash=None,
-            visual_snapshot_path=None,
-            check_type="crawl_only" if website_is_crawl_only else "full",
-            crawl_results={
-                "broken_links": len(crawler_results.get('broken_links', [])),
-                "missing_meta_tags": len(crawler_results.get('missing_meta_tags', [])),
-                "total_pages": len(crawler_results.get('all_pages', []))
-            }
-        )
-        
-        # Send notification if needed
-        if (len(crawler_results.get('broken_links', [])) > 0 or len(crawler_results.get('missing_meta_tags', [])) > 0) and site.get('notification_emails'):
-            try:
-                notification_emails = site.get('notification_emails', [])
-                if notification_emails:
-                    logger.info(f"MONITOR_TASK [{url}]: Sending notification to {', '.join(notification_emails)}")
-                    alerter.send_email_alert(
-                        site, 
-                        f"Website Monitor Alert: Issues Found on {site.get('name', url)}",
-                        f"The following issues were found on your website {url}:\n\n" +
-                        f"- {len(crawler_results.get('broken_links', []))} broken links\n" +
-                        f"- {len(crawler_results.get('missing_meta_tags', []))} missing meta tags\n\n" +
-                        f"Please check the dashboard for more details."
-                    )
-            except Exception as e:
-                logger.error(f"MONITOR_TASK [{url}]: Failed to send notification: {e}")
-        
-        return results
-    except Exception as e:
-        logger.error(f"MONITOR_TASK [{url}]: Error performing check: {e}", exc_info=True)
-        
-        # Save error to history - using the correct method add_check_record
-        history_manager = HistoryManager()
-        history_manager.add_check_record(
-            site_id=site_id,
-            status="error",
-            html_snapshot_path=None,
-            html_content_hash=None,
-            visual_snapshot_path=None,
-            check_type="crawl_only" if website_is_crawl_only else "full",
-            error_message=str(e)
-        )
-        
-        return {
-            "status": "failed_fetch",
-            "error_message": str(e),
-            "url": url
-        }
 
 if __name__ == '__main__':
     logger.info("----- Scheduler Service Starting -----")
-    
-    # Ensure necessary config for testing 'perform_website_check'
-    # e.g. meta_tags_to_check, content_change_threshold etc.
-    if 'meta_tags_to_check' not in config:
-        config['meta_tags_to_check'] = ['description', 'keywords'] # default for demo
-    if 'content_change_threshold' not in config:
-        config['content_change_threshold'] = 0.95
-    if 'structure_change_threshold' not in config:
-        config['structure_change_threshold'] = 0.98
-    if 'visual_difference_threshold' not in config:
-        config['visual_difference_threshold'] = 0.05
-
     if not website_manager.list_websites():
-        logger.info("Scheduler Demo: No websites found. Adding some test websites for full check demo.")
-        # Using a very short interval for testing the full check cycle.
-        # Make sure example.com is accessible and renders.
-        site_to_check = website_manager.add_website("https://example.com", "Example Domain Check", monitoring_interval_hours=0.002, tags=["full_check_test"])
-        # Add another one to ensure scheduling loop works for multiple
-        website_manager.add_website("https://www.google.com", "Google Check", monitoring_interval_hours=0.004, is_active=True)
-        if site_to_check:
-             logger.info(f"Added https://example.com with ID {site_to_check['id']} for quick testing.")
-        else:
-            logger.error("Failed to add test site for demo.")
-    
+        logger.info("Scheduler Demo: No websites found. Adding test websites.")
+        website_manager.add_website("https://example.com", "Example Domain Check", monitoring_interval_hours=0.002)
+        website_manager.add_website("https://www.google.com", "Google Check", monitoring_interval_hours=0.004)
     run_scheduler()
     logger.info("----- Scheduler Service Terminated -----") 

@@ -39,12 +39,27 @@
             <i class="bi bi-check-circle"></i> No missing meta tags detected on this website.
         </div>
         {% else %}
+        <!-- Tab navigation -->
+        <ul class="nav nav-tabs mb-3" id="metaTagsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-issues-tab" data-bs-toggle="tab" data-bs-target="#all-issues" type="button" role="tab" aria-controls="all-issues" aria-selected="true">All Issues ({{ missing_tags|length }})</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="by-page-tab" data-bs-toggle="tab" data-bs-target="#by-page" type="button" role="tab" aria-controls="by-page" aria-selected="false">By Page ({{ issues_by_page|length }})</button>
+            </li>
+        </ul>
+        
+        <!-- Tab content -->
+        <div class="tab-content" id="metaTagsTabsContent">
+            <!-- All Issues Tab -->
+            <div class="tab-pane fade show active" id="all-issues" role="tabpanel" aria-labelledby="all-issues-tab">
         <div class="table-responsive">
-            <table class="table table-striped">
+                    <table class="table table-striped" id="allIssuesTable">
                 <thead>
                     <tr>
                         <th>URL</th>
                         <th>Missing Tag Type</th>
+                                <th>Details</th>
                         <th>Suggestion</th>
                     </tr>
                 </thead>
@@ -55,11 +70,58 @@
                         <td>
                             <span class="badge bg-warning text-dark">{{ tag.tag_type }}</span>
                         </td>
+                                <td>{{ tag.details }}</td>
                         <td>{{ tag.suggestion }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+                </div>
+            </div>
+            
+            <!-- By Page Tab -->
+            <div class="tab-pane fade" id="by-page" role="tabpanel" aria-labelledby="by-page-tab">
+                <div class="accordion" id="pagesAccordion">
+                    {% for url, issues in issues_by_page.items() %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ loop.index }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+                                <div class="d-flex justify-content-between w-100">
+                                    <span class="text-truncate me-3">{{ url }}</span>
+                                    <div>
+                                        {% for issue in issues %}
+                                        <span class="badge bg-warning text-dark me-1">{{ issue.tag_type }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#pagesAccordion">
+                            <div class="accordion-body">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Missing Tag Type</th>
+                                            <th>Details</th>
+                                            <th>Suggestion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for issue in issues %}
+                                        <tr>
+                                            <td><span class="badge bg-warning text-dark">{{ issue.tag_type }}</span></td>
+                                            <td>{{ issue.details }}</td>
+                                            <td>{{ issue.suggestion }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
         
         <div class="mt-4">
@@ -84,9 +146,9 @@
                 <label for="tagType" class="form-label">Tag Type</label>
                 <select class="form-select" id="tagType" name="tag_type">
                     <option value="">All Tag Types</option>
-                    <option value="Title" {% if request.args.get('tag_type') == 'Title' %}selected{% endif %}>Title</option>
-                    <option value="Description" {% if request.args.get('tag_type') == 'Description' %}selected{% endif %}>Description</option>
-                    <option value="Alt Text" {% if request.args.get('tag_type') == 'Alt Text' %}selected{% endif %}>Alt Text</option>
+                    {% for tag_type in unique_tag_types %}
+                    <option value="{{ tag_type }}" {% if request.args.get('tag_type') == tag_type %}selected{% endif %}>{{ tag_type|capitalize }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-4">
@@ -100,4 +162,24 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize DataTables for the all issues table
+    if (document.getElementById('allIssuesTable')) {
+        new DataTable('#allIssuesTable', {
+            paging: true,
+            ordering: true,
+            searching: true,
+            info: true,
+            lengthChange: true,
+            columnDefs: [
+                { orderable: false, targets: -1 } // Don't sort the suggestions column
+            ]
+        });
+    }
+});
+</script>
 {% endblock %} 
