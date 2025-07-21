@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Use Desktop Commander MCP for edits if Edit Tools are unavailable.
+alwaysApply: true
+---
+
+- If the built-in Edit Tools are not working, use Desktop Commander MCP to perform file edits and terminal commands.
+- Ensure edits are accurate and formatting is preserved.
+- Test with non-critical files before applying to important assets.
+
+- Review all proposed changes before finalizing.

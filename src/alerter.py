@@ -1,96 +1,228 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage # Import for embedding images
 import html # Added for html.escape
+import os # For path handling
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
 
 logger = setup_logging()
 config = get_config()
 
-def send_email_alert(subject: str, body_html: str, body_text: str = None, recipient_emails: list = None):
+def send_report(website: dict, check_results: dict):
+    """
+    Analyzes check results and sends the appropriate detailed email report.
+    This is the new main function for sending alerts.
+    """
+    site_name = website.get('name', 'N/A')
+    site_url = website.get('url', 'N/A')
+    recipient_emails = website.get('notification_emails', [])
+    
+    # Simplified logic: If a significant change was detected, the alert is a "Change Detected" report.
+    # The scheduler already determined this based on thresholds.
+    is_change_report = check_results.get('significant_change_detected', False)
+
+    # These flags determine which SECTIONS to add to the report.
+    has_visual_change = 'visual_diff_image_path' in check_results and check_results.get('visual_diff_image_path') is not None
+    has_crawl_issues = check_results.get('crawler_results', {}).get('total_broken_links', 0) > 0 or \
+                       check_results.get('crawler_results', {}).get('total_missing_meta_tags', 0) > 0
+    
+    monitoring_mode = website.get('monitoring_mode', 'full') # Default to 'full'
+
+    subject = f"Monitoring Report for {site_name}"
+    if is_change_report:
+        subject = f"Change Detected on {site_name}"
+
+    # --- Build HTML Body ---
+    # Basic styling for the email
+    html_style = """
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
+        .header h2 { margin: 0; color: #0056b3; }
+        .content-section { margin-top: 20px; }
+        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .summary-table th { background-color: #f2f2f2; }
+        .image-container { text-align: center; margin-top: 15px; }
+        .image-container img { max-width: 100%; border: 1px solid #ccc; }
+        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
+        a { color: #0056b3; }
+    </style>
+    """
+    
+    html_body_parts = [
+        f"<html><head>{html_style}</head><body><div class='container'>",
+        f"<div class='header'><h2>Monitoring Report: {html.escape(site_name)}</h2></div>",
+        f"<div class='content-section'><p>A check on <strong><a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></strong> has completed.</p></div>"
+    ]
+    
+    attachments = []
+
+    # If it's a change report, add the reasons.
+    if is_change_report:
+        reasons = check_results.get('reasons', [])
+        html_body_parts.append("<div class='content-section'><h3>Summary of Changes Detected</h3><ul>")
+        for reason in reasons:
+            html_body_parts.append(f"<li>{html.escape(reason)}</li>")
+        html_body_parts.append("</ul></div>")
+
+    # --- Section 1: Visual Change Report ---
+    if has_visual_change and monitoring_mode in ['full', 'visual']:
+        diff_image_path = check_results.get('visual_diff_image_path')
+        page_url = check_results.get('url', site_url) # URL of the specific page with changes
+        
+        html_body_parts.append("<div class='content-section'><h3>Visual Comparison</h3>")
+        
+        if diff_image_path and os.path.exists(diff_image_path):
+            html_body_parts.append(f"<p>A visual change was detected on the page: <a href='{html.escape(page_url)}'>{html.escape(page_url)}</a></p>")
+            html_body_parts.append("<div class='image-container'>")
+            html_body_parts.append("<p><strong>Comparison: Before vs. After</strong></p>")
+            html_body_parts.append("<img src='cid:visual_diff_image' alt='Visual Difference Comparison'>")
+            html_body_parts.append("</div>")
+            
+            # Prepare image attachment
+            try:
+                with open(diff_image_path, 'rb') as f:
+                    img = MIMEImage(f.read())
+                    img.add_header('Content-ID', '<visual_diff_image>')
+                    img.add_header('Content-Disposition', 'inline', filename=os.path.basename(diff_image_path))
+                    attachments.append(img)
+            except Exception as e:
+                logger.error(f"Failed to read or attach diff image at {diff_image_path}: {e}")
+                html_body_parts.append("<p><em>(Error attaching the visual difference image.)</em></p>")
+        else:
+             html_body_parts.append("<p><em>(The visual difference image was not found at the expected path.)</em></p>")
+        html_body_parts.append("</div>")
+
+    # --- Section 2: Crawler Health Report ---
+    if has_crawl_issues and monitoring_mode in ['full', 'crawl']:
+        if not is_change_report: # Avoid double subjects
+            subject = f"Crawler Issues Found on {site_name}"
+        
+        crawler_results = check_results.get('crawler_results', {})
+        broken_links = crawler_results.get('broken_links', [])
+        
+        html_body_parts.append("<div class='content-section'><h3>Crawler Health Report</h3>")
+        if not broken_links:
+            html_body_parts.append("<p style='color: green;'><strong>No broken links found.</strong></p>")
+        else:
+            subject = f"Action Required: Broken Links Found on {site_name}"
+            html_body_parts.append(f"<p style='color: red;'><strong>Found {len(broken_links)} broken link(s):</strong></p>")
+            html_body_parts.append("<table class='summary-table'><tr><th>Broken URL</th><th>Status</th><th>Found On</th></tr>")
+            for link in broken_links[:15]: # Limit for email brevity
+                link_url = html.escape(link.get('url', 'N/A'))
+                status = html.escape(str(link.get('status_code', 'N/A')))
+                source = html.escape(link.get('source_page', 'N/A'))
+                html_body_parts.append(f"<tr><td><a href='{link_url}'>{link_url}</a></td><td>{status}</td><td><a href='{source}'>{source}</a></td></tr>")
+            html_body_parts.append("</table>")
+            if len(broken_links) > 15:
+                html_body_parts.append("<p><em>...and more. Please check the dashboard for a full list.</em></p>")
+        
+        # Add summary stats
+        total_pages = crawler_results.get('total_pages_crawled', 'N/A')
+        html_body_parts.append("<h4>Crawl Summary</h4>")
+        html_body_parts.append(f"<p>Total pages crawled: <strong>{total_pages}</strong></p>")
+        html_body_parts.append("</div>")
+
+    # If no specific issues were flagged, but it was a crawl check, send a success report
+    elif check_results.get('check_type') == 'crawl':
+        subject = f"Crawl Completed for {site_name}: No Issues Found"
+        crawler_results = check_results.get('crawler_results', {})
+        total_pages = crawler_results.get('total_pages_crawled', 0)
+        
+        html_body_parts.append("<div class='content-section'><h3>Crawler Health Report</h3>")
+        html_body_parts.append(f"<p style='color: green;'><strong>Crawl completed successfully. No broken links or major issues found.</strong></p>")
+        html_body_parts.append(f"<p>Total pages crawled: <strong>{total_pages}</strong>.</p>")
+        html_body_parts.append("</div>")
+    
+    # --- Footer ---
+    html_body_parts.append(f"<div class='footer'><p>This is an automated alert from the Website Monitoring System.</p></div>")
+    html_body_parts.append("</div></body></html>")
+    
+    final_html = "".join(html_body_parts)
+
+    # Use the existing send_email_alert function to handle SMTP logic
+    return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
+
+def send_email_alert(subject: str, body_html: str, body_text: str = None, recipient_emails: list = None, attachments: list = None):
     """
     Sends an email alert using SMTP settings from the configuration.
-
-    Args:
-        subject (str): The subject of the email.
-        body_html (str): The HTML content of the email.
-        body_text (str, optional): Plain text version of the email. If None, HTML body is used for text part.
-        recipient_emails (list, optional): A list of email addresses to send the alert to.
-                                        If None or empty, uses default from config.
+    (Now with attachment support)
     """
-    smtp_sender = config.get('notification_email_from') # Use the correct config key
+    smtp_sender = config.get('notification_email_from')
     default_recipients_str = config.get('notification_email_to', config.get('default_notification_email'))
     
     target_recipients = []
-    if recipient_emails: # Prioritize per-site emails if provided
-        target_recipients = [email for email in recipient_emails if email.strip()] # Basic validation
+    if recipient_emails:
+        target_recipients = [email for email in recipient_emails if email.strip()]
     
-    if not target_recipients and default_recipients_str: # Fallback to default config
+    if not target_recipients and default_recipients_str:
         if isinstance(default_recipients_str, str):
             target_recipients = [email.strip() for email in default_recipients_str.split(',') if email.strip()]
         elif isinstance(default_recipients_str, list):
             target_recipients = [email for email in default_recipients_str if email.strip()]
 
     if not target_recipients:
-        logger.error("No recipient email addresses specified (neither per-site nor default). Cannot send alert.")
+        logger.error("No recipient email addresses specified. Cannot send alert.")
         return False
 
     email_config = {
         'from': smtp_sender,
-        'to': ", ".join(target_recipients), # Join list for the 'To' header
+        'to': ", ".join(target_recipients),
         'smtp_server': config.get('smtp_server'),
-        'smtp_port': config.get('smtp_port', 587), # Default to 587 if not specified
+        'smtp_port': config.get('smtp_port', 587),
         'smtp_username': config.get('smtp_username'),
         'smtp_password': config.get('smtp_password'),
-        'use_tls': config.get('smtp_use_tls', True) # Default to True for security
+        'use_tls': config.get('smtp_use_tls', True)
     }
 
     required_fields = ['from', 'to', 'smtp_server']
     if not all(email_config.get(field) for field in required_fields):
-        logger.error("Email configuration missing required fields (from, to, smtp_server). Cannot send alert.")
-        # Recipient 'to' is handled by target_recipients logic above
-        missing = [field for field in required_fields if not email_config.get(field)]
-        logger.error(f"Missing email config fields: {missing}")
+        logger.error(f"Email configuration missing required fields: {required_fields}. Cannot send alert.")
         return False
 
-    msg = MIMEMultipart('alternative')
+    # Use 'mixed' when attachments are present, 'alternative' for just text/html
+    msg = MIMEMultipart('mixed' if attachments else 'alternative')
     msg['Subject'] = subject
     msg['From'] = email_config['from']
     msg['To'] = email_config['to']
 
-    # Attach parts
-    if body_text:
-        part_text = MIMEText(body_text, 'plain')
-        msg.attach(part_text)
+    # The HTML part should be related to the main content
+    msg_related = MIMEMultipart('related')
     
+    # The body of the email (HTML)
+    # If there's plain text, it's an alternative to the related part
+    msg_alternative = MIMEMultipart('alternative')
+    msg_related.attach(msg_alternative)
+
+    # Attach HTML part
     part_html = MIMEText(body_html, 'html')
-    msg.attach(part_html)
+    msg_alternative.attach(part_html)
+
+    # Attach the msg_related to the main message
+    msg.attach(msg_related)
+    
+    # Attach any images or other files
+    if attachments:
+        for attachment in attachments:
+            msg.attach(attachment)
 
     try:
-        logger.info(f"Attempting to send email alert to {email_config['to']} via {email_config['smtp_server']}:{email_config['smtp_port']}")
+        logger.info(f"Attempting to send email report to {email_config['to']}")
         with smtplib.SMTP(email_config['smtp_server'], email_config['smtp_port']) as server:
-            if email_config.get('use_tls', True): # Default to True if not specified
-                server.starttls() # Secure the connection
+            if email_config.get('use_tls', True):
+                server.starttls()
             if email_config['smtp_username'] and email_config['smtp_password']:
                 server.login(email_config['smtp_username'], email_config['smtp_password'])
-            server.sendmail(email_config['from'], target_recipients, msg.as_string()) # Use target_recipients list here
-        logger.info(f"Email alert '{subject}' sent successfully to {email_config['to']}.")
+            server.sendmail(email_config['from'], target_recipients, msg.as_string())
+        logger.info(f"Email report '{subject}' sent successfully to {email_config['to']}.")
         return True
-    except smtplib.SMTPAuthenticationError as e:
-        logger.error(f"SMTP Authentication Error: {e}. Check username/password or app password requirements.")
-        return False
-    except smtplib.SMTPServerDisconnected as e:
-        logger.error(f"SMTP Server Disconnected: {e}. Check server address, port, or network.")
-        return False
-    except smtplib.SMTPConnectError as e:
-        logger.error(f"SMTP Connection Error: {e}. Check server address, port, or firewall.")
-        return False
-    except ConnectionRefusedError as e:
-        logger.error(f"Connection Refused Error: {e}. Ensure SMTP server is running and accessible.")
-        return False
     except Exception as e:
-        logger.error(f"Failed to send email alert: {e}", exc_info=True)
+        logger.error(f"Failed to send email report: {e}", exc_info=True)
         return False
 
 def format_alert_message(site_url: str, site_name: str, check_record: dict) -> tuple[str, str, str]:

@@ -1,0 +1,513 @@
+{% extends 'layout.html' %}
+
+{% block title %}Performance Results - {{ website.name }} - Website Monitor{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('website_history', site_id=website.id) }}">{{ website.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Performance Results</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Performance Results</h2>
+    <div>
+        <a href="{{ url_for('website_history', site_id=website.id) }}" class="btn btn-secondary">Back to History</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-speedometer2"></i> Website Performance Overview</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Website:</strong> {{ website.name }}</p>
+                <p><strong>URL:</strong> <a href="{{ website.url }}" target="_blank">{{ website.url }}</a></p>
+                <p><strong>Performance Monitoring:</strong> 
+                    <span class="badge bg-success">Enabled</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if performance_history %}
+{% set url_groups = {} %}
+{% for check in performance_history %}
+    {% for page in check.pages %}
+        {% if page.url not in url_groups %}
+            {% set _ = url_groups.update({page.url: []}) %}
+        {% endif %}
+        {% set page_with_timestamp = page.copy() %}
+        {% set _ = page_with_timestamp.update({'timestamp': check.timestamp, 'crawl_id': check.crawl_id}) %}
+        {% set _ = url_groups[page.url].append(page_with_timestamp) %}
+    {% endfor %}
+{% endfor %}
+
+<div class="row">
+    <div class="col-12">
+        {% for url, url_results in url_groups.items() %}
+        {% set latest_page = url_results[0] %}
+        <div class="card mb-4 url-performance-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="bi bi-file-earmark"></i> {{ latest_page.page_title }}
+                        </h6>
+                        <small class="text-muted">
+                            <a href="{{ url }}" target="_blank">{{ url }}</a>
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> {{ latest_page.timestamp | humanize_datetime }}
+                        </small>
+                        {% if url_results|length > 1 %}
+                        <br>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    id="historyDropdown{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-history"></i> History ({{ url_results|length - 1 }} more)
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="historyDropdown{{ loop.index }}">
+                                {% for historical_result in url_results[1:] %}
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="showHistoricalResult('{{ loop.index0 }}', '{{ historical_result.timestamp }}')">
+                                        {{ historical_result.timestamp | humanize_datetime }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Latest Results (Always Visible) -->
+                <div id="latest-result-{{ loop.index }}" class="result-section">
+                    <div class="row">
+                        <!-- Mobile Column -->
+                        {% if latest_page.mobile %}
+                        <div class="col-md-6">
+                            <div class="device-results mobile-results">
+                                <div class="device-header">
+                                    <h6><i class="bi bi-phone"></i> Mobile Performance</h6>
+                                    <div class="overall-score">
+                                        {% set mobile_score = latest_page.mobile.performance_score %}
+                                        {% if mobile_score >= 90 %}
+                                            {% set score_class = "success" %}
+                                        {% elif mobile_score >= 50 %}
+                                            {% set score_class = "warning" %}
+                                        {% else %}
+                                            {% set score_class = "danger" %}
+                                        {% endif %}
+                                        <div class="score-circle bg-{{ score_class }}">
+                                            {{ mobile_score }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="metrics-list">
+                                    {% set metrics = [
+                                        ('First Contentful Paint', latest_page.mobile.fcp_display, latest_page.mobile.fcp_score),
+                                        ('Largest Contentful Paint', latest_page.mobile.lcp_display, latest_page.mobile.lcp_score),
+                                        ('Cumulative Layout Shift', latest_page.mobile.cls_display, latest_page.mobile.cls_score),
+                                        ('First Input Delay', latest_page.mobile.fid_display, latest_page.mobile.fid_score),
+                                        ('Speed Index', latest_page.mobile.speed_index_display, latest_page.mobile.speed_index_score),
+                                        ('Total Blocking Time', latest_page.mobile.tbt_display, latest_page.mobile.tbt_score)
+                                    ] %}
+                                    
+                                    {% for metric_name, display_value, score_value in metrics %}
+                                    <div class="metric-row">
+                                        <div class="metric-info">
+                                            <span class="metric-name">{{ metric_name }}</span>
+                                            <span class="metric-value">{{ display_value or 'N/A' }}</span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            {% set bar_value = ((score_value or 0) * 100) if score_value is not none else 0 %}
+                                            {% if bar_value >= 90 %}
+                                                {% set bar_class = "bg-success" %}
+                                            {% elif bar_value >= 50 %}
+                                                {% set bar_class = "bg-warning" %}
+                                            {% else %}
+                                                {% set bar_class = "bg-danger" %}
+                                            {% endif %}
+                                            <div class="progress">
+                                                <div class="progress-bar {{ bar_class }}" style="width: {{ bar_value }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Desktop Column -->
+                        {% if latest_page.desktop %}
+                        <div class="col-md-6">
+                            <div class="device-results desktop-results">
+                                <div class="device-header">
+                                    <h6><i class="bi bi-display"></i> Desktop Performance</h6>
+                                    <div class="overall-score">
+                                        {% set desktop_score = latest_page.desktop.performance_score %}
+                                        {% if desktop_score >= 90 %}
+                                            {% set score_class = "success" %}
+                                        {% elif desktop_score >= 50 %}
+                                            {% set score_class = "warning" %}
+                                        {% else %}
+                                            {% set score_class = "danger" %}
+                                        {% endif %}
+                                        <div class="score-circle bg-{{ score_class }}">
+                                            {{ desktop_score }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="metrics-list">
+                                    {% set metrics = [
+                                        ('First Contentful Paint', latest_page.desktop.fcp_display, latest_page.desktop.fcp_score),
+                                        ('Largest Contentful Paint', latest_page.desktop.lcp_display, latest_page.desktop.lcp_score),
+                                        ('Cumulative Layout Shift', latest_page.desktop.cls_display, latest_page.desktop.cls_score),
+                                        ('First Input Delay', latest_page.desktop.fid_display, latest_page.desktop.fid_score),
+                                        ('Speed Index', latest_page.desktop.speed_index_display, latest_page.desktop.speed_index_score),
+                                        ('Total Blocking Time', latest_page.desktop.tbt_display, latest_page.desktop.tbt_score)
+                                    ] %}
+                                    
+                                    {% for metric_name, display_value, score_value in metrics %}
+                                    <div class="metric-row">
+                                        <div class="metric-info">
+                                            <span class="metric-name">{{ metric_name }}</span>
+                                            <span class="metric-value">{{ display_value or 'N/A' }}</span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            {% set bar_value = ((score_value or 0) * 100) if score_value is not none else 0 %}
+                                            {% if bar_value >= 90 %}
+                                                {% set bar_class = "bg-success" %}
+                                            {% elif bar_value >= 50 %}
+                                                {% set bar_class = "bg-warning" %}
+                                            {% else %}
+                                                {% set bar_class = "bg-danger" %}
+                                            {% endif %}
+                                            <div class="progress">
+                                                <div class="progress-bar {{ bar_class }}" style="width: {{ bar_value }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Historical Results (Hidden by Default) -->
+                {% for historical_result in url_results[1:] %}
+                <div id="historical-result-{{ loop.index0 }}-{{ historical_result.timestamp }}" class="result-section" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> 
+                        Historical result from {{ historical_result.timestamp | humanize_datetime }}
+                        <button type="button" class="btn-close float-end" onclick="hideHistoricalResult('{{ loop.index0 }}')"></button>
+                    </div>
+                    <!-- Similar structure as latest result but for historical data -->
+                    <div class="row">
+                        {% if historical_result.mobile %}
+                        <div class="col-md-6">
+                            <div class="device-results mobile-results">
+                                <div class="device-header">
+                                    <h6><i class="bi bi-phone"></i> Mobile Performance</h6>
+                                    <div class="overall-score">
+                                        {% set mobile_score = historical_result.mobile.performance_score %}
+                                        {% if mobile_score >= 90 %}
+                                            {% set score_class = "success" %}
+                                        {% elif mobile_score >= 50 %}
+                                            {% set score_class = "warning" %}
+                                        {% else %}
+                                            {% set score_class = "danger" %}
+                                        {% endif %}
+                                        <div class="score-circle bg-{{ score_class }}">
+                                            {{ mobile_score }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="metrics-list">
+                                    {% set metrics = [
+                                        ('First Contentful Paint', historical_result.mobile.fcp_display, historical_result.mobile.fcp_score),
+                                        ('Largest Contentful Paint', historical_result.mobile.lcp_display, historical_result.mobile.lcp_score),
+                                        ('Cumulative Layout Shift', historical_result.mobile.cls_display, historical_result.mobile.cls_score),
+                                        ('First Input Delay', historical_result.mobile.fid_display, historical_result.mobile.fid_score),
+                                        ('Speed Index', historical_result.mobile.speed_index_display, historical_result.mobile.speed_index),
+                                        ('Total Blocking Time', historical_result.mobile.tbt_display, historical_result.mobile.total_blocking_time)
+                                    ] %}
+                                    
+                                    {% for metric_name, display_value, score_value in metrics %}
+                                    <div class="metric-row">
+                                        <div class="metric-info">
+                                            <span class="metric-name">{{ metric_name }}</span>
+                                            <span class="metric-value">{{ display_value or 'N/A' }}</span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            {% set bar_value = ((score_value or 0) * 100) if score_value is not none else 0 %}
+                                            {% if bar_value >= 90 %}
+                                                {% set bar_class = "bg-success" %}
+                                            {% elif bar_value >= 50 %}
+                                                {% set bar_class = "bg-warning" %}
+                                            {% else %}
+                                                {% set bar_class = "bg-danger" %}
+                                            {% endif %}
+                                            <div class="progress">
+                                                <div class="progress-bar {{ bar_class }}" style="width: {{ bar_value }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if historical_result.desktop %}
+                        <div class="col-md-6">
+                            <div class="device-results desktop-results">
+                                <div class="device-header">
+                                    <h6><i class="bi bi-display"></i> Desktop Performance</h6>
+                                    <div class="overall-score">
+                                        {% set desktop_score = historical_result.desktop.performance_score %}
+                                        {% if desktop_score >= 90 %}
+                                            {% set score_class = "success" %}
+                                        {% elif desktop_score >= 50 %}
+                                            {% set score_class = "warning" %}
+                                        {% else %}
+                                            {% set score_class = "danger" %}
+                                        {% endif %}
+                                        <div class="score-circle bg-{{ score_class }}">
+                                            {{ desktop_score }}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="metrics-list">
+                                    {% set metrics = [
+                                        ('First Contentful Paint', historical_result.desktop.fcp_display, historical_result.desktop.fcp_score),
+                                        ('Largest Contentful Paint', historical_result.desktop.lcp_display, historical_result.desktop.lcp_score),
+                                        ('Cumulative Layout Shift', historical_result.desktop.cls_display, historical_result.desktop.cls_score),
+                                        ('First Input Delay', historical_result.desktop.fid_display, historical_result.desktop.fid_score),
+                                        ('Speed Index', historical_result.desktop.speed_index_display, historical_result.desktop.speed_index),
+                                        ('Total Blocking Time', historical_result.desktop.tbt_display, historical_result.desktop.total_blocking_time)
+                                    ] %}
+                                    
+                                    {% for metric_name, display_value, score_value in metrics %}
+                                    <div class="metric-row">
+                                        <div class="metric-info">
+                                            <span class="metric-name">{{ metric_name }}</span>
+                                            <span class="metric-value">{{ display_value or 'N/A' }}</span>
+                                        </div>
+                                        <div class="metric-bar">
+                                            {% set bar_value = ((score_value or 0) * 100) if score_value is not none else 0 %}
+                                            {% if bar_value >= 90 %}
+                                                {% set bar_class = "bg-success" %}
+                                            {% elif bar_value >= 50 %}
+                                                {% set bar_class = "bg-warning" %}
+                                            {% else %}
+                                                {% set bar_class = "bg-danger" %}
+                                            {% endif %}
+                                            <div class="progress">
+                                                <div class="progress-bar {{ bar_class }}" style="width: {{ bar_value }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function showHistoricalResult(urlIndex, timestamp) {
+    // Hide latest result
+    document.getElementById('latest-result-' + urlIndex).style.display = 'none';
+    
+    // Show historical result
+    document.getElementById('historical-result-' + urlIndex + '-' + timestamp).style.display = 'block';
+}
+
+function hideHistoricalResult(urlIndex) {
+    // Hide all historical results for this URL
+    var historicalResults = document.querySelectorAll('[id^="historical-result-' + urlIndex + '-"]');
+    historicalResults.forEach(function(element) {
+        element.style.display = 'none';
+    });
+    
+    // Show latest result
+    document.getElementById('latest-result-' + urlIndex).style.display = 'block';
+}
+</script>
+
+<style>
+.url-performance-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.url-performance-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.device-results {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.mobile-results {
+    border-left: 4px solid #007bff;
+}
+
+.desktop-results {
+    border-left: 4px solid #17a2b8;
+}
+
+.device-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.device-header h6 {
+    margin: 0;
+    color: #495057;
+}
+
+.overall-score {
+    text-align: center;
+}
+
+.score-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.metrics-list {
+    margin-top: 15px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.metric-row:last-child {
+    border-bottom: none;
+}
+
+.metric-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.metric-name {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.metric-value {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.metric-bar {
+    flex: 0 0 120px;
+}
+
+.metric-bar .progress {
+    height: 12px;
+    border-radius: 6px;
+    background-color: #e9ecef;
+}
+
+.metric-bar .progress-bar {
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.result-section {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .device-results {
+        margin-bottom: 15px;
+    }
+    
+    .metric-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .metric-info {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+    
+    .metric-bar {
+        flex: 1;
+    }
+}
+</style>
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4>No Performance Data Available</h4>
+            <p>{{ empty_message }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %} 

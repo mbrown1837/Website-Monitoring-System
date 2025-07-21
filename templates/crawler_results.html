@@ -19,56 +19,79 @@
 
 <div class="row mb-4">
     <!-- Stats cards -->
-    <div class="col-md-2">
+    <div class="col-lg-2 col-md-4 mb-3">
         <div class="card bg-light h-100">
             <div class="card-body">
                 <h5 class="card-title">Total Pages</h5>
-                <p class="display-4">{{ all_pages|length }}</p>
+                <p class="display-4">{{ total_pages_count|default(all_pages|length) }}</p>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-lg-2 col-md-4 mb-3">
         <div class="card bg-primary text-white h-100">
             <div class="card-body">
                 <h5 class="card-title">Internal Links</h5>
-                <p class="display-4">{{ internal_pages_count|default(0) }}</p>
+                <p class="display-4">{{ internal_pages_count_total|default(internal_pages_count) }}</p>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-lg-2 col-md-4 mb-3">
         <div class="card bg-secondary text-white h-100">
             <div class="card-body">
                 <h5 class="card-title">External Links</h5>
-                <p class="display-4">{{ external_pages_count|default(0) }}</p>
+                <p class="display-4">{{ external_pages_count_total|default(external_pages_count) }}</p>
             </div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card {% if broken_links|length > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %} h-100">
+    <div class="col-lg-2 col-md-4 mb-3">
+        <a href="{{ url_for('website_broken_links', site_id=website_id) }}" class="text-decoration-none">
+            <div class="card {% if broken_links_count_total|default(0) > 0 %}bg-danger text-white{% else %}bg-success text-white{% endif %} h-100 card-hover">
             <div class="card-body">
-                <h5 class="card-title">Broken Links</h5>
-                <p class="display-4">{{ broken_links|length }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card {% if missing_tags|length > 0 %}bg-warning{% else %}bg-success text-white{% endif %} h-100">
-            <div class="card-body">
-                <h5 class="card-title">Missing Meta Tags</h5>
-                <p class="display-4">{{ missing_tags|length }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card bg-info text-white h-100">
-            <div class="card-body">
-                <h5 class="card-title">Status Distribution</h5>
-                <div class="small">
-                    {% for status_code, count in status_counts.items()|sort(reverse=true) %}
-                        {% set status_class = "text-success" if status_code >= 200 and status_code < 300 else "text-danger" if status_code >= 400 or status_code == 0 else "text-warning" %}
-                        <span class="{{ status_class }}">{{ status_code }}: {{ count }}</span><br>
-                    {% endfor %}
+                    <h5 class="card-title">
+                        Broken Links
+                        <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.8em;"></i>
+                    </h5>
+                <p class="display-4">{{ broken_links_count_total|default(broken_links|length) }}</p>
+                    <small class="text-light">Click to view details</small>
                 </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-lg-2 col-md-4 mb-3">
+        <a href="{{ url_for('website_missing_meta_tags', site_id=website_id) }}" class="text-decoration-none">
+            <div class="card {% if missing_tags_count_total|default(0) > 0 %}bg-warning{% else %}bg-success text-white{% endif %} h-100 card-hover">
+            <div class="card-body">
+                    <h5 class="card-title">
+                        Missing Meta Tags
+                        <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.8em;"></i>
+                    </h5>
+                <p class="display-4">{{ missing_tags_count_total|default(0) }}</p>
+                {% if missing_tags|length > 0 and missing_tags|length != missing_tags_count_total %}
+                    <small class="{% if missing_tags_count_total|default(0) > 0 %}text-dark{% else %}text-light{% endif %}">(Showing {{ missing_tags|length }})</small>
+                    {% else %}
+                    <small class="{% if missing_tags_count_total|default(0) > 0 %}text-dark{% else %}text-light{% endif %}">Click to view details</small>
+                {% endif %}
+            </div>
+        </div>
+        </a>
+    </div>
+    <div class="col-lg-2 col-md-4 mb-3">
+        <div class="card {% if blur_stats and blur_stats.blurry_images > 0 %}bg-warning{% else %}bg-info text-white{% endif %} h-100">
+            <div class="card-body">
+                <h5 class="card-title">Blur Detection</h5>
+                {% if blur_stats %}
+                    <p class="display-4">{{ blur_stats.blurry_images }}/{{ blur_stats.total_images }}</p>
+                    <small class="{% if blur_stats.blurry_images > 0 %}text-dark{% else %}text-light{% endif %}">
+                        {% if blur_stats.total_images > 0 %}
+                            {{ ((blur_stats.blurry_images / blur_stats.total_images) * 100)|round(1) }}% blurry
+                        {% else %}
+                            No images analyzed
+                        {% endif %}
+                    </small>
+                {% else %}
+                    <p class="display-4">N/A</p>
+                    <small class="text-light">Not enabled</small>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -77,13 +100,14 @@
 <!-- Tabs for different sections -->
 <ul class="nav nav-tabs mb-3" id="crawlerTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="all-pages-tab" data-bs-toggle="tab" data-bs-target="#all-pages" type="button" role="tab" aria-controls="all-pages" aria-selected="true">All Pages</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="broken-links-tab" data-bs-toggle="tab" data-bs-target="#broken-links" type="button" role="tab" aria-controls="broken-links" aria-selected="false">Broken Links</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="meta-tags-tab" data-bs-toggle="tab" data-bs-target="#meta-tags" type="button" role="tab" aria-controls="meta-tags" aria-selected="false">Missing Meta Tags</button>
+        <button class="nav-link active" id="all-pages-tab" data-bs-toggle="tab" data-bs-target="#all-pages" type="button" role="tab" aria-controls="all-pages" aria-selected="true">
+            All Pages
+            {% if filtered_pages_count is defined and filtered_pages_count != total_pages_count %}
+                <span class="badge rounded-pill bg-secondary">{{ filtered_pages_count }}/{{ total_pages_count }}</span>
+            {% else %}
+                <span class="badge rounded-pill bg-secondary">{{ all_pages|length }}</span>
+            {% endif %}
+        </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="false">Summary</button>
@@ -146,7 +170,11 @@
                     {% endif %}
                 </h5>
                 <span class="badge rounded-pill bg-secondary">
+                    {% if filtered_pages_count is defined and filtered_pages_count != total_pages_count %}
+                        {{ filtered_pages_count }} / {{ total_pages_count }} pages
+                    {% else %}
                     {{ all_pages|length }} pages
+                    {% endif %}
                 </span>
             </div>
             <div class="card-body">
@@ -179,26 +207,28 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if page.status_code >= 200 and page.status_code < 300 %}
+                                    {% set status_int = page.status_code|int %}
+                                    {% if status_int >= 200 and status_int < 300 %}
                                     <span class="badge bg-success">{{ page.status_code }}</span>
-                                    {% elif page.status_code >= 300 and page.status_code < 400 %}
+                                    {% elif status_int >= 300 and status_int < 400 %}
                                     <span class="badge bg-info">{{ page.status_code }}</span>
-                                    {% elif page.status_code >= 400 or page.status_code == 0 %}
+                                    {% elif status_int >= 400 or status_int == 0 %}
                                     <span class="badge bg-danger">{{ page.status_code }}</span>
                                     {% else %}
                                     <span class="badge bg-secondary">{{ page.status_code }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if page.status_code >= 200 and page.status_code < 300 %}
+                                    {% set status_int = page.status_code|int %}
+                                    {% if status_int >= 200 and status_int < 300 %}
                                     <span class="text-success">OK</span>
-                                    {% elif page.status_code >= 300 and page.status_code < 400 %}
+                                    {% elif status_int >= 300 and status_int < 400 %}
                                     <span class="text-info">Redirect</span>
-                                    {% elif page.status_code >= 400 and page.status_code < 500 %}
+                                    {% elif status_int >= 400 and status_int < 500 %}
                                     <span class="text-danger">Client Error</span>
-                                    {% elif page.status_code >= 500 %}
+                                    {% elif status_int >= 500 %}
                                     <span class="text-danger">Server Error</span>
-                                    {% elif page.status_code == 0 %}
+                                    {% elif status_int == 0 %}
                                     <span class="text-danger">Connection Error</span>
                                     {% else %}
                                     <span class="text-secondary">Unknown</span>
@@ -216,99 +246,6 @@
         </div>
     </div>
     
-    <!-- Broken Links Tab -->
-    <div class="tab-pane fade" id="broken-links" role="tabpanel" aria-labelledby="broken-links-tab">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Broken Links</h5>
-                <span class="badge rounded-pill {% if broken_links|length > 0 %}bg-danger{% else %}bg-success{% endif %}">
-                    {{ broken_links|length }} issues found
-                </span>
-            </div>
-            <div class="card-body">
-                {% if broken_links|length == 0 %}
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle"></i> No broken links detected on this website.
-                </div>
-                {% else %}
-                <div class="table-responsive">
-                    <table class="table table-striped" id="brokenLinksTable">
-                        <thead>
-                            <tr>
-                                <th>URL</th>
-                                <th>Type</th>
-                                <th>Status Code</th>
-                                <th>Error Message</th>
-                                <th>Referring Page</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for link in broken_links %}
-                            <tr>
-                                <td class="text-break">{{ link.url }}</td>
-                                <td>
-                                    {% if link.is_internal is defined and link.is_internal %}
-                                    <span class="badge bg-primary">Internal</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">External</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-danger">{{ link.status_code }}</span>
-                                </td>
-                                <td>{{ link.error_message }}</td>
-                                <td class="text-break">{{ link.referring_page }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Missing Meta Tags Tab -->
-    <div class="tab-pane fade" id="meta-tags" role="tabpanel" aria-labelledby="meta-tags-tab">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Missing Meta Tags</h5>
-                <span class="badge rounded-pill {% if missing_tags|length > 0 %}bg-warning{% else %}bg-success{% endif %}">
-                    {{ missing_tags|length }} issues found
-                </span>
-            </div>
-            <div class="card-body">
-                {% if missing_tags|length == 0 %}
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle"></i> No missing meta tags detected on this website.
-                </div>
-                {% else %}
-                <div class="table-responsive">
-                    <table class="table table-striped" id="metaTagsTable">
-                        <thead>
-                            <tr>
-                                <th>URL</th>
-                                <th>Missing Tag Type</th>
-                                <th>Suggestion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for tag in missing_tags %}
-                            <tr>
-                                <td class="text-break">{{ tag.url }}</td>
-                                <td>
-                                    <span class="badge bg-warning text-dark">{{ tag.tag_type }}</span>
-                                </td>
-                                <td>{{ tag.suggestion }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
 
     <!-- Summary Tab (moved to last position) -->
     <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
@@ -318,7 +255,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <h6>Scan Information</h6>
                         <table class="table">
                             <tbody>
@@ -344,14 +281,38 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+                                <tr>
+                                    <th>Total Pages Crawled</th>
+                                    <td>{{ total_pages_count }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Internal Links</th>
+                                    <td>{{ internal_pages_count_total }}</td>
+                                </tr>
+                                <tr>
+                                    <th>External Links</th>
+                                    <td>{{ external_pages_count_total }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Broken Links</th>
+                                    <td>
+                                        <a href="{{ url_for('website_broken_links', site_id=website_id) }}" class="text-decoration-none">
+                                            {{ broken_links_count_total }}
+                                            <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.8em;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Missing Meta Tags</th>
+                                    <td>
+                                        <a href="{{ url_for('website_missing_meta_tags', site_id=website_id) }}" class="text-decoration-none">
+                                            {{ missing_tags_count_total }}
+                                            <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.8em;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Status Code Distribution</h6>
-                        <div class="mt-3">
-                            <canvas id="statusDistributionChart" width="400" height="300"></canvas>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -369,10 +330,18 @@
                 {% else %}
                 <ol class="mb-0">
                     {% if broken_links|length > 0 %}
-                    <li>Fix {{ broken_links|length }} broken links to improve user experience and SEO.</li>
+                    <li>
+                        <a href="{{ url_for('website_broken_links', site_id=website_id) }}" class="text-decoration-none">
+                            Fix {{ broken_links|length }} broken links
+                        </a> to improve user experience and SEO.
+                    </li>
                     {% endif %}
                     {% if missing_tags|length > 0 %}
-                    <li>Add missing meta tags to improve your website's search engine visibility.</li>
+                    <li>
+                        <a href="{{ url_for('website_missing_meta_tags', site_id=website_id) }}" class="text-decoration-none">
+                            Add missing meta tags
+                        </a> to improve your website's search engine visibility.
+                    </li>
                     {% endif %}
                     <li>Schedule regular crawls to catch new issues early.</li>
                     <li>Consider implementing a link checker in your publishing workflow.</li>
@@ -382,6 +351,19 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card-hover {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -395,86 +377,6 @@ document.addEventListener('DOMContentLoaded', function() {
             searching: true,
             info: true,
             lengthChange: true
-        });
-    }
-    
-    if (document.getElementById('brokenLinksTable')) {
-        new DataTable('#brokenLinksTable', {
-            paging: true,
-            ordering: true,
-            searching: true,
-            info: true,
-            lengthChange: true
-        });
-    }
-    
-    if (document.getElementById('metaTagsTable')) {
-        new DataTable('#metaTagsTable', {
-            paging: true,
-            ordering: true,
-            searching: true,
-            info: true,
-            lengthChange: true
-        });
-    }
-    
-    // Create status distribution chart
-    const statusCtx = document.getElementById('statusDistributionChart');
-    if (statusCtx) {
-        const statusLabels = [];
-        const statusData = [];
-        const statusColors = [];
-        
-        {% for status, count in status_counts.items()|sort %}
-        statusLabels.push('{{ status }}');
-        statusData.push({{ count }});
-        {% if status >= 200 and status < 300 %}
-        statusColors.push('#198754'); // Success/green for 2xx
-        {% elif status >= 300 and status < 400 %}
-        statusColors.push('#0dcaf0'); // Info/blue for 3xx
-        {% elif status >= 400 and status < 500 %}
-        statusColors.push('#ffc107'); // Warning/yellow for 4xx
-        {% elif status >= 500 %}
-        statusColors.push('#dc3545'); // Danger/red for 5xx
-        {% else %}
-        statusColors.push('#6c757d'); // Secondary/gray for others
-        {% endif %}
-        {% endfor %}
-        
-        new Chart(statusCtx, {
-            type: 'pie',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusData,
-                    backgroundColor: statusColors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Status Code Distribution'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const dataset = context.dataset;
-                                const total = dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return label + ': ' + value + ' (' + percentage + '%)';
-                            }
-                        }
-                    }
-                }
-            }
         });
     }
 });

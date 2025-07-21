@@ -5,6 +5,8 @@ from PIL import Image, ImageChops, ImageDraw
 import numpy as np
 import os
 import diff_match_patch as dmp_module # Import the library
+from datetime import datetime
+from src.image_processor import create_visual_diff_report # Import the new function
 
 # Attempt to import OpenCV and scikit-image for SSIM, but make it optional
 try:
@@ -298,50 +300,134 @@ def extract_image_sources(html_content: str) -> set[str]:
     return img_sources
 
 def compare_image_sources(old_html: str, new_html: str) -> dict[str, set[str]]:
-    """Compares image sources found in old and new HTML content.
-    This checks if the URLs of images have changed, not the image content itself.
-    """
-    old_img_sources = extract_image_sources(old_html)
-    new_img_sources = extract_image_sources(new_html)
+    """Compares the src attributes of all <img> tags."""
+    old_images = extract_image_sources(old_html)
+    new_images = extract_image_sources(new_html)
     
-    added_sources = new_img_sources - old_img_sources
-    removed_sources = old_img_sources - new_img_sources
+    added_images = new_images - old_images
+    removed_images = old_images - new_images
     
     changes = {}
-    if added_sources:
-        changes['added_images'] = added_sources
-        logger.debug(f"Image sources added: {added_sources}")
-    if removed_sources:
-        changes['removed_images'] = removed_sources
-        logger.debug(f"Image sources removed: {removed_sources}")
+    if added_images or removed_images:
+        changes = {'added_images': added_images, 'removed_images': removed_images}
+        logger.debug(f"Image source changes detected. Added: {len(added_images)}, Removed: {len(removed_images)}")
     return changes
 
-def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str = None, ignore_regions: list[list[int]] = None) -> tuple[float, Image.Image | None]:
+def compare_screenshots_percentage(
+    image_path1: str, 
+    image_path2: str, 
+    ignore_regions: list[list[int]] = None
+) -> tuple[float, str | None]:
     """
-    Compares two images and returns a difference score and optionally a difference image.
-    Uses Mean Squared Error (MSE) for the score. Lower MSE means more similar.
-    A score of 0 means identical images.
+    Compares two images and returns the percentage of pixels that are different.
+    Also generates a side-by-side "before/after" diff image of the changed region.
+
+    Args:
+        image_path1 (str): Path to the first image (baseline).
+        image_path2 (str): Path to the second image (latest).
+        ignore_regions (list[list[int]], optional): Regions to ignore during comparison.
+
+    Returns:
+        tuple[float, str | None]:
+            - The percentage of different pixels.
+            - The path to the generated diff image, or None if no difference.
+    """
+    if not os.path.exists(image_path1):
+        logger.error(f"Baseline image not found at: {image_path1}")
+        return 100.0, None # Return max difference if baseline is missing
+    if not os.path.exists(image_path2):
+        logger.error(f"Latest image not found at: {image_path2}")
+        # This case is tricky. If the new snapshot failed, is it a change?
+        # For now, let's say it's not a comparable change.
+        return 0.0, None
+
+    try:
+        base_img = Image.open(image_path1).convert('RGB')
+        latest_img = Image.open(image_path2).convert('RGB')
+
+        # Apply ignore regions if any
+        if ignore_regions:
+            base_img = _apply_ignore_regions(base_img, ignore_regions)
+            latest_img = _apply_ignore_regions(latest_img, ignore_regions)
+
+        # Resize images to be the same size for comparison, using the larger dimensions
+        if base_img.size != latest_img.size:
+            logger.warning(f"Image sizes differ. Base: {base_img.size}, Latest: {latest_img.size}. Resizing to common dimensions for comparison.")
+            # Create a new blank canvas with the max dimensions of both images
+            max_width = max(base_img.width, latest_img.width)
+            max_height = max(base_img.height, latest_img.height)
+            
+            new_base_img = Image.new('RGB', (max_width, max_height), (255, 255, 255))
+            new_base_img.paste(base_img, (0, 0))
+            base_img = new_base_img
+            
+            new_latest_img = Image.new('RGB', (max_width, max_height), (255, 255, 255))
+            new_latest_img.paste(latest_img, (0, 0))
+            latest_img = new_latest_img
+
+        # --- Calculate Percentage Difference ---
+        diff = ImageChops.difference(base_img, latest_img)
+        diff_np = np.array(diff)
+        non_zero_pixels = np.count_nonzero(diff_np)
+        total_pixels = diff_np.size
+        percentage_diff = (non_zero_pixels / total_pixels) * 100 if total_pixels > 0 else 0
+        
+        logger.info(f"Visual comparison of {os.path.basename(image_path1)} and {os.path.basename(image_path2)}: {percentage_diff:.4f}% difference.")
+
+        # --- Generate Diff Image using the user's script logic ---
+        diff_image_final_path = None
+        if percentage_diff > 0:
+            # Define a path for the diff report image
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            diff_dir = os.path.join(os.path.dirname(image_path2), 'diffs')
+            os.makedirs(diff_dir, exist_ok=True)
+            diff_image_path = os.path.join(diff_dir, f'diff_{timestamp}_{os.path.basename(image_path2)}')
+            
+            # Call the function from image_processor to create the "before/after" report
+            diff_image_final_path = create_visual_diff_report(
+                base_path=image_path1,
+                latest_path=image_path2,
+                output_path=diff_image_path
+            )
+            if diff_image_final_path:
+                logger.info(f"Visual diff report generated at: {diff_image_final_path}")
+
+        return percentage_diff, diff_image_final_path
+
+    except FileNotFoundError as e:
+        logger.error(f"Error comparing images: {e}")
+        return 100.0, None # Treat file not found as a major difference
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during image comparison: {e}", exc_info=True)
+        return 100.0, None # Treat any error as a major difference to be safe
+
+def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str = None, ignore_regions: list[list[int]] = None, create_comparison: bool = False) -> tuple[float, str | None, str | None]:
+    """
+    DEPRECATED. Use compare_screenshots_percentage instead.
+    Compares two screenshots and returns a Mean Squared Error (MSE) difference score.
 
     Args:
         image_path1 (str): Path to the first image.
         image_path2 (str): Path to the second image.
-        diff_image_path (str, optional): Path to save the difference image. If None, not saved.
+        diff_image_path (str, optional): Path to save the difference image. If None, auto-generated.
         ignore_regions (list[list[int]], optional): List of [x,y,w,h] regions to ignore.
+        create_comparison (bool, optional): If True, creates a before/after comparison with cropped changes.
 
     Returns:
-        tuple[float, Image.Image | None]:
+        tuple[float, str | None, str | None]:
             - Normalized MSE (0.0 to 1.0, where 0.0 is identical). Higher means more different.
-            - A PIL Image object of the difference, or None if images are identical or error occurs.
+            - Path to the saved difference image, or None if images are identical or error occurs.
+            - Path to the saved comparison image (if create_comparison=True), or None otherwise.
     """
     try:
         img1_pil = Image.open(image_path1).convert('RGB')
         img2_pil = Image.open(image_path2).convert('RGB')
     except FileNotFoundError:
         logger.error(f"Error: One or both image files not found: {image_path1}, {image_path2}")
-        return 1.0, None # Max difference if a file is missing
+        return 1.0, None, None # Max difference if a file is missing
     except Exception as e:
         logger.error(f"Error opening images {image_path1}, {image_path2}: {e}")
-        return 1.0, None # Max difference on error
+        return 1.0, None, None # Max difference on error
 
     # Apply ignore regions before any other processing
     if ignore_regions:
@@ -354,7 +440,7 @@ def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str
             img2_pil = img2_pil.resize(img1_pil.size, Image.Resampling.LANCZOS) # Use a high-quality downsampling filter
         except Exception as e:
             logger.error(f"Error resizing image {image_path2}: {e}")
-            return 1.0, None # Max difference if resize fails
+            return 1.0, None, None # Max difference if resize fails
 
     # MSE Calculation
     arr1 = np.array(img1_pil, dtype=np.float32)
@@ -362,7 +448,7 @@ def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str
     
     if arr1.shape != arr2.shape:
         logger.error(f"Numpy array shapes do not match after potential resize: {arr1.shape} vs {arr2.shape}. Cannot compute MSE.")
-        return 1.0, None # Max difference
+        return 1.0, None, None # Max difference
 
     mse = np.mean((arr1 - arr2) ** 2)
     
@@ -371,8 +457,11 @@ def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str
     # Cap at 1.0 for safety
     normalized_mse = min(normalized_mse, 1.0) 
 
-    diff_image = None
-    if normalized_mse > 0: # Only generate diff image if there's a difference
+    saved_diff_path = None
+    comparison_path = None
+    
+    if normalized_mse > 0: # Only generate images if there's a difference
+        # Standard difference visualization
         try:
             # ImageChops.difference requires images of the same mode and size.
             diff_pil_image = ImageChops.difference(img1_pil, img2_pil)
@@ -381,18 +470,51 @@ def compare_screenshots(image_path1: str, image_path2: str, diff_image_path: str
             enhanced_diff_image = Image.eval(diff_gray, lambda x: 255 if x > 10 else 0) # Thresholding
             diff_image = enhanced_diff_image.convert('RGB') 
 
-            if diff_image_path:
-                os.makedirs(os.path.dirname(diff_image_path), exist_ok=True)
-                diff_image.save(diff_image_path)
-                logger.info(f"Difference image saved to {diff_image_path}")
+            # Auto-generate diff_image_path if not provided
+            if not diff_image_path:
+                # Extract the directory and filename from the first image path
+                dir_path = os.path.dirname(image_path1)
+                base_name = os.path.basename(image_path1)
+                name_without_ext = os.path.splitext(base_name)[0]
+                
+                # Create diff directory if it doesn't exist
+                diff_dir = os.path.join(dir_path, "diffs")
+                os.makedirs(diff_dir, exist_ok=True)
+                
+                # Generate diff filename with timestamp
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                diff_image_path = os.path.join(diff_dir, f"{name_without_ext}_diff_{timestamp}.png")
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(diff_image_path), exist_ok=True)
+            
+            # Save the diff image
+            diff_image.save(diff_image_path)
+            saved_diff_path = diff_image_path
+            logger.info(f"Difference image saved to {diff_image_path}")
+            
+            # Create before/after comparison if requested
+            if create_comparison and normalized_mse > 0.01:  # Only for non-trivial changes
+                try:
+                    # Import here to avoid circular imports
+                    from src.visual_change_detector import get_change_region_with_labels
+                    
+                    # Generate the cropped comparison image
+                    _, comparison_path = get_change_region_with_labels(image_path1, image_path2)
+                    
+                    if comparison_path:
+                        logger.info(f"Created before/after comparison image at {comparison_path}")
+                except Exception as e:
+                    logger.error(f"Error creating before/after comparison image: {e}", exc_info=True)
+                    
         except Exception as e:
             logger.error(f"Error creating or saving difference image: {e}")
-            diff_image = None # Ensure it's None if saving failed
+            saved_diff_path = None
     else:
         logger.info("Images are identical (MSE=0). No difference image generated.")
 
     logger.debug(f"Image comparison MSE: {mse:.4f}, Normalized MSE: {normalized_mse:.4f}")
-    return normalized_mse, diff_image
+    return normalized_mse, saved_diff_path, comparison_path
 
 def compare_screenshots_ssim(image_path1: str, image_path2: str, ignore_regions: list[list[int]] = None) -> float | None:
     """
@@ -708,31 +830,31 @@ if __name__ == '__main__':
     diff_save_path = os.path.join(test_img_dir, "diff_output.png")
 
     print("\n--- Screenshot Compare Test 1: Identical Images ---")
-    score1, diff_img1 = compare_screenshots(img_path_1, img_path_2_identical)
+    score1, diff_img1 = compare_screenshots_percentage(img_path_1, img_path_2_identical)
     print(f"Score (Identical): {score1:.4f} (Expected near 0.0)")
     assert score1 < 0.0001, "Identical images should have near zero score."
     assert diff_img1 is None, "Diff image should be None for identical images."
 
     print("\n--- Screenshot Compare Test 2: Minor Difference ---")
-    score2, diff_img2 = compare_screenshots(img_path_1, img_path_3_minor_diff, diff_image_path=diff_save_path + "_minor.png")
+    score2, diff_img2 = compare_screenshots_percentage(img_path_1, img_path_3_minor_diff)
     print(f"Score (Minor Diff): {score2:.4f}")
     assert 0 < score2 < 0.1, "Minor diff score out of expected range."
     assert diff_img2 is not None, "Diff image should exist for minor differences."
 
     print("\n--- Screenshot Compare Test 3: Major Difference ---")
-    score3, diff_img3 = compare_screenshots(img_path_1, img_path_4_major_diff, diff_image_path=diff_save_path + "_major.png")
+    score3, diff_img3 = compare_screenshots_percentage(img_path_1, img_path_4_major_diff)
     print(f"Score (Major Diff): {score3:.4f}")
     assert score3 > 0.1, "Major diff score too low."
     assert diff_img3 is not None, "Diff image should exist for major differences."
 
     print("\n--- Screenshot Compare Test 4: Different Sizes ---")
-    score4, diff_img4 = compare_screenshots(img_path_1, img_path_5_diff_size)
+    score4, diff_img4 = compare_screenshots_percentage(img_path_1, img_path_5_diff_size)
     print(f"Score (Different Sizes): {score4:.4f} (Expected 1.0)")
     assert score4 == 1.0, "Different sized images should have score 1.0"
     assert diff_img4 is None, "Diff image should be None for different sized images by this logic."
 
     print("\n--- Screenshot Compare Test 5: File Not Found ---")
-    score5, diff_img5 = compare_screenshots(img_path_1, "non_existent_image.png")
+    score5, diff_img5 = compare_screenshots_percentage(img_path_1, "non_existent_image.png")
     print(f"Score (File Not Found): {score5:.4f} (Expected 1.0)")
     assert score5 == 1.0, "Missing file should result in score 1.0"
     assert diff_img5 is None

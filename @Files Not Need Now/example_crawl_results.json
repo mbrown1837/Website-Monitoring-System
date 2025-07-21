@@ -1,0 +1,45 @@
+{
+  "pages": [
+    {
+      "url": "https://example.com/",
+      "status_code": 200,
+      "title": "Example Domain",
+      "is_internal": true,
+      "referring_page": "",
+      "missing_description": true,
+      "missing_keywords": true,
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "status_code": 301,
+      "title": "",
+      "is_internal": false,
+      "referring_page": "",
+      "missing_title": true,
+      "missing_description": true,
+      "missing_keywords": true,
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    },
+    {
+      "url": "http://www.iana.org/help/example-domains",
+      "status_code": 200,
+      "title": "",
+      "is_internal": false,
+      "referring_page": "",
+      "missing_title": true,
+      "missing_description": true,
+      "missing_keywords": true,
+      "meta": {
+        "description": "",
+        "robots": ""
+      }
+    }
+  ]
+}
