@@ -1,18 +1,28 @@
 [
   {
-    "id": "08a2ffbd-1729-4128-8d3c-a7a1da84904e",
-    "url": "https://thewebturtles.com/",
-    "name": "The Webturtles",
+    "id": "ee456cb6-c39b-4a68-b791-ba1899851386",
+    "url": "https://staging2.brightklean.com/",
+    "name": "Bright Klean",
     "interval": 24,
-    "last_checked_utc": "2025-06-04T20:04:01.792940+00:00",
     "is_active": true,
     "tags": [],
     "notification_emails": [],
-    "date_added_utc": "2025-06-04T20:02:33.641223+00:00",
-    "baseline_html_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\thewebturtles_com\\08a2ffbd-1729-4128-8d3c-a7a1da84904e\\baseline\\baseline.html",
-    "baseline_visual_path": "C:\\Users\\Administrator\\Desktop\\Projects\\Website Monitering\\data/snapshots\\thewebturtles_com\\08a2ffbd-1729-4128-8d3c-a7a1da84904e\\baseline\\baseline.png",
-    "baseline_html_hash": "2b3207295ac9825920eb8f5b78d00fc6202563f3f6ae9b117b3b5a856dd3a976",
-    "crawl_only": false,
-    "last_updated_utc": "2025-06-04T20:04:01.793272+00:00"
+    "created_utc": "2025-07-13T20:31:04.450186+00:00",
+    "last_updated_utc": "2025-07-13T20:31:04.452031+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {},
+    "has_subpage_baselines": false,
+    "baseline_visual_path": null,
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true
   }
 ]

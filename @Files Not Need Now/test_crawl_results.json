@@ -1,0 +1,47 @@
+{
+  "website_id": "test-site",
+  "url": "https://example.com",
+  "timestamp": "2025-06-14T22:30:46.753675",
+  "broken_links": [],
+  "missing_meta_tags": [
+    {
+      "url": "https://example.com",
+      "type": "missing_meta_description",
+      "element": "meta",
+      "details": "Missing or empty meta description"
+    },
+    {
+      "url": "https://example.com",
+      "type": "missing_meta_keywords",
+      "element": "meta",
+      "details": "Missing or empty meta keywords"
+    }
+  ],
+  "all_pages": [
+    {
+      "url": "https://example.com",
+      "status_code": 200,
+      "title": "Example Domain",
+      "is_internal": true
+    },
+    {
+      "url": "https://www.iana.org/domains/example",
+      "status_code": 200,
+      "title": "",
+      "is_internal": false
+    }
+  ],
+  "internal_urls": [],
+  "external_urls": [],
+  "visual_baselines": [],
+  "visual_baselines_count": 0,
+  "crawl_stats": {
+    "pages_crawled": 2,
+    "total_links": 0,
+    "total_images": 0,
+    "status_code_counts": {
+      "200": 2
+    },
+    "sitemap_found": false
+  }
+}

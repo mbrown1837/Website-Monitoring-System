@@ -22,6 +22,7 @@ class WebsiteManager:
         self.websites_file_path = self._initialize_website_list_path()
         self._websites = []  # Cache
         self._websites_loaded = False
+        self._cache_mod_time = 0.0  # Tracks the modification time of the loaded file
         self._load_websites()  # Initial load
 
     def _initialize_website_list_path(self):
@@ -45,7 +46,22 @@ class WebsiteManager:
         return path
 
     def _load_websites(self, force_reload=False):
-        """Load websites from the JSON file into self._websites."""
+        """
+        Load websites from the JSON file into self._websites.
+        Implements a cache that reloads automatically if the underlying file has changed.
+        """
+        try:
+            # Check if the file has been modified since the last load.
+            # This ensures that changes made by other processes are picked up.
+            current_mod_time = os.path.getmtime(self.websites_file_path)
+            if current_mod_time > self._cache_mod_time:
+                self.logger.info(f"Change detected in {self.websites_file_path}. Forcing cache reload.")
+                force_reload = True
+        except OSError:
+            # This can happen if the file does not exist, which is a valid state.
+            # The logic below will handle creating an empty file.
+            pass
+
         if self._websites_loaded and not force_reload:
             return self._websites
             
@@ -59,12 +75,18 @@ class WebsiteManager:
                 with open(self.websites_file_path, "r", encoding="utf-8") as f:
                     self._websites = json.load(f)
                 self.logger.debug(f"Successfully loaded {len(self._websites)} websites from {self.websites_file_path}")
+            
+            # Update cache state
             self._websites_loaded = True
+            self._cache_mod_time = os.path.getmtime(self.websites_file_path)
             return self._websites
-        except (IOError, json.JSONDecodeError) as e:
+            
+        except (IOError, json.JSONDecodeError, OSError) as e:
             self.logger.error(f"Error loading websites from {self.websites_file_path}: {e}")
+            # Reset cache state on error
             self._websites = []
-            self._websites_loaded = True
+            self._websites_loaded = True # Mark as "loaded" to prevent reload loops on a broken file
+            self._cache_mod_time = 0.0
             return self._websites
             
     def _save_websites(self):
@@ -73,12 +95,17 @@ class WebsiteManager:
             with open(self.websites_file_path, "w", encoding="utf-8") as f:
                 json.dump(self._websites, f, indent=2)
             self.logger.debug(f"Successfully saved {len(self._websites)} websites to {self.websites_file_path}")
+            # Update the cache modification time to prevent an immediate reload
+            self._cache_mod_time = os.path.getmtime(self.websites_file_path)
             return True
-        except IOError as e:
+        except (IOError, OSError) as e:
             self.logger.error(f"Error saving websites to {self.websites_file_path}: {e}")
             return False
 
-    def add_website(self, url: str, name: str = "", interval: int = None, is_active: bool = True, tags: list = None, notification_emails: list = None):
+    def add_website(self, url: str, name: str = "", interval: int = None, is_active: bool = True, tags: list = None, notification_emails: list = None, 
+                   enable_blur_detection: bool = False, blur_detection_scheduled: bool = False, blur_detection_manual: bool = True,
+                   auto_crawl_enabled: bool = True, auto_visual_enabled: bool = True, auto_blur_enabled: bool = False, auto_performance_enabled: bool = False,
+                   auto_full_check_enabled: bool = False):
         """
         Add a new website to the monitoring list.
         
@@ -89,6 +116,14 @@ class WebsiteManager:
             is_active (bool, optional): Whether the website should be actively monitored. Defaults to True.
             tags (list, optional): List of tags to categorize the website. Defaults to empty list.
             notification_emails (list, optional): List of email addresses for notifications. Defaults to empty list.
+            enable_blur_detection (bool, optional): Whether blur detection is enabled for this website. Defaults to False.
+            blur_detection_scheduled (bool, optional): Whether blur detection runs on scheduled checks. Defaults to False.
+            blur_detection_manual (bool, optional): Whether blur detection runs on manual checks. Defaults to True.
+            auto_crawl_enabled (bool, optional): Whether crawling is enabled for automated checks. Defaults to True.
+            auto_visual_enabled (bool, optional): Whether visual monitoring is enabled for automated checks. Defaults to True.
+            auto_blur_enabled (bool, optional): Whether blur detection is enabled for automated checks. Defaults to False.
+            auto_performance_enabled (bool, optional): Whether performance monitoring is enabled for automated checks. Defaults to False.
+            auto_full_check_enabled (bool, optional): Whether full check is enabled for automated checks. Defaults to False.
             
         Returns:
             dict: The newly created website record, or None if creation failed.
@@ -120,6 +155,13 @@ class WebsiteManager:
         if notification_emails is None:
             notification_emails = []
             
+        # Handle Full Check option - when enabled, it enables all other monitoring types
+        if auto_full_check_enabled:
+            auto_crawl_enabled = True
+            auto_visual_enabled = True
+            auto_blur_enabled = True
+            auto_performance_enabled = True
+        
         # Create new website record
         new_website = {
             'id': str(uuid.uuid4()),
@@ -130,12 +172,29 @@ class WebsiteManager:
             'tags': tags,
             'notification_emails': notification_emails,
             'created_utc': datetime.now(timezone.utc).isoformat(),
-            'last_updated_utc': datetime.now(timezone.utc).isoformat()
+            'last_updated_utc': datetime.now(timezone.utc).isoformat(),
+            'render_delay': 6,  # Default render delay
+            'max_crawl_depth': 2,  # Default crawl depth
+            'visual_diff_threshold': 5,  # Default visual difference threshold
+            'capture_subpages': True,  # Always capture subpages by default
+            'all_baselines': {},
+            'has_subpage_baselines': False,
+            'baseline_visual_path': None,
+            # Blur detection options
+            'enable_blur_detection': enable_blur_detection,
+            'blur_detection_scheduled': blur_detection_scheduled,
+            'blur_detection_manual': blur_detection_manual,
+            # Automated monitoring preferences
+            'auto_crawl_enabled': auto_crawl_enabled,
+            'auto_visual_enabled': auto_visual_enabled,
+            'auto_blur_enabled': auto_blur_enabled,
+            'auto_performance_enabled': auto_performance_enabled,
+            'auto_full_check_enabled': auto_full_check_enabled
         }
         
         self._websites.append(new_website)
         self._save_websites()
-        self.logger.info(f"Added new website: {name} ({url})")
+        self.logger.info(f"Added new website: {name} ({url}) with blur detection: {enable_blur_detection}")
         
         return new_website
 
@@ -198,12 +257,12 @@ class WebsiteManager:
         for i, site in enumerate(self._websites):
             if site.get('id') == site_id:
                 current_site_idx = i
-                break
                 
-        if current_site_idx == -1:
-            self.logger.warning(f"Cannot update website: Site ID {site_id} not found.")
+        if current_site_idx < 0:
+            self.logger.warning(f"Website with ID '{site_id}' not found. Cannot update.")
             return None
         
+        # Get the current website data
         current_site = self._websites[current_site_idx]
         
         # Special case: if URL is being changed, check for duplicates
@@ -231,13 +290,53 @@ class WebsiteManager:
                 
             current_site[key] = value
         
-        # Update the last_updated timestamp
+        # Update last_updated timestamp
         current_site['last_updated_utc'] = datetime.now(timezone.utc).isoformat()
         
+        # Save the changes
         self._save_websites()
         self.logger.info(f"Updated website: {current_site.get('name')} (ID: {site_id})")
         
         return current_site
+        
+    def save_website(self, site_id: str, website_data: dict):
+        """
+        Save a website's complete data by replacing the existing record.
+        
+        Args:
+            site_id (str): The ID of the website to save.
+            website_data (dict): Complete website data dictionary.
+            
+        Returns:
+            dict: The saved website record, or None if save failed.
+        """
+        self._load_websites()
+        
+        # Find the website to update
+        current_site_idx = -1
+        for i, site in enumerate(self._websites):
+            if site.get('id') == site_id:
+                current_site_idx = i
+                
+        if current_site_idx < 0:
+            self.logger.warning(f"Website with ID '{site_id}' not found. Cannot save.")
+            return None
+            
+        # Ensure the ID is preserved
+        website_data['id'] = site_id
+        
+        # Update last_updated timestamp if not already set in the provided data
+        if 'last_updated_utc' not in website_data:
+            website_data['last_updated_utc'] = datetime.now(timezone.utc).isoformat()
+        
+        # Replace the website data
+        self._websites[current_site_idx] = website_data
+        
+        # Save the changes
+        self._save_websites()
+        self.logger.info(f"Saved website: {website_data.get('name')} (ID: {site_id})")
+        
+        return website_data
 
     def remove_website(self, site_id: str):
         """
@@ -325,88 +424,80 @@ class WebsiteManager:
             self.logger.warning(f"Failed to remove website data. Website with ID '{site_id}' not found in records.")
             return False
 
-    def capture_baseline_for_site(self, site_id: str) -> bool:
-        """Captures and saves HTML and visual snapshots as the baseline for a given site.
+    def capture_baseline_for_site(self, site_id):
+        """
+        Triggers a comprehensive baseline capture for a website, including all subpages.
+        This is now handled by the scheduler's check function with a specific option.
 
         Args:
-            site_id (str): The ID of the website to capture the baseline for.
+            site_id (str): ID of the website to capture baseline for.
 
         Returns:
-            bool: True if baseline capture and update were successful, False otherwise.
+            dict: The result from the check, or an error dictionary.
         """
-        self.logger.info(f"Starting baseline capture for site ID: {site_id}")
-        site_details = self.get_website(site_id)
-        if not site_details:
-            self.logger.error(f"Cannot capture baseline: Site ID {site_id} not found.")
-            return False
-
-        # Check if site is marked as crawl-only - if so, don't create any baseline
-        crawl_only = site_details.get("crawl_only", False)
-        if crawl_only:
-            self.logger.info(f"Site {site_id} is marked as crawl-only. Skipping baseline creation completely.")
-            # Still return True to indicate success (no baseline needed for crawl-only sites)
-            return True
-
-        url = site_details["url"]
-        self.logger.info(f"Fetching content for baseline for {url} (Site ID: {site_id})...")
-        status_code, _, html_content, fetch_error = content_retriever.fetch_website_content(url)
-
-        if fetch_error or not html_content:
-            self.logger.error(f"Failed to fetch content for baseline (Site ID: {site_id}, URL: {url}). Error: {fetch_error}")
-            # Optionally update site status or log more specifically
-            return False
-
-        self.logger.info(f"Saving baseline HTML snapshot for site ID: {site_id}")
-        baseline_html_path, baseline_html_hash = snapshot_tool.save_html_snapshot(
-            site_id, url, html_content, is_baseline=True
-        )
-
-        baseline_visual_path = None
-        self.logger.info(f"Saving baseline visual snapshot for site ID: {site_id}")
-        baseline_visual_path = snapshot_tool.save_visual_snapshot(
-            site_id, url, is_baseline=True
-        )
-
-        if not baseline_html_path and not baseline_visual_path:
-            self.logger.error(f"Failed to save both HTML and visual baselines for site ID: {site_id}.")
-            return False # Both failed, something is wrong
+        self.logger.info(f"Delegating baseline capture for site_id: {site_id} to the scheduler.")
         
-        update_payload = {}
-        if baseline_html_path:
-            update_payload["baseline_html_path"] = baseline_html_path
-            update_payload["baseline_html_hash"] = baseline_html_hash
-            self.logger.info(f"Baseline HTML for site {site_id} stored at: {baseline_html_path} with hash {baseline_html_hash}")
-        else:
-            self.logger.warning(f"Failed to save baseline HTML for site ID: {site_id}")
+        site = self.get_website(site_id)
+        if not site:
+            self.logger.error(f"Site with ID {site_id} not found, cannot capture baseline.")
+            return {"status": "error", "message": "Website not found"}
 
-        if baseline_visual_path:
-            update_payload["baseline_visual_path"] = baseline_visual_path
-            self.logger.info(f"Baseline visual for site {site_id} stored at: {baseline_visual_path}")
-        else:
-            self.logger.warning(f"Failed to save baseline visual for site ID: {site_id}")
+        try:
+            # We import here to avoid circular dependency issues at startup
+            from src.scheduler import perform_website_check
+            
+            # The scheduler's check function now handles the entire process
+            # when called with the 'create_baseline' option.
+            result = perform_website_check(
+                site_id,
+                crawler_options_override={'create_baseline': True}
+            )
 
-        if not update_payload: # If neither was successful
-            self.logger.error(f"No baseline data captured successfully for site {site_id}")
-            return False
+            if result and result.get('status') == 'Baseline Created':
+                self.logger.info(f"Successfully initiated and completed baseline capture for site {site_id}.")
+                return result
+            else:
+                self.logger.error(f"Baseline capture for site {site_id} failed or did not complete as expected. Result: {result}")
+                return result
 
-        # Update the website record with new baseline paths and hash
-        # Internal update without triggering another baseline capture
-        current_site_idx = -1
-        for i, site in enumerate(self._websites):
-            if site["id"] == site_id:
-                current_site_idx = i
-                break
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred while triggering baseline capture for site {site_id}: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    def get_automated_check_config(self, website_id):
+        """Get automated monitoring configuration for a website."""
+        website = self.get_website(website_id)
+        if not website:
+            return None
         
-        if current_site_idx != -1:
-            self._websites[current_site_idx].update(update_payload)
-            self._websites[current_site_idx]["last_updated_utc"] = datetime.now(timezone.utc).isoformat()
-            self._save_websites()
-            self.logger.info(f"Site {site_id} record updated with new baseline information: {update_payload}")
-            return True
+        # Check if Full Check is enabled
+        if website.get('auto_full_check_enabled', False):
+            # If Full Check is enabled, enable all monitoring types
+            return {
+                'crawl_enabled': True,
+                'visual_enabled': True,
+                'blur_enabled': True,
+                'performance_enabled': True
+            }
         else:
-            # This case should ideally not happen if get_website succeeded earlier
-            self.logger.error(f"Internal error: Site {site_id} not found in cache during baseline update.")
-            return False
+            # Otherwise, use individual settings
+            return {
+                'crawl_enabled': website.get('auto_crawl_enabled', True),
+                'visual_enabled': website.get('auto_visual_enabled', True),
+                'blur_enabled': website.get('auto_blur_enabled', False),
+                'performance_enabled': website.get('auto_performance_enabled', False)
+            }
+    
+    def get_manual_check_config(self, check_type):
+        """Get manual check configuration based on button pressed."""
+        configs = {
+            'full': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': True, 'performance_enabled': True},
+            'visual': {'crawl_enabled': False, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False},
+            'crawl': {'crawl_enabled': True, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': False},
+            'blur': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': True, 'performance_enabled': False},
+            'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True}
+        }
+        return configs.get(check_type, configs['full'])
 
 # Example Usage (for direct script execution testing)
 if __name__ == "__main__":

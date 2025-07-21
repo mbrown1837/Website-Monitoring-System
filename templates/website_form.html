@@ -4,6 +4,15 @@
 
 {% block title %}{{ form_title }} - Website Monitor{% endblock %}
 
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ 'Add Website' if not website else 'Edit Website' }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <h2>{{ form_title }}</h2>
 <hr>
@@ -39,23 +48,270 @@
         <div class="form-text">Optional comma-separated email addresses to notify on changes.</div>
     </div>
 
-    <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="crawl_only" name="crawl_only" {% if website and website.crawl_only %}checked{% endif %}>
-        <label class="form-check-label" for="crawl_only">Crawl Only Site</label>
-        <div class="form-text">If checked, this site will only be crawled for broken links and SEO issues, without visual/content comparison.</div>
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if not website or website.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">
+            Monitor this website actively
+        </label>
     </div>
 
-    {% if website %}
-    <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if website.is_active %}checked{% endif %}>
-        <label class="form-check-label" for="is_active">Is Active</label>
-        <div class="form-text">Inactive websites will not be automatically monitored or allow manual checks.</div>
+    {% if not website %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>⚡ Initial Setup</h5>
+            <small class="text-muted">Choose what to do when adding this website</small>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="initial_setup_baseline" name="initial_setup" value="baseline" checked>
+                        <label class="form-check-label" for="initial_setup_baseline">
+                            <i class="bi bi-camera"></i> <strong>Create Baseline Only</strong>
+                            <small class="text-muted d-block">Just crawl and create visual baselines (recommended for first setup)</small>
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" id="initial_setup_full" name="initial_setup" value="full">
+                        <label class="form-check-label" for="initial_setup_full">
+                            <i class="bi bi-play-circle"></i> <strong>Run Full Check Immediately</strong>
+                            <small class="text-muted d-block">Run all enabled monitoring types right after adding</small>
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" id="initial_setup_none" name="initial_setup" value="none">
+                        <label class="form-check-label" for="initial_setup_none">
+                            <i class="bi bi-pause-circle"></i> <strong>Add Only</strong>
+                            <small class="text-muted d-block">Just add to the system, don't run any checks yet</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                <i class="bi bi-info-circle"></i> You can always run manual checks later from the website's history page.
+            </div>
+        </div>
     </div>
     {% endif %}
 
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>🔍 Automated Monitoring Settings</h5>
+            <small class="text-muted">Select which checks to run automatically on scheduled intervals</small>
+        </div>
+        <div class="card-body">
+            <!-- Full Check Option -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="auto_full_check_enabled" name="auto_full_check_enabled" 
+                               {% if website and website.auto_full_check_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_full_check_enabled">
+                            <i class="bi bi-check-all"></i> <strong>Full Check</strong>
+                            <small class="text-muted d-block">Enable all monitoring types (crawl, visual, blur, performance)</small>
+                        </label>
+                    </div>
+                    <hr class="my-3">
+                </div>
+            </div>
+            
+            <!-- Individual Check Options -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input monitoring-option" type="checkbox" id="auto_crawl_enabled" name="auto_crawl_enabled" {% if not website or website.auto_crawl_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_crawl_enabled">
+                            <i class="bi bi-search"></i> <strong>Crawl Website</strong>
+                            <small class="text-muted d-block">Check links, meta tags, site structure</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input monitoring-option" type="checkbox" id="auto_visual_enabled" name="auto_visual_enabled" {% if not website or website.auto_visual_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_visual_enabled">
+                            <i class="bi bi-eye"></i> <strong>Visual Monitoring</strong>
+                            <small class="text-muted d-block">Screenshot comparison, detect changes</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input monitoring-option" type="checkbox" id="auto_blur_enabled" name="auto_blur_enabled" {% if website and website.auto_blur_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_blur_enabled">
+                            <i class="bi bi-image"></i> <strong>Blur Detection</strong>
+                            <small class="text-muted d-block">Analyze image quality issues</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input monitoring-option" type="checkbox" id="auto_performance_enabled" name="auto_performance_enabled" {% if website and website.auto_performance_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="auto_performance_enabled">
+                            <i class="bi bi-speedometer2"></i> <strong>Performance Check</strong>
+                            <small class="text-muted d-block">Page speed, Core Web Vitals</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-text mt-2">
+                <i class="bi bi-info-circle"></i> These settings control what checks run automatically on your scheduled intervals. 
+                You can always run individual checks manually from the website's history page.
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Monitoring Settings</h5>
+        </div>
+        <div class="card-body">
+            <h6 class="mt-2">Advanced Settings</h6>
+            <div class="mb-3">
+                <label for="render_delay" class="form-label">Render Delay (seconds)</label>
+                <input type="number" class="form-control" id="render_delay" name="render_delay" value="{{ website.render_delay if website else 6 }}">
+                <div class="form-text">Delay after page load to allow for dynamic content to render before taking a screenshot.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="max_crawl_depth" class="form-label">Max Crawl Depth</label>
+                <input type="number" class="form-control" id="max_crawl_depth" name="max_crawl_depth" value="{{ website.max_crawl_depth if website else 2 }}">
+                <div class="form-text">How many links deep the crawler should go from the starting URL.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="visual_diff_threshold" class="form-label">Visual Difference Threshold (%)</label>
+                <input type="number" class="form-control" id="visual_diff_threshold" name="visual_diff_threshold" value="{{ website.visual_diff_threshold if website else 5 }}">
+                <div class="form-text">The percentage of visual change required to trigger an alert.</div>
+            </div>
+
+
+        </div>
+    </div>
+
     <hr>
     <button type="submit" class="btn btn-primary">{% if website %}Save Changes{% else %}Add Website{% endif %}</button>
+    
+    {% if not website.crawl_only|default(false) %}
+    <button type="button" id="baselineBtn" class="btn {% if website and website.baseline_visual_path %}btn-warning{% else %}btn-success{% endif %}" onclick="location.href='{% if website %}{{ url_for('manual_check_website', site_id=website.id) }}?create_baseline=true&capture_subpages=true{% endif %}'">
+        {% if website and website.baseline_visual_path %}Update Baseline{% else %}Create Baseline{% endif %}
+    </button>
+    {% endif %}
+    
     <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
 </form>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.disabled-option {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+.disabled-option input[type="checkbox"] {
+    cursor: not-allowed !important;
+}
+
+.disabled-option label {
+    cursor: not-allowed !important;
+    color: #6c757d !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle custom depth selection
+    const maxCrawlDepthSelect = document.getElementById('max_crawl_depth');
+    const customDepthContainer = document.getElementById('custom_depth_container');
+    
+    function toggleCustomDepth() {
+        if (maxCrawlDepthSelect && maxCrawlDepthSelect.value === 'custom') {
+            customDepthContainer.style.display = 'block';
+        } else if (customDepthContainer) {
+            customDepthContainer.style.display = 'none';
+        }
+    }
+    
+    if (maxCrawlDepthSelect) {
+        maxCrawlDepthSelect.addEventListener('change', toggleCustomDepth);
+        toggleCustomDepth();
+    }
+    
+    // Handle Full Check option behavior
+    const fullCheckOption = document.getElementById('auto_full_check_enabled');
+    const monitoringOptions = document.querySelectorAll('.monitoring-option');
+    
+    function toggleMonitoringOptions() {
+        if (!fullCheckOption) {
+            return;
+        }
+        
+        const isFullCheckEnabled = fullCheckOption.checked;
+        
+        monitoringOptions.forEach(function(option) {
+            const formCheck = option.closest('.form-check');
+            const label = formCheck ? formCheck.querySelector('label') : null;
+            
+            if (isFullCheckEnabled) {
+                option.checked = true;
+                option.disabled = true;
+                
+                if (formCheck) {
+                    formCheck.classList.add('disabled-option');
+                }
+                if (label) {
+                    label.classList.add('disabled-option');
+                }
+            } else {
+                option.disabled = false;
+                
+                if (formCheck) {
+                    formCheck.classList.remove('disabled-option');
+                }
+                if (label) {
+                    label.classList.remove('disabled-option');
+                }
+            }
+        });
+    }
+    
+    function checkIfAllOptionsSelected() {
+        if (!fullCheckOption || fullCheckOption.checked) {
+            return;
+        }
+        
+        const allChecked = Array.from(monitoringOptions).every(function(option) {
+            return option.checked && !option.disabled;
+        });
+        
+        if (allChecked) {
+            fullCheckOption.checked = true;
+            toggleMonitoringOptions();
+        }
+    }
+    
+    if (fullCheckOption) {
+        fullCheckOption.addEventListener('change', function() {
+            toggleMonitoringOptions();
+        });
+        
+        monitoringOptions.forEach(function(option) {
+            option.addEventListener('change', function() {
+                if (!fullCheckOption.checked) {
+                setTimeout(checkIfAllOptionsSelected, 10);
+                }
+            });
+        });
+        
+        toggleMonitoringOptions();
+    }
+});
+</script>
 {% endblock %} 
