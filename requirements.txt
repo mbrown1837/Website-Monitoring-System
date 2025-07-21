@@ -12,7 +12,7 @@ playwright==1.48.0
 diff-match-patch
 opencv-python==4.8.1.78
 scikit-image
-greenflare==1.0.2
+greenflare==0.98.1
 lxml
 Flask-APScheduler
 Flask-WTF
