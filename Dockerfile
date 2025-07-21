@@ -1,6 +1,21 @@
 # Use Python 3.11
 FROM python:3.11-slim
 
+# --- NEW SECTION ---
+# Install system dependencies for OpenCV and Playwright
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libgtk-3-0 \
+    libgbm1 \
+    libasound2 \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+# --- END NEW SECTION ---
+
 # Set working directory
 WORKDIR /app
 
@@ -14,7 +29,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Install Playwright browsers
-RUN playwright install chromium
+RUN playwright install --with-deps chromium
 
 # Expose port
 EXPOSE 5001
