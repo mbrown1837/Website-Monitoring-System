@@ -79,6 +79,33 @@ class CrawlerModule:
         
         self.website_manager = WebsiteManager()
         
+    def _check_and_migrate_schema(self, cursor):
+        """Check and migrate database schema if needed."""
+        try:
+            # Check if crawl_history table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='crawl_history'")
+            if not cursor.fetchone():
+                self.logger.info("Creating crawl_history table...")
+                cursor.execute('''
+                CREATE TABLE crawl_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    website_id TEXT NOT NULL,
+                    timestamp TEXT NOT NULL,
+                    broken_links_count INTEGER DEFAULT 0,
+                    missing_meta_tags_count INTEGER DEFAULT 0,
+                    total_pages_count INTEGER DEFAULT 0,
+                    results_json TEXT
+                )
+                ''')
+                self.logger.info("crawl_history table created successfully.")
+            else:
+                self.logger.debug("crawl_history table already exists.")
+                
+        except Exception as e:
+            self.logger.error(f"Error during schema migration: {e}")
+            # Don't raise the exception, just log it
+            pass
+
     def _get_db_connection(self):
         db_path = os.path.join('data', 'website_monitor.db')
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
