@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
     libdrm2 \
     libxkbcommon0 \
     libgbm1 \
-    libgl1-mesa-glx \
+    libgl1 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
