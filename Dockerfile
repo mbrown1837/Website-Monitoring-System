@@ -31,6 +31,8 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon0 \
     libgbm1 \
     libgl1 \
+    fonts-unifont \
+    fonts-ubuntu \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
@@ -47,7 +49,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Install Playwright browsers
-RUN playwright install --with-deps chromium
+RUN playwright install chromium
 
 # Create necessary directories and set permissions
 RUN mkdir -p data/snapshots data/logs && chmod -R 755 data/
