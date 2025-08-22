@@ -2,15 +2,16 @@ import click
 import json # For pretty printing dicts/lists
 import os # For file operations
 # Import classes and modules as needed
-from src.website_manager import WebsiteManager
-from src.history_manager import HistoryManager
+from src.config_loader import get_config
+from src.website_manager_sqlite import WebsiteManager
+from src.history_manager_sqlite import HistoryManager
 from src import report_generator, scheduler, config_loader # Keep scheduler and report_generator as module imports
 from src.logger_setup import setup_logging # To ensure logger is initialized
 import src.alerter as alerter_module # Import the module
 
 # Initialize logger and config early, as other modules might use them upon import
 logger = setup_logging()
-config = config_loader.get_config() # Ensures config is loaded
+config = get_config() # Ensures config is loaded
 
 # Instantiate managers for CLI use, using default config
 website_mng = WebsiteManager()

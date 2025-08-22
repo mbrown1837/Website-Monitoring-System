@@ -2,6 +2,7 @@ import logging
 import logging.handlers
 import os
 from src.config_loader import get_config
+from .path_utils import resolve_path, clean_path_for_logging
 
 # Cache for logger instances to avoid re-configuring the same logger
 _loggers = {}
@@ -36,16 +37,19 @@ def setup_logging(config_path=None, logger_name='WebsiteMonitor'):
     else: # Default for 'WebsiteMonitor' and any other loggers
         log_file_path = current_config.get('log_file_path', 'data/monitoring.log')
 
+    # Use environment-agnostic path resolution
+    resolved_log_file_path = resolve_path(log_file_path)
+
     numeric_level = getattr(logging, log_level_str, logging.INFO)
 
     # Ensure the directory for the log file exists
-    log_dir = os.path.dirname(log_file_path)
+    log_dir = os.path.dirname(resolved_log_file_path)
     if log_dir and not os.path.exists(log_dir):
         try:
             os.makedirs(log_dir, exist_ok=True)
         except OSError as e:
-            print(f"Error creating log directory {log_dir} for {logger_name}: {e}. Logging to console only for this handler.")
-            log_file_path = None # Disable file logging if dir creation fails
+            print(f"Error creating log directory {clean_path_for_logging(log_dir)} for {logger_name}: {e}. Logging to console only for this handler.")
+            resolved_log_file_path = None # Disable file logging if dir creation fails
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(numeric_level)
@@ -63,20 +67,20 @@ def setup_logging(config_path=None, logger_name='WebsiteMonitor'):
     logger.addHandler(ch)
 
     # File handler (RotatingFileHandler)
-    if log_file_path: # Only add file handler if path is valid and directory was created
+    if resolved_log_file_path: # Only add file handler if path is valid and directory was created
         try:
             # Max 5MB per file, keep 3 backup logs
-            fh = logging.handlers.RotatingFileHandler(log_file_path, maxBytes=5*1024*1024, backupCount=3, encoding='utf-8')
+            fh = logging.handlers.RotatingFileHandler(resolved_log_file_path, maxBytes=5*1024*1024, backupCount=3, encoding='utf-8')
             fh.setLevel(numeric_level)
             fh.setFormatter(formatter)
             logger.addHandler(fh)
         except Exception as e:
             # Log to console if file handler fails (e.g. permissions)
-            logger.error(f"Failed to set up file logging at {log_file_path} for {logger_name}: {e}", exc_info=True)
+            logger.error(f"Failed to set up file logging at {clean_path_for_logging(resolved_log_file_path)} for {logger_name}: {e}", exc_info=True)
     
     # Cache the configured logger
     _loggers[logger_name] = logger
-    logger.info(f"Logging for '{logger_name}' setup complete. Level: {log_level_str}, File: {log_file_path if log_file_path else 'Console Only'}")
+    logger.info(f"Logging for '{logger_name}' setup complete. Level: {log_level_str}, File: {clean_path_for_logging(resolved_log_file_path) if resolved_log_file_path else 'Console Only'}")
     return logger
 
 if __name__ == '__main__':

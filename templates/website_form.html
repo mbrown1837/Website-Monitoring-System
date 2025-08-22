@@ -31,9 +31,9 @@
     </div>
 
     <div class="mb-3">
-        <label for="interval" class="form-label">Monitoring Interval (hours)</label>
-        <input type="number" class="form-control" id="interval" name="interval" value="{{ website.interval if website else config.default_monitoring_interval_hours }}" min="1">
-        <div class="form-text">How often to check this website for changes (in hours). Defaults to global setting if left empty on add.</div>
+        <label for="check_interval_minutes" class="form-label">Monitoring Interval (minutes)</label>
+        <input type="number" class="form-control" id="check_interval_minutes" name="check_interval_minutes" value="{{ website.check_interval_minutes if website else config.get('default_monitoring_interval_minutes', 60) }}" min="1">
+        <div class="form-text">How often to check this website for changes (in minutes). Defaults to global setting if left empty.</div>
     </div>
 
     <div class="mb-3">
@@ -193,13 +193,6 @@
 
     <hr>
     <button type="submit" class="btn btn-primary">{% if website %}Save Changes{% else %}Add Website{% endif %}</button>
-    
-    {% if not website.crawl_only|default(false) %}
-    <button type="button" id="baselineBtn" class="btn {% if website and website.baseline_visual_path %}btn-warning{% else %}btn-success{% endif %}" onclick="location.href='{% if website %}{{ url_for('manual_check_website', site_id=website.id) }}?create_baseline=true&capture_subpages=true{% endif %}'">
-        {% if website and website.baseline_visual_path %}Update Baseline{% else %}Create Baseline{% endif %}
-    </button>
-    {% endif %}
-    
     <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
 </form>
 

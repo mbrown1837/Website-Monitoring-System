@@ -145,7 +145,7 @@
                     </tr>
                     <tr>
                         <th>Last Checked:</th>
-                        <td>{{ (history[0].timestamp if history else website.last_checked_utc) | humanize_datetime }}</td>
+                        <td>{{ (history[0].get('timestamp') if history and history[0] else website.last_checked_utc) | humanize_datetime }}</td>
                     </tr>
                     <tr>
                         <th>Baseline Created:</th>
@@ -325,7 +325,7 @@
                         <td>
                             {% if item.visual_diff_percent is defined %}
                                 {% set diff_percent = item.visual_diff_percent %}
-                                {% if diff_percent > config.visual_change_alert_threshold_percent %}
+                                {% if diff_percent > config.get('visual_change_alert_threshold_percent', 0.01) %}
                                     <span class="badge bg-danger">{{ "%.2f"|format(diff_percent) }}%</span>
                                 {% elif diff_percent > 0 %}
                                     <span class="badge bg-warning">{{ "%.2f"|format(diff_percent) }}%</span>

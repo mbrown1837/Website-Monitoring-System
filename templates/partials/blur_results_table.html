@@ -60,7 +60,7 @@
                     {% if result.laplacian_score is not none %}
                         <span class="fw-bold">{{ result.laplacian_score }}</span>
                         <small class="d-block text-muted">
-                            {% if result.laplacian_score < 100 %}Low{% elif result.laplacian_score < 500 %}Medium{% else %}High{% endif %}
+                            {% if result.laplacian_score is not none and result.laplacian_score < 100 %}Low{% elif result.laplacian_score is not none and result.laplacian_score < 500 %}Medium{% elif result.laplacian_score is not none %}High{% else %}N/A{% endif %}
                         </small>
                     {% else %}
                         <span class="text-muted">N/A</span>

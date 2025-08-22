@@ -177,7 +177,8 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         'smtp_port': config.get('smtp_port', 587),
         'smtp_username': config.get('smtp_username'),
         'smtp_password': config.get('smtp_password'),
-        'use_tls': config.get('smtp_use_tls', True)
+        'use_tls': config.get('smtp_use_tls', True),
+        'use_ssl': config.get('smtp_use_ssl', False)
     }
 
     required_fields = ['from', 'to', 'smtp_server']
@@ -213,12 +214,21 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
 
     try:
         logger.info(f"Attempting to send email report to {email_config['to']}")
-        with smtplib.SMTP(email_config['smtp_server'], email_config['smtp_port']) as server:
-            if email_config.get('use_tls', True):
-                server.starttls()
-            if email_config['smtp_username'] and email_config['smtp_password']:
-                server.login(email_config['smtp_username'], email_config['smtp_password'])
-            server.sendmail(email_config['from'], target_recipients, msg.as_string())
+        
+        # Use SMTP_SSL for port 465, regular SMTP for other ports
+        if email_config.get('use_ssl', False):
+            with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port'], timeout=30) as server:
+                if email_config['smtp_username'] and email_config['smtp_password']:
+                    server.login(email_config['smtp_username'], email_config['smtp_password'])
+                server.sendmail(email_config['from'], target_recipients, msg.as_string())
+        else:
+            with smtplib.SMTP(email_config['smtp_server'], email_config['smtp_port'], timeout=30) as server:
+                if email_config.get('use_tls', True):
+                    server.starttls()
+                if email_config['smtp_username'] and email_config['smtp_password']:
+                    server.login(email_config['smtp_username'], email_config['smtp_password'])
+                server.sendmail(email_config['from'], target_recipients, msg.as_string())
+        
         logger.info(f"Email report '{subject}' sent successfully to {email_config['to']}.")
         return True
     except Exception as e:

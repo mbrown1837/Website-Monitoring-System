@@ -1,0 +1,304 @@
+{% extends "layout.html" %}
+
+{% block title %}Environment Configuration{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-cog text-primary"></i>
+                Environment Configuration
+            </h1>
+            
+            <!-- Validation Status Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle"></i>
+                        Configuration Validation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="validation-status" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Validating configuration...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Environment Variables Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Environment Variables
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="env-vars-table">
+                            <thead>
+                                <tr>
+                                    <th>Environment Variable</th>
+                                    <th>Config Key</th>
+                                    <th>Current Value</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools"></i>
+                        Configuration Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="refreshEnvConfig()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh Configuration
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100" onclick="exportEnvConfig()">
+                                <i class="fas fa-download"></i>
+                                Export Configuration
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-secondary w-100" onclick="showEnvHelp()">
+                                <i class="fas fa-question-circle"></i>
+                                Environment Help
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Environment Help Modal -->
+<div class="modal fade" id="envHelpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Environment Variable Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Environment Variable Prefix</h6>
+                <p>All environment variables must be prefixed with <code>WEBSITE_MONITOR_</code></p>
+                
+                <h6>Example Environment Variables</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Environment Variable</th>
+                                <th>Description</th>
+                                <th>Example Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>WEBSITE_MONITOR_DASHBOARD_PORT</code></td>
+                                <td>Dashboard port number</td>
+                                <td><code>5001</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>WEBSITE_MONITOR_LOG_LEVEL</code></td>
+                                <td>Logging level</td>
+                                <td><code>INFO</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>WEBSITE_MONITOR_SMTP_SERVER</code></td>
+                                <td>SMTP server for email notifications</td>
+                                <td><code>smtp.gmail.com</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>WEBSITE_MONITOR_SCHEDULER_ENABLED</code></td>
+                                <td>Enable/disable scheduler</td>
+                                <td><code>true</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h6>Data Types</h6>
+                <ul>
+                    <li><strong>Boolean:</strong> <code>true</code>, <code>false</code>, <code>1</code>, <code>0</code></li>
+                    <li><strong>Integer:</strong> Numeric values like <code>5001</code>, <code>30</code></li>
+                    <li><strong>Float:</strong> Decimal values like <code>0.5</code>, <code>1.0</code></li>
+                    <li><strong>String:</strong> Text values like <code>INFO</code>, <code>smtp.gmail.com</code></li>
+                    <li><strong>List:</strong> Comma-separated values like <code>500,502,503,504</code></li>
+                </ul>
+                
+                <h6>Production Requirements</h6>
+                <p>In production environment, the following variables are required:</p>
+                <ul>
+                    <li><code>WEBSITE_MONITOR_SMTP_SERVER</code></li>
+                    <li><code>WEBSITE_MONITOR_SMTP_USERNAME</code></li>
+                    <li><code>WEBSITE_MONITOR_SMTP_PASSWORD</code></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let envData = null;
+let validationData = null;
+
+// Initialize environment configuration dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    refreshEnvConfig();
+});
+
+function refreshEnvConfig() {
+    // Load environment variables
+    fetch('/api/env/variables')
+        .then(response => response.json())
+        .then(data => {
+            envData = data;
+            updateEnvVarsTable(data);
+        })
+        .catch(error => {
+            console.error('Error fetching environment variables:', error);
+        });
+    
+    // Load validation status
+    fetch('/api/env/validate')
+        .then(response => response.json())
+        .then(data => {
+            validationData = data;
+            updateValidationStatus(data);
+        })
+        .catch(error => {
+            console.error('Error fetching validation status:', error);
+        });
+}
+
+function updateValidationStatus(data) {
+    const statusDiv = document.getElementById('validation-status');
+    
+    let statusClass = 'success';
+    let statusIcon = 'check-circle';
+    let statusText = 'Valid';
+    
+    if (!data.valid) {
+        statusClass = 'danger';
+        statusIcon = 'times-circle';
+        statusText = 'Invalid';
+    } else if (data.warnings && data.warnings.length > 0) {
+        statusClass = 'warning';
+        statusIcon = 'exclamation-triangle';
+        statusText = 'Valid with warnings';
+    }
+    
+    let statusHtml = `
+        <div class="alert alert-${statusClass}">
+            <i class="fas fa-${statusIcon}"></i>
+            <strong>${statusText}</strong>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <strong>Overrides Applied:</strong> ${data.overrides_applied}
+            </div>
+            <div class="col-md-4">
+                <strong>Errors:</strong> ${data.errors ? data.errors.length : 0}
+            </div>
+            <div class="col-md-4">
+                <strong>Warnings:</strong> ${data.warnings ? data.warnings.length : 0}
+            </div>
+        </div>
+    `;
+    
+    if (data.errors && data.errors.length > 0) {
+        statusHtml += '<div class="mt-3"><strong>Errors:</strong><ul>';
+        data.errors.forEach(error => {
+            statusHtml += `<li class="text-danger">${error}</li>`;
+        });
+        statusHtml += '</ul></div>';
+    }
+    
+    if (data.warnings && data.warnings.length > 0) {
+        statusHtml += '<div class="mt-3"><strong>Warnings:</strong><ul>';
+        data.warnings.forEach(warning => {
+            statusHtml += `<li class="text-warning">${warning}</li>`;
+        });
+        statusHtml += '</ul></div>';
+    }
+    
+    statusDiv.innerHTML = statusHtml;
+}
+
+function updateEnvVarsTable(data) {
+    const tbody = document.querySelector('#env-vars-table tbody');
+    tbody.innerHTML = '';
+    
+    Object.entries(data).forEach(([envVar, info]) => {
+        const row = document.createElement('tr');
+        
+        const isSet = info.current_value !== 'Not set';
+        const statusClass = isSet ? 'success' : 'secondary';
+        const statusText = isSet ? 'Set' : 'Not Set';
+        
+        row.innerHTML = `
+            <td><code>${envVar}</code></td>
+            <td><code>${info.config_key}</code></td>
+            <td>
+                ${isSet ? 
+                    `<span class="text-success">${info.current_value}</span>` : 
+                    '<span class="text-muted">Not set</span>'
+                }
+            </td>
+            <td>
+                <span class="badge bg-${statusClass}">${statusText}</span>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function exportEnvConfig() {
+    if (envData && validationData) {
+        const exportData = {
+            environment_variables: envData,
+            validation: validationData,
+            timestamp: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `env-config-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+}
+
+function showEnvHelp() {
+    new bootstrap.Modal(document.getElementById('envHelpModal')).show();
+}
+</script>
+{% endblock %} 

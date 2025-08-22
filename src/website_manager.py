@@ -8,6 +8,7 @@ from src.logger_setup import setup_logging
 import src.content_retriever as content_retriever # For baseline capture
 import src.snapshot_tool as snapshot_tool # For baseline capture
 from urllib.parse import urlparse
+from .path_utils import get_project_root, resolve_path, clean_path_for_logging
 
 class WebsiteManager:
     def __init__(self, config_path=None):
@@ -28,22 +29,21 @@ class WebsiteManager:
     def _initialize_website_list_path(self):
         """Initialize path to store websites list file."""
         path = self.config.get("websites_file_path", "data/websites.json")
-        if not os.path.isabs(path):
-            # Get the project root (assumes this module is in src/)
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-            path = os.path.join(project_root, path)
-            
+        
+        # Use environment-agnostic path resolution
+        resolved_path = resolve_path(path)
+        
         # Ensure directory exists
-        directory = os.path.dirname(path)
+        directory = os.path.dirname(resolved_path)
         if directory and not os.path.exists(directory):
             try:
                 os.makedirs(directory, exist_ok=True)
-                self.logger.info(f"Created directory for websites data: {directory}")
+                self.logger.info(f"Created directory for websites data: {clean_path_for_logging(directory)}")
             except OSError as e:
-                self.logger.error(f"Error creating directory {directory} for websites data: {e}")
+                self.logger.error(f"Error creating directory {clean_path_for_logging(directory)} for websites data: {e}")
                 raise
                 
-        return path
+        return resolved_path
 
     def _load_websites(self, force_reload=False):
         """
@@ -55,7 +55,7 @@ class WebsiteManager:
             # This ensures that changes made by other processes are picked up.
             current_mod_time = os.path.getmtime(self.websites_file_path)
             if current_mod_time > self._cache_mod_time:
-                self.logger.info(f"Change detected in {self.websites_file_path}. Forcing cache reload.")
+                self.logger.info(f"Change detected in {clean_path_for_logging(self.websites_file_path)}. Forcing cache reload.")
                 force_reload = True
         except OSError:
             # This can happen if the file does not exist, which is a valid state.
@@ -67,14 +67,14 @@ class WebsiteManager:
             
         try:
             if not os.path.exists(self.websites_file_path):
-                self.logger.info(f"Websites file not found at {self.websites_file_path}. Starting with empty list.")
+                self.logger.info(f"Websites file not found at {clean_path_for_logging(self.websites_file_path)}. Starting with empty list.")
                 with open(self.websites_file_path, "w", encoding="utf-8") as f:
                     json.dump([], f)
                 self._websites = []
             else:
                 with open(self.websites_file_path, "r", encoding="utf-8") as f:
                     self._websites = json.load(f)
-                self.logger.debug(f"Successfully loaded {len(self._websites)} websites from {self.websites_file_path}")
+                self.logger.debug(f"Successfully loaded {len(self._websites)} websites from {clean_path_for_logging(self.websites_file_path)}")
             
             # Update cache state
             self._websites_loaded = True
@@ -82,7 +82,7 @@ class WebsiteManager:
             return self._websites
             
         except (IOError, json.JSONDecodeError, OSError) as e:
-            self.logger.error(f"Error loading websites from {self.websites_file_path}: {e}")
+            self.logger.error(f"Error loading websites from {clean_path_for_logging(self.websites_file_path)}: {e}")
             # Reset cache state on error
             self._websites = []
             self._websites_loaded = True # Mark as "loaded" to prevent reload loops on a broken file
@@ -94,12 +94,12 @@ class WebsiteManager:
         try:
             with open(self.websites_file_path, "w", encoding="utf-8") as f:
                 json.dump(self._websites, f, indent=2)
-            self.logger.debug(f"Successfully saved {len(self._websites)} websites to {self.websites_file_path}")
+            self.logger.debug(f"Successfully saved {len(self._websites)} websites to {clean_path_for_logging(self.websites_file_path)}")
             # Update the cache modification time to prevent an immediate reload
             self._cache_mod_time = os.path.getmtime(self.websites_file_path)
             return True
         except (IOError, OSError) as e:
-            self.logger.error(f"Error saving websites to {self.websites_file_path}: {e}")
+            self.logger.error(f"Error saving websites to {clean_path_for_logging(self.websites_file_path)}: {e}")
             return False
 
     def add_website(self, url: str, name: str = "", interval: int = None, is_active: bool = True, tags: list = None, notification_emails: list = None, 

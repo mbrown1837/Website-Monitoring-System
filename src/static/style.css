@@ -29,8 +29,6 @@ body {
     margin-top: 2rem;
     background: #333;
     color: #fff;
-    position: fixed; /* Or relative, depending on layout needs */
-    bottom: 0;
     width: 100%;
 }
 
