@@ -9,6 +9,7 @@ ENV ENVIRONMENT=production
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     wget \
+    curl \
     gnupg \
     ca-certificates \
     procps \
@@ -61,5 +62,5 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5001/health/ready || exit 1
 
-# Run the application
-CMD ["python", "main.py"]
+# Run the web application
+CMD ["python", "src/app.py"]
