@@ -1,0 +1,105 @@
+Microsoft Windows [Version 10.0.19045.5608]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering>python src/app.py
+2025-08-01 22:56:05,296 - WebsiteMonitor - INFO - logger_setup:79 - Logging for 'WebsiteMonitor' setup complete. Level: INFO, File: data/monitoring.log
+2025-08-01 22:56:06,690 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:06,703 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 22:56:06,712 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 22:56:06,713 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:06,733 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:06,773 - WebsiteMonitor - INFO - app:1215 - Starting Flask web server on http://127.0.0.1:5001, Debug: True
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5001
+Press CTRL+C to quit
+ * Restarting with stat
+2025-08-01 22:56:07,568 - WebsiteMonitor - INFO - logger_setup:79 - Logging for 'WebsiteMonitor' setup complete. Level: INFO, File: data/monitoring.log
+2025-08-01 22:56:08,693 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:08,712 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 22:56:08,714 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 22:56:08,715 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:08,745 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:08,812 - WebsiteMonitor - INFO - app:1215 - Starting Flask web server on http://127.0.0.1:5001, Debug: True
+ * Debugger is active!
+ * Debugger PIN: 277-368-993
+2025-08-01 22:56:08,997 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 22:56:09,002 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 22:56:09,003 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:09,041 - WebsiteMonitor - INFO - blur_detector:69 - Blur detection database table initialized successfully.
+2025-08-01 22:56:09,042 - WebsiteMonitor - INFO - blur_detector:36 - BlurDetector initialized with threshold: 100, resize: (1280, 720)
+127.0.0.1 - - [01/Aug/2025 22:56:09] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:09] "GET /static/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [01/Aug/2025 22:56:16] "GET /website/add HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:16] "GET /static/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Aug/2025 22:56:41] "GET /website/add HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:41] "GET /static/style.css HTTP/1.1" 304 -
+2025-08-01 22:56:43,651 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 22:56:43,653 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 22:56:43,653 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:56:43,657 - WebsiteMonitor - INFO - blur_detector:69 - Blur detection database table initialized successfully.
+2025-08-01 22:56:43,657 - WebsiteMonitor - INFO - blur_detector:36 - BlurDetector initialized with threshold: 100, resize: (1280, 720)
+127.0.0.1 - - [01/Aug/2025 22:56:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:43] "GET /static/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [01/Aug/2025 22:56:45] "GET /website/add HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:56:45] "GET /static/style.css HTTP/1.1" 304 -
+2025-08-01 22:57:02,008 - WebsiteMonitor - INFO - website_manager:197 - Added new website: The Webturtles (https://thewebturtles.com/) with blur detection: False
+2025-08-01 22:57:02,012 - WebsiteMonitor - INFO - website_manager:298 - Updated website: The Webturtles (ID: 6f3848cc-b8c4-4569-ade1-5ddd0715f61a)
+2025-08-01 22:57:02,012 - WebsiteMonitor - INFO - app:307 - Creating baseline for new website ID: 6f3848cc-b8c4-4569-ade1-5ddd0715f61a (Task ID: b0d85c10-2b33-446f-9f8b-b9b83dbab847)
+2025-08-01 22:57:02,013 - WebsiteMonitor - INFO - app:43 - Starting background task: b0d85c10-2b33-446f-9f8b-b9b83dbab847
+127.0.0.1 - - [01/Aug/2025 22:57:02] "POST /website/add HTTP/1.1" 302 -
+2025-08-01 22:57:02,016 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:57:02,018 - WebsiteMonitor - INFO - scheduler:228 - Performing check for 'The Webturtles' (ID: 6f3848cc-b8c4-4569-ade1-5ddd0715f61a) with options: {'create_baseline': True, 'capture_subpages': True, 'max_depth': 2, 'check_config': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}, 'is_scheduled': True}
+2025-08-01 22:57:02,018 - WebsiteMonitor - INFO - crawler_module:165 - Starting crawl of website ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a: https://thewebturtles.com/
+2025-08-01 22:57:02,018 - WebsiteMonitor - INFO - crawler_module:197 - Check configuration: {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False} (scheduled: True)
+2025-08-01 22:57:02,047 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 22:57:02,050 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 22:57:02,051 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:57:02,057 - WebsiteMonitor - INFO - blur_detector:69 - Blur detection database table initialized successfully.
+2025-08-01 22:57:02,057 - WebsiteMonitor - INFO - blur_detector:36 - BlurDetector initialized with threshold: 100, resize: (1280, 720)
+127.0.0.1 - - [01/Aug/2025 22:57:02] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 22:57:02] "GET /static/style.css HTTP/1.1" 304 -
+2025-08-01 22:57:12,756 - WebsiteMonitor - INFO - crawler_module:305 - Crawl completed in 10.74 seconds.
+2025-08-01 22:57:12,757 - WebsiteMonitor - INFO - crawler_module:389 - Check type flags - crawl_only: False, visual_check_only: False, blur_check_only: False
+2025-08-01 22:57:12,758 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 22:57:12,758 - WebsiteMonitor - INFO - crawler_module:487 - Starting to capture baseline snapshots for website ID: 6f3848cc-b8c4-4569-ade1-5ddd0715f61a
+2025-08-01 22:57:12,759 - WebsiteMonitor - INFO - snapshot_tool:210 - Attempting to capture visual snapshot for site ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a (https://thewebturtles.com/)
+2025-08-01 22:57:23,626 - WebsiteMonitor - INFO - snapshot_tool:23 - Found 8 lazy images to load
+2025-08-01 22:57:24,607 - WebsiteMonitor - INFO - snapshot_tool:41 - Performing advanced scrolling...
+2025-08-01 22:57:35,920 - WebsiteMonitor - INFO - snapshot_tool:58 - New content detected! Height: 6406 -> 6437
+2025-08-01 22:59:31,372 - WebsiteMonitor - INFO - snapshot_tool:89 - All images loaded successfully
+2025-08-01 22:59:36,370 - WebsiteMonitor - INFO - snapshot_tool:273 - Successfully saved visual snapshot for site ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a to: C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/snapshots\thewebturtles_com\6f3848cc-b8c4-4569-ade1-5ddd0715f61a\baseline\baseline_home.png
+2025-08-01 22:59:36,371 - WebsiteMonitor - INFO - snapshot_tool:284 - Returning final relative snapshot path: data/snapshots/thewebturtles_com/6f3848cc-b8c4-4569-ade1-5ddd0715f61a/baseline/baseline_home.png
+2025-08-01 22:59:36,402 - WebsiteMonitor - INFO - snapshot_tool:210 - Attempting to capture visual snapshot for site ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a (https://thewebturtles.com/contact)
+2025-08-01 22:59:44,754 - WebsiteMonitor - INFO - snapshot_tool:23 - Found 2 lazy images to load
+2025-08-01 22:59:44,895 - WebsiteMonitor - INFO - snapshot_tool:41 - Performing advanced scrolling...
+2025-08-01 23:01:39,614 - WebsiteMonitor - INFO - snapshot_tool:89 - All images loaded successfully
+2025-08-01 23:01:43,083 - WebsiteMonitor - INFO - snapshot_tool:273 - Successfully saved visual snapshot for site ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a to: C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/snapshots\thewebturtles_com\6f3848cc-b8c4-4569-ade1-5ddd0715f61a\baseline\baseline_contact.png
+2025-08-01 23:01:43,083 - WebsiteMonitor - INFO - snapshot_tool:284 - Returning final relative snapshot path: data/snapshots/thewebturtles_com/6f3848cc-b8c4-4569-ade1-5ddd0715f61a/baseline/baseline_contact.png
+2025-08-01 23:01:43,099 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 23:01:43,104 - WebsiteMonitor - INFO - website_manager:298 - Updated website: The Webturtles (ID: 6f3848cc-b8c4-4569-ade1-5ddd0715f61a)
+2025-08-01 23:01:43,104 - WebsiteMonitor - INFO - crawler_module:572 - Captured 2 baseline snapshots.
+2025-08-01 23:01:43,127 - WebsiteMonitor - INFO - crawler_module:655 - Crawl results for https://thewebturtles.com/ saved to database with crawl_id: 168
+2025-08-01 23:01:43,127 - WebsiteMonitor - INFO - crawler_module:417 - Performance check evaluation - performance_enabled: False, performance_check_only: False, check_config: {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}
+2025-08-01 23:01:43,128 - WebsiteMonitor - INFO - crawler_module:427 - Crawl of https://thewebturtles.com/ completed. Found 0 broken links.
+2025-08-01 23:01:43,128 - WebsiteMonitor - INFO - scheduler:249 - Baseline created for The Webturtles. No comparison will be performed.
+2025-08-01 23:01:43,181 - WebsiteMonitor - INFO - history_manager:67 - Successfully saved 79 entries to check history: C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/check_history.json
+2025-08-01 23:01:43,181 - WebsiteMonitor - INFO - history_manager:98 - Added new check record for site ID 6f3848cc-b8c4-4569-ade1-5ddd0715f61a. Check ID: d0c56f39-cee2-402f-b20b-f1d8b3554202
+2025-08-01 23:01:43,182 - WebsiteMonitor - INFO - app:48 - Background task b0d85c10-2b33-446f-9f8b-b9b83dbab847 completed successfully.
+2025-08-01 23:11:03,246 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 23:11:03,260 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 23:11:03,262 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 23:11:03,262 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 23:11:03,280 - WebsiteMonitor - INFO - blur_detector:69 - Blur detection database table initialized successfully.
+2025-08-01 23:11:03,281 - WebsiteMonitor - INFO - blur_detector:36 - BlurDetector initialized with threshold: 100, resize: (1280, 720)
+127.0.0.1 - - [01/Aug/2025 23:11:03] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 23:11:03] "GET /static/style.css HTTP/1.1" 304 -
+2025-08-01 23:11:56,297 - WebsiteMonitor - INFO - crawler_module:23 - Using official Greenflare crawler implementation
+2025-08-01 23:11:56,299 - WebsiteMonitor - INFO - crawler_module:78 - CrawlerModule initialized with enhanced Greenflare crawler
+2025-08-01 23:11:56,300 - WebsiteMonitor - INFO - website_manager:58 - Change detected in C:\Users\Administrator\Desktop\Projects\Website Monitering Final v1 Everything Working Except Scheduler\Website Monitering\data/websites.json. Forcing cache reload.
+2025-08-01 23:11:56,305 - WebsiteMonitor - INFO - blur_detector:69 - Blur detection database table initialized successfully.
+2025-08-01 23:11:56,306 - WebsiteMonitor - INFO - blur_detector:36 - BlurDetector initialized with threshold: 100, resize: (1280, 720)
+127.0.0.1 - - [01/Aug/2025 23:11:56] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Aug/2025 23:11:56] "GET /static/style.css HTTP/1.1" 304 -

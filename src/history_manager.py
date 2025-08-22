@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import threading
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
+from .path_utils import resolve_path, clean_path_for_logging
 
 class HistoryManager:
     def __init__(self, config_path=None):
@@ -23,19 +24,19 @@ class HistoryManager:
 
     def _initialize_history_file_path(self):
         path = self.config.get('check_history_file_path', 'data/check_history.json')
-        if not os.path.isabs(path):
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            path = os.path.join(project_root, path)
         
-        directory = os.path.dirname(path)
+        # Use environment-agnostic path resolution
+        resolved_path = resolve_path(path)
+        
+        directory = os.path.dirname(resolved_path)
         if directory and not os.path.exists(directory):
             try:
                 os.makedirs(directory, exist_ok=True)
-                self.logger.info(f"Created directory for check history: {directory}")
+                self.logger.info(f"Created directory for check history: {clean_path_for_logging(directory)}")
             except OSError as e:
-                self.logger.error(f"Error creating directory {directory} for check history: {e}")
+                self.logger.error(f"Error creating directory {clean_path_for_logging(directory)} for check history: {e}")
                 raise
-        return path
+        return resolved_path
 
     def _load_history(self, force_reload=False):
         if self._history_loaded and not force_reload:
@@ -44,7 +45,7 @@ class HistoryManager:
         with self.lock:
             try:
                 if not os.path.exists(self.history_file_path):
-                    self.logger.info(f"History file not found at {self.history_file_path}. Creating an empty list.")
+                    self.logger.info(f"History file not found at {clean_path_for_logging(self.history_file_path)}. Creating an empty list.")
                     with open(self.history_file_path, 'w', encoding='utf-8') as f:
                         json.dump([], f)
                     self._history = []
@@ -54,7 +55,7 @@ class HistoryManager:
                 self._history_loaded = True
                 return self._history
             except (IOError, json.JSONDecodeError) as e:
-                self.logger.error(f"Error loading check history from {self.history_file_path}: {e}")
+                self.logger.error(f"Error loading check history from {clean_path_for_logging(self.history_file_path)}: {e}")
                 self._history = []
                 self._history_loaded = True
                 return self._history
@@ -64,9 +65,9 @@ class HistoryManager:
             try:
                 with open(self.history_file_path, 'w', encoding='utf-8') as f:
                     json.dump(self._history, f, indent=2)
-                self.logger.info(f"Successfully saved {len(self._history)} entries to check history: {self.history_file_path}")
+                self.logger.info(f"Successfully saved {len(self._history)} entries to check history: {clean_path_for_logging(self.history_file_path)}")
             except IOError as e:
-                self.logger.error(f"Error saving check history to {self.history_file_path}: {e}")
+                self.logger.error(f"Error saving check history to {clean_path_for_logging(self.history_file_path)}: {e}")
 
     def add_check_record(
         self,

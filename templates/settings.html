@@ -3,99 +3,117 @@
 {% block title %}Application Settings - Website Monitor{% endblock %}
 
 {% block content %}
-<h2>Application Settings</h2>
-<p class="text-muted">Configure system-wide settings for the monitoring application. Changes are saved to <code>config/config.yaml</code>.</p>
-<hr>
+<div class="row">
+    <div class="col-12">
+        <h2>Application Settings</h2>
+        <p class="text-muted">Configure system-wide settings for the monitoring application. Changes are saved to <code>config/config.yaml</code>.</p>
+        <hr>
+    </div>
+</div>
 
 <form method="POST" action="{{ url_for('settings') }}">
     
-    <h4>General Settings</h4>
+    <div class="row">
+        <div class="col-12">
+            <h4>General Settings</h4>
+        </div>
+    </div>
     <div class="row mb-3">
-        <div class="col-md-6 mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="log_level" class="form-label">Log Level</label>
             <select class="form-select" id="log_level" name="log_level">
                 {% set log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] %}
                 {% for level in log_levels %}
-                    <option value="{{ level }}" {% if config.log_level == level %}selected{% endif %}>{{ level }}</option>
+                    <option value="{{ level }}" {% if config.get('log_level', 'INFO') == level %}selected{% endif %}>{{ level }}</option>
                 {% endfor %}
             </select>
             <div class="form-text">Verbosity of application logs.</div>
         </div>
-        <div class="col-md-6 mb-3">
-            <label for="default_monitoring_interval_hours" class="form-label">Default Monitoring Interval (hours)</label>
-            <input type="number" class="form-control" id="default_monitoring_interval_hours" name="default_monitoring_interval_hours" value="{{ config.default_monitoring_interval_hours }}" min="1">
-            <div class="form-text">Default check frequency for new websites.</div>
+        <div class="col-lg-6 col-md-12 mb-3">
+            <label for="default_monitoring_interval_minutes" class="form-label">Default Monitoring Interval (minutes)</label>
+            <input type="number" class="form-control" id="default_monitoring_interval_minutes" name="default_monitoring_interval_minutes" value="{{ config.get('default_monitoring_interval_minutes', 60) }}" min="1">
+            <div class="form-text">Default check frequency for new websites, in minutes.</div>
         </div>
     </div>
 
     <hr>
-    <h4>Snapshot &amp; Browser Settings (Playwright)</h4>
+    <div class="row">
+        <div class="col-12">
+            <h4>Snapshot &amp; Browser Settings (Playwright)</h4>
+        </div>
+    </div>
     <div class="row mb-3">
-        <div class="col-md-6 mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="snapshot_directory" class="form-label">Snapshot Directory</label>
-            <input type="text" class="form-control" id="snapshot_directory" name="snapshot_directory" value="{{ config.snapshot_directory }}">
+            <input type="text" class="form-control" id="snapshot_directory" name="snapshot_directory" value="{{ config.get('snapshot_directory', 'data/snapshots') }}">
             <div class="form-text">Path to store HTML and visual snapshots (e.g., data/snapshots).</div>
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="playwright_browser_type" class="form-label">Playwright Browser</label>
             <select class="form-select" id="playwright_browser_type" name="playwright_browser_type">
                 {% set browsers = ['chromium', 'firefox', 'webkit'] %}
                 {% for browser in browsers %}
-                    <option value="{{ browser }}" {% if config.playwright_browser_type == browser %}selected{% endif %}>{{ browser | capitalize }}</option>
+                    <option value="{{ browser }}" {% if config.get('playwright_browser_type', 'chromium') == browser %}selected{% endif %}>{{ browser | capitalize }}</option>
                 {% endfor %}
             </select>
             <div class="form-text">Browser engine for visual snapshots.</div>
         </div>
     </div>
     <div class="row mb-3">
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
              <label for="playwright_headless_mode" class="form-label">Headless Mode</label>
             <select class="form-select" id="playwright_headless_mode" name="playwright_headless_mode">
-                <option value="True" {% if config.playwright_headless_mode %}selected{% endif %}>Enabled (Recommended)</option>
-                <option value="False" {% if not config.playwright_headless_mode %}selected{% endif %}>Disabled (Shows browser)</option>
+                <option value="True" {% if config.get('playwright_headless_mode', True) %}selected{% endif %}>Enabled (Recommended)</option>
+                <option value="False" {% if not config.get('playwright_headless_mode', True) %}selected{% endif %}>Disabled (Shows browser)</option>
             </select>
             <div class="form-text">Run browser invisibly or visibly.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="playwright_render_delay_ms" class="form-label">Render Delay (ms)</label>
-            <input type="number" class="form-control" id="playwright_render_delay_ms" name="playwright_render_delay_ms" value="{{ config.playwright_render_delay_ms }}" min="0">
+            <input type="number" class="form-control" id="playwright_render_delay_ms" name="playwright_render_delay_ms" value="{{ config.get('playwright_render_delay_ms', 3000) }}" min="0">
             <div class="form-text">Wait time for page rendering before screenshot.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="playwright_navigation_timeout_ms" class="form-label">Navigation Timeout (ms)</label>
-            <input type="number" class="form-control" id="playwright_navigation_timeout_ms" name="playwright_navigation_timeout_ms" value="{{ config.playwright_navigation_timeout_ms }}" min="0">
+            <input type="number" class="form-control" id="playwright_navigation_timeout_ms" name="playwright_navigation_timeout_ms" value="{{ config.get('playwright_navigation_timeout_ms', 60000) }}" min="0">
             <div class="form-text">Max time for page navigation.</div>
         </div>
     </div>
-    <div class="mb-3">
-        <label for="playwright_user_agent" class="form-label">Playwright User Agent</label>
-        <input type="text" class="form-control" id="playwright_user_agent" name="playwright_user_agent" value="{{ config.playwright_user_agent }}">
-        <div class="form-text">User agent string for Playwright browser.</div>
+    <div class="row mb-3">
+        <div class="col-12">
+            <label for="playwright_user_agent" class="form-label">Playwright User Agent</label>
+            <input type="text" class="form-control" id="playwright_user_agent" name="playwright_user_agent" value="{{ config.get('playwright_user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36') }}">
+            <div class="form-text">User agent string for Playwright browser.</div>
+        </div>
     </div>
 
     <hr>
-    <h4>Notification Settings (SMTP for Email Alerts)</h4>
-    <div class="row mb-3">
-        <div class="col-md-6 mb-3">
-            <label for="notification_email_from" class="form-label">Sender Email Address</label>
-            <input type="email" class="form-control" id="notification_email_from" name="notification_email_from" value="{{ config.notification_email_from }}">
+    <div class="row">
+        <div class="col-12">
+            <h4>Notification Settings (SMTP for Email Alerts)</h4>
         </div>
-        <div class="col-md-6 mb-3">
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
+            <label for="notification_email_from" class="form-label">Sender Email Address</label>
+            <input type="email" class="form-control" id="notification_email_from" name="notification_email_from" value="{{ config.get('notification_email_from', 'support@westlanddre.com') }}">
+        </div>
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="notification_email_to" class="form-label">Recipient Email Address(es)</label>
-            <input type="text" class="form-control" id="notification_email_to" name="notification_email_to" value="{{ config.notification_email_to }}">
+            <input type="text" class="form-control" id="notification_email_to" name="notification_email_to" value="{{ config.get('notification_email_to', 'sarmadsahib786@gmail.com') }}">
             <div class="form-text">Comma-separated list of emails for alerts.</div>
         </div>
     </div>
     <div class="row mb-3">
-        <div class="col-md-5 mb-3">
+        <div class="col-lg-5 col-md-6 col-12 mb-3">
             <label for="smtp_server" class="form-label">SMTP Server</label>
             <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ config.get('smtp_server', '') }}">
         </div>
-        <div class="col-md-3 mb-3">
+        <div class="col-lg-3 col-md-6 col-12 mb-3">
             <label for="smtp_port" class="form-label">SMTP Port</label>
             <input type="number" class="form-control" id="smtp_port" name="smtp_port" value="{{ config.get('smtp_port', 587) }}" min="1">
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="smtp_use_tls" class="form-label">Use TLS</label>
             <select class="form-select" id="smtp_use_tls" name="smtp_use_tls">
                 <option value="True" {% if config.get('smtp_use_tls', True) %}selected{% endif %}>Yes (Recommended)</option>
@@ -104,61 +122,73 @@
         </div>
     </div>
     <div class="row mb-3">
-        <div class="col-md-6 mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="smtp_username" class="form-label">SMTP Username</label>
             <input type="text" class="form-control" id="smtp_username" name="smtp_username" value="{{ config.get('smtp_username', '') }}" autocomplete="off">
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-lg-6 col-md-12 mb-3">
             <label for="smtp_password" class="form-label">SMTP Password</label>
             <input type="password" class="form-control" id="smtp_password" name="smtp_password" value="{{ config.get('smtp_password', '') }}" autocomplete="off">
             <div class="form-text">Leave blank if not changing. For security, existing password is not shown.</div>
         </div>
     </div>
-    <div class="mb-3">
-        <a href="{{ url_for('test_email') }}" class="btn btn-outline-info">Send Test Email</a>
-        <span class="form-text ms-2">Send a test email to the configured recipient address.</span>
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('test_email') }}" class="btn btn-outline-info">Send Test Email</a>
+            <span class="form-text ms-2">Send a test email to the configured recipient address.</span>
+        </div>
     </div>
 
     <hr>
-    <h4>Comparison &amp; Change Detection</h4>
+    <div class="row">
+        <div class="col-12">
+            <h4>Comparison &amp; Change Detection</h4>
+        </div>
+    </div>
      <div class="row mb-3">
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="content_change_threshold" class="form-label">Text Content Change Threshold (%)</label>
             <div class="input-group">
-                <input type="number" step="1" class="form-control" id="content_change_threshold" name="content_change_threshold" value="{{ (config.content_change_threshold * 100) | round(0) }}" min="0" max="100">
+                <input type="number" step="1" class="form-control" id="content_change_threshold" name="content_change_threshold" value="{{ (config.get('content_change_threshold', 1.0) * 100) | round(0) }}" min="0" max="100">
                 <span class="input-group-text">%</span>
             </div>
             <div class="form-text">Similarity score (0-100%). Lower means more sensitive. 100% = identical.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="structure_change_threshold" class="form-label">HTML Structure Change Threshold (%)</label>
             <div class="input-group">
-                <input type="number" step="1" class="form-control" id="structure_change_threshold" name="structure_change_threshold" value="{{ (config.structure_change_threshold * 100) | round(0) }}" min="0" max="100">
+                <input type="number" step="1" class="form-control" id="structure_change_threshold" name="structure_change_threshold" value="{{ (config.get('structure_change_threshold', 1.0) * 100) | round(0) }}" min="0" max="100">
                 <span class="input-group-text">%</span>
             </div>
             <div class="form-text">Similarity score (0-100%). 100% = identical.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="visual_change_alert_threshold_percent" class="form-label">Visual Change Alert Threshold (%)</label>
-            <input type="number" step="0.01" class="form-control" id="visual_change_alert_threshold_percent" name="visual_change_alert_threshold_percent" value="{{ config.visual_change_alert_threshold_percent }}" min="0" max="100">
+            <input type="number" step="0.01" class="form-control" id="visual_change_alert_threshold_percent" name="visual_change_alert_threshold_percent" value="{{ config.get('visual_change_alert_threshold_percent', 0.01) }}" min="0" max="100">
             <div class="form-text">The percentage of pixels that must change to trigger a visual alert. Use a small number (e.g., 0.1) for high sensitivity.</div>
         </div>
     </div>
-    <div class="mb-3">
-        <label for="meta_tags_to_check" class="form-label">Meta Tags to Monitor (comma-separated)</label>
-        <input type="text" class="form-control" id="meta_tags_to_check" name="meta_tags_to_check" value="{{ config.meta_tags_to_check | join(', ') }}">
-        <div class="form-text">List of meta tag names to check (e.g., description, keywords, viewport, title).</div>
+    <div class="row mb-3">
+        <div class="col-12">
+            <label for="meta_tags_to_check" class="form-label">Meta Tags to Monitor (comma-separated)</label>
+            <input type="text" class="form-control" id="meta_tags_to_check" name="meta_tags_to_check" value="{{ config.get('meta_tags_to_check', ['description', 'keywords', 'title']) | join(', ') }}">
+            <div class="form-text">List of meta tag names to check (e.g., description, keywords, viewport, title).</div>
+        </div>
     </div>
 
     <hr>
-    <h4>Crawler Settings</h4>
+    <div class="row">
+        <div class="col-12">
+            <h4>Crawler Settings</h4>
+        </div>
+    </div>
     <div class="row mb-3">
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="crawler_max_depth" class="form-label">Max Crawl Depth</label>
             <input type="number" class="form-control" id="crawler_max_depth" name="crawler_max_depth" value="{{ config.get('crawler_max_depth', 2) }}" min="1" max="10">
             <div class="form-text">Maximum depth of links to follow. Higher values check more pages but take longer.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="crawler_respect_robots" class="form-label">Respect robots.txt</label>
             <select class="form-select" id="crawler_respect_robots" name="crawler_respect_robots">
                 <option value="True" {% if config.get('crawler_respect_robots', True) %}selected{% endif %}>Yes (Recommended)</option>
@@ -166,7 +196,7 @@
             </select>
             <div class="form-text">Follow ethical web crawling guidelines.</div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-lg-4 col-md-6 col-12 mb-3">
             <label for="crawler_check_external_links" class="form-label">Check External Links</label>
             <select class="form-select" id="crawler_check_external_links" name="crawler_check_external_links">
                 <option value="True" {% if config.get('crawler_check_external_links', True) %}selected{% endif %}>Yes</option>
@@ -175,27 +205,39 @@
             <div class="form-text">Check links to external websites for broken links.</div>
         </div>
     </div>
-    <div class="mb-3">
-        <label for="crawler_user_agent" class="form-label">Crawler User Agent</label>
-        <input type="text" class="form-control" id="crawler_user_agent" name="crawler_user_agent" value="{{ config.get('crawler_user_agent', 'SiteMonitor Bot') }}">
-        <div class="form-text">User agent string for the crawler to identify itself to websites.</div>
-    </div>
-
-    <hr>
-    <h4>Performance Monitoring</h4>
-    <div class="mb-3">
-        <label for="google_pagespeed_api_key" class="form-label">Google PageSpeed Insights API Key</label>
-        <input type="text" class="form-control" id="google_pagespeed_api_key" name="google_pagespeed_api_key" value="{{ config.get('google_pagespeed_api_key', '') }}" autocomplete="off">
-        <div class="form-text">
-            API key for Google PageSpeed Insights to enable performance monitoring. 
-            <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank">Get your free API key here</a>.
-            Leave blank to disable performance checks.
+    <div class="row mb-3">
+        <div class="col-12">
+            <label for="crawler_user_agent" class="form-label">Crawler User Agent</label>
+            <input type="text" class="form-control" id="crawler_user_agent" name="crawler_user_agent" value="{{ config.get('crawler_user_agent', 'SiteMonitor Bot') }}">
+            <div class="form-text">User agent string for the crawler to identify itself to websites.</div>
         </div>
     </div>
 
     <hr>
-    <button type="submit" class="btn btn-primary">Save Settings</button>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    <div class="row">
+        <div class="col-12">
+            <h4>Performance Monitoring</h4>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-12">
+            <label for="google_pagespeed_api_key" class="form-label">Google PageSpeed Insights API Key</label>
+            <input type="text" class="form-control" id="google_pagespeed_api_key" name="google_pagespeed_api_key" value="{{ config.get('google_pagespeed_api_key', '') }}" autocomplete="off">
+            <div class="form-text">
+                API key for Google PageSpeed Insights to enable performance monitoring. 
+                <a href="https://developers.google.com/speed/docs/insights/v5/get-started" target="_blank">Get your free API key here</a>.
+                Leave blank to disable performance checks.
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </div>
 </form>
 
 {% endblock %} 

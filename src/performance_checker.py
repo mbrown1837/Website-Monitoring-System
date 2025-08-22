@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
+from src.path_utils import get_database_path, ensure_directory_exists
+from src.website_manager_sqlite import WebsiteManager
 
 logger = setup_logging()
 
@@ -32,9 +34,10 @@ class PerformanceChecker:
     
     def _get_db_connection(self):
         """Get database connection for storing performance results."""
-        db_path = os.path.join('data', 'website_monitor.db')
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        conn = sqlite3.connect(db_path)
+        import os
+        db_path = get_database_path()
+        ensure_directory_exists(os.path.dirname(db_path))
+        conn = sqlite3.connect(str(db_path))
         return conn
     
     def _init_performance_tables(self):
@@ -105,7 +108,6 @@ class PerformanceChecker:
         Returns:
             dict: Performance results for all pages
         """
-        from src.website_manager import WebsiteManager
         
         # Get website details
         website_manager = WebsiteManager()

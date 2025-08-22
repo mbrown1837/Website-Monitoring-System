@@ -1,0 +1,131 @@
+# Production Configuration for Coolify Hosting
+# This file contains optimized settings for production deployment
+
+# Logging Configuration
+log_level: INFO
+log_file_path: data/monitoring.log
+log_level_dashboard: INFO
+log_file_dashboard: data/dashboard.log
+
+# Database and Storage
+website_list_storage_type: json
+website_list_file_path: data/websites.json
+check_history_file_path: data/check_history.json
+snapshot_directory: data/snapshots
+
+# Monitoring Settings
+default_monitoring_interval_hours: 24
+monitoring_interval_seconds: 300
+enable_scheduler: true
+
+# Playwright Configuration (Optimized for Production)
+playwright_browser_type: chromium
+playwright_headless_mode: true
+playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
+playwright_render_delay_ms: 2000  # Reduced for faster processing
+playwright_navigation_timeout_ms: 45000  # Reduced timeout
+playwright_retries: 3  # Increased retries for reliability
+
+# Network and Connection Settings (Optimized for Hosted Environment)
+fetch_retry_total: 5  # Increased retries
+fetch_retry_backoff_factor: 0.5  # More aggressive backoff
+fetch_retry_status_forcelist:
+- 500
+- 502
+- 503
+- 504
+- 429  # Rate limiting
+- 408  # Request timeout
+
+# Greenflare Crawler Settings (Optimized for Production)
+greenflare_timeout: 45  # Increased timeout for hosted environment
+greenflare_retries: 5  # More retries
+greenflare_backoff_base: 2
+greenflare_extract_images: true
+greenflare_extract_alt_text: true
+greenflare_extract_meta_tags:
+- title
+- description
+- keywords
+- og:title
+- og:description
+- twitter:title
+- twitter:description
+
+# Crawler Settings
+crawler_max_depth: 2
+crawler_respect_robots: true  # Respect robots.txt in production
+crawler_check_external_links: true
+crawler_user_agent: SiteMonitor Bot
+
+# Change Detection Thresholds (More Sensitive for Production)
+content_change_threshold: 0.5  # More sensitive
+image_diff_threshold: 800  # More sensitive
+structure_change_threshold: 0.5  # More sensitive
+semantic_similarity_threshold: 0.85  # More sensitive
+ssim_similarity_threshold: 0.90  # More sensitive
+visual_change_alert_threshold_percent: 0.005  # More sensitive
+visual_difference_threshold: 3.0  # More sensitive
+
+# Blur Detection Settings (Optimized for Production)
+blur_detection_threshold: 100
+blur_detection_percentage_threshold: 15
+blur_detection_min_image_size: 100
+blur_detection_timeout: 30  # Increased timeout for hosted environments
+blur_detection_resize_dimensions:
+- 1280
+- 720
+blur_detection_cleanup_days: 30
+
+# Meta Tags Configuration
+meta_tags_to_check:
+- description
+- keywords
+- title
+
+# Visual Comparison Settings
+visual_comparison_ignore_regions: null
+
+# Dashboard Settings
+dashboard_port: 5001
+dashboard_history_limit: 20
+dashboard_api_history_limit: 100
+
+# Email Notification Settings (Production)
+notification_email_from: support@westlanddre.com
+notification_email_to: sarmadsahib786@gmail.com
+default_notification_email: admin@example.com
+smtp_server: mail.westlanddre.com
+smtp_port: 587
+smtp_username: support@westlanddre.com
+smtp_password: KZyxqnTVFe99XCLy3HYT
+smtp_use_tls: true
+
+# Blur Detection Email Template
+blur_detection_email_template: |
+  Subject: Blurry Images Detected - {website_name}
+
+  Dear Administrator,
+
+  Our website monitoring system has detected {blurry_count} blurry images on {website_name}.
+
+  Details:
+  - Total images analyzed: {total_images}
+  - Blurry images found: {blurry_count}
+  - Average blur score: {avg_blur_score}
+
+  Please review the images in your dashboard for more details.
+
+  Best regards,
+  Website Monitoring System
+
+# Google PageSpeed API (if available)
+google_pagespeed_api_key: AIzaSyBalq6kgTjMTDlulVWnJ69Pu8mT3sZ_kZU
+
+# Snapshot Format
+snapshot_format: png
+
+# Scheduler Configuration (Production)
+scheduler_enabled: true
+scheduler_startup_delay_seconds: 15
+scheduler_check_interval_seconds: 60 

@@ -1,16 +1,22 @@
 import os
-import json
-import sqlite3
-from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse, urlunparse
+import sys
 import time
+import json
+import hashlib
+import requests
+from datetime import datetime, timezone
+from urllib.parse import urljoin, urlparse
+from typing import Dict, List, Any, Optional, Tuple
+import sqlite3
+from src.website_manager_sqlite import WebsiteManager
+
 import re
 
 from src.greenflare_crawler import GreenflareWrapper, GREENFLARE_AVAILABLE
 from src.logger_setup import setup_logging
 from src.config_loader import get_config
 from src.comparators import compare_screenshots_percentage, compare_screenshots_ssim, OPENCV_SKIMAGE_AVAILABLE
-from src.website_manager import WebsiteManager
+from src.path_utils import get_database_path, ensure_directory_exists
 
 logger = setup_logging()
 
@@ -39,23 +45,13 @@ class CrawlerModule:
         
     def _initialize_database(self):
         """Initialize the SQLite database for storing crawler results."""
-        db_path = self.config.get('database_path', 'data/website_monitor.db')
-        if not os.path.isabs(db_path):
-            # Assuming project root is one level up from 'src' where this file is expected
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            db_path = os.path.join(project_root, db_path)
-            
-        # Create directory if it doesn't exist
-        directory = os.path.dirname(db_path)
-        if directory and not os.path.exists(directory):
-            try:
-                os.makedirs(directory)
-                self.logger.info(f"Created directory for database: {directory}")
-            except OSError as e:
-                self.logger.error(f"Error creating directory {directory} for database: {e}")
-                raise
-                
-        self.db_path = db_path
+        # Use centralized path resolution
+        self.db_path = get_database_path()
+        # Ensure the directory exists (db_path is a string)
+        db_dir = os.path.dirname(self.db_path)
+        ensure_directory_exists(db_dir)
+        
+        self.logger.info(f"Database path: {self.db_path}")
         
         # Create tables if they don't exist
         conn = sqlite3.connect(self.db_path)
@@ -107,9 +103,12 @@ class CrawlerModule:
             pass
 
     def _get_db_connection(self):
-        db_path = os.path.join('data', 'website_monitor.db')
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        conn = sqlite3.connect(db_path)
+        """Get database connection using centralized path resolution."""
+        db_path = get_database_path()
+        # Ensure the directory exists (db_path is a string)
+        db_dir = os.path.dirname(db_path)
+        ensure_directory_exists(db_dir)
+        conn = sqlite3.connect(str(db_path))
         return conn
 
     def _init_db_schema(self):
@@ -477,7 +476,7 @@ class CrawlerModule:
     def _handle_snapshots(self, results, is_baseline):
         from src.snapshot_tool import save_visual_snapshot
         from src.comparators import compare_screenshots_percentage # Import our comparison function
-        from src.website_manager import WebsiteManager # To get baseline paths
+        from src.website_manager_sqlite import WebsiteManager # To get baseline paths
 
         website_manager = WebsiteManager()
         website_config = website_manager.get_website(results['website_id'])
@@ -830,7 +829,7 @@ class CrawlerModule:
     def _run_blur_detection_if_enabled(self, results, website_id, options):
         """Run blur detection if enabled for this website and check type."""
         from src.blur_detector import BlurDetector
-        from src.website_manager import WebsiteManager
+        from src.website_manager_sqlite import WebsiteManager
         
         # Get website configuration
         website_manager = WebsiteManager()
@@ -878,6 +877,10 @@ class CrawlerModule:
         all_images_data = []
         page_image_counts = {}
         
+        # Track unique images by URL to avoid duplicates
+        unique_image_urls = set()
+        duplicates_found = 0
+        
         self.logger.info(f"Starting blur detection for website {website_id}")
         
         for page in results.get('all_pages', []):
@@ -909,7 +912,16 @@ class CrawlerModule:
                     # Only include internal images (same domain as the website)
                     base_url = results.get('url') or website.get('url', '')
                     if self._is_internal_url(img_url, base_url):
+                        # Check if this image URL has already been processed
+                        if img_url in unique_image_urls:
+                            duplicates_found += 1
+                            self.logger.debug(f"Skipping duplicate image: {img_url} (already seen on another page)")
+                            continue
+                        
+                        # Add to unique images set
+                        unique_image_urls.add(img_url)
                         internal_image_urls.append(img_url)
+                        
                         # Add to batch processing data with page context
                         all_images_data.append({
                             'image_url': img_url,
@@ -924,6 +936,12 @@ class CrawlerModule:
                 self.logger.debug(f"Found {len(internal_image_urls)} internal images from {page_url} (filtered from {len(page_images)} total)")
             else:
                 self.logger.debug(f"No internal images found on page: {page_url}")
+        
+        # Log deduplication results
+        if duplicates_found > 0:
+            self.logger.info(f"Image deduplication: Found {duplicates_found} duplicate images across pages, processing {len(all_images_data)} unique images")
+        else:
+            self.logger.info(f"No duplicate images found, processing {len(all_images_data)} unique images")
         
         # Process all images in a single batch operation
         if all_images_data:
@@ -965,13 +983,17 @@ class CrawlerModule:
                     'blurry_images': total_blurry_images,
                     'total_images_processed': total_images_processed,
                     'total_blurry_images': total_blurry_images,
-                    'blur_percentage': round((total_blurry_images / total_images_processed * 100) if total_images_processed > 0 else 0, 1)
+                    'blur_percentage': round((total_blurry_images / total_images_processed * 100) if total_images_processed > 0 else 0, 1),
+                    'duplicates_removed': duplicates_found,
+                    'unique_images_processed': len(all_images_data),
+                    'total_images_found': len(all_images_data) + duplicates_found
                 }
                 
                 self.logger.info(f"Blur detection completed for website {website_id}. "
-                                f"Processed {total_images_processed} images from {total_pages} pages, "
+                                f"Processed {total_images_processed} unique images from {total_pages} pages, "
                                 f"found {total_blurry_images} blurry images "
-                                f"({results['blur_detection_summary']['blur_percentage']}%)")
+                                f"({results['blur_detection_summary']['blur_percentage']}%), "
+                                f"removed {duplicates_found} duplicate images")
                 
                 # Send email notification if blurry images found
                 if total_blurry_images > 0:
@@ -990,13 +1012,16 @@ class CrawlerModule:
                 'blurry_images': 0,
                 'total_images_processed': 0,
                 'total_blurry_images': 0,
-                'blur_percentage': 0
+                'blur_percentage': 0,
+                'duplicates_removed': duplicates_found,
+                'unique_images_processed': 0,
+                'total_images_found': duplicates_found
             }
 
     def _run_blur_detection_for_blur_check(self, results, website_id, options):
         """Run blur detection for blur-only checks using batch processing."""
         from src.blur_detector import BlurDetector
-        from src.website_manager import WebsiteManager
+        from src.website_manager_sqlite import WebsiteManager
         
         # Get website configuration
         website_manager = WebsiteManager()
@@ -1130,7 +1155,7 @@ class CrawlerModule:
     def _run_performance_check_if_enabled(self, results, website_id, options):
         """Run performance check if enabled for this website and check type."""
         from src.performance_checker import PerformanceChecker
-        from src.website_manager import WebsiteManager
+        from src.website_manager_sqlite import WebsiteManager
         
         self.logger.info(f"_run_performance_check_if_enabled called for website {website_id} with options: {options}")
         

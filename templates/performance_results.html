@@ -69,24 +69,6 @@
                         <small class="text-muted">
                             <i class="bi bi-clock"></i> {{ latest_page.timestamp | humanize_datetime }}
                         </small>
-                        {% if url_results|length > 1 %}
-                        <br>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
-                                    id="historyDropdown{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-history"></i> History ({{ url_results|length - 1 }} more)
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="historyDropdown{{ loop.index }}">
-                                {% for historical_result in url_results[1:] %}
-                                <li>
-                                    <a class="dropdown-item" href="#" onclick="showHistoricalResult('{{ loop.index0 }}', '{{ historical_result.timestamp }}')">
-                                        {{ historical_result.timestamp | humanize_datetime }}
-                                    </a>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -341,24 +323,8 @@
 </div>
 
 <script>
-function showHistoricalResult(urlIndex, timestamp) {
-    // Hide latest result
-    document.getElementById('latest-result-' + urlIndex).style.display = 'none';
-    
-    // Show historical result
-    document.getElementById('historical-result-' + urlIndex + '-' + timestamp).style.display = 'block';
-}
-
-function hideHistoricalResult(urlIndex) {
-    // Hide all historical results for this URL
-    var historicalResults = document.querySelectorAll('[id^="historical-result-' + urlIndex + '-"]');
-    historicalResults.forEach(function(element) {
-        element.style.display = 'none';
-    });
-    
-    // Show latest result
-    document.getElementById('latest-result-' + urlIndex).style.display = 'block';
-}
+// Performance results page functionality
+// Historical results functionality removed - only showing latest results
 </script>
 
 <style>

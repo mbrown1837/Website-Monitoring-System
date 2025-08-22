@@ -1,0 +1,264 @@
+{% extends "layout.html" %}
+
+{% block title %}System Health Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-heartbeat text-danger"></i>
+                System Health Dashboard
+            </h1>
+            
+            <!-- Overall Status Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        Overall System Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="overall-status" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking system health...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Component Status Cards -->
+            <div class="row" id="component-cards">
+                <!-- Cards will be populated by JavaScript -->
+            </div>
+            
+            <!-- Health Check Actions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools"></i>
+                        Health Check Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="refreshHealthStatus()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh Status
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100" onclick="showDetailedHealth()">
+                                <i class="fas fa-chart-line"></i>
+                                Detailed Report
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-secondary w-100" onclick="exportHealthReport()">
+                                <i class="fas fa-download"></i>
+                                Export Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Health Modal -->
+<div class="modal fade" id="detailedHealthModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detailed Health Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="detailed-health-json" class="bg-light p-3 rounded"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let healthData = null;
+
+// Initialize health dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    refreshHealthStatus();
+    // Auto-refresh every 30 seconds
+    setInterval(refreshHealthStatus, 30000);
+});
+
+function refreshHealthStatus() {
+    fetch('/health/detailed')
+        .then(response => response.json())
+        .then(data => {
+            healthData = data;
+            updateOverallStatus(data);
+            updateComponentCards(data);
+        })
+        .catch(error => {
+            console.error('Error fetching health status:', error);
+            document.getElementById('overall-status').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Failed to load health status
+                </div>
+            `;
+        });
+}
+
+function updateOverallStatus(data) {
+    const statusDiv = document.getElementById('overall-status');
+    const status = data.status;
+    
+    let statusClass = 'success';
+    let statusIcon = 'check-circle';
+    let statusText = 'Healthy';
+    
+    if (status === 'unhealthy') {
+        statusClass = 'danger';
+        statusIcon = 'times-circle';
+        statusText = 'Unhealthy';
+    } else if (status === 'degraded') {
+        statusClass = 'warning';
+        statusIcon = 'exclamation-triangle';
+        statusText = 'Degraded';
+    }
+    
+    statusDiv.innerHTML = `
+        <div class="alert alert-${statusClass}">
+            <i class="fas fa-${statusIcon}"></i>
+            <strong>${statusText}</strong>
+        </div>
+        <p class="text-muted">Last updated: ${new Date(data.timestamp).toLocaleString()}</p>
+    `;
+}
+
+function updateComponentCards(data) {
+    const container = document.getElementById('component-cards');
+    container.innerHTML = '';
+    
+    Object.entries(data.components).forEach(([component, status]) => {
+        const card = createComponentCard(component, status);
+        container.appendChild(card);
+    });
+}
+
+function createComponentCard(component, status) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4 mb-3';
+    
+    let statusClass = 'success';
+    let statusIcon = 'check-circle';
+    let statusText = 'Healthy';
+    
+    if (status.status === 'error') {
+        statusClass = 'danger';
+        statusIcon = 'times-circle';
+        statusText = 'Error';
+    } else if (status.status === 'warning') {
+        statusClass = 'warning';
+        statusIcon = 'exclamation-triangle';
+        statusText = 'Warning';
+    } else if (status.status === 'stopped') {
+        statusClass = 'secondary';
+        statusIcon = 'pause-circle';
+        statusText = 'Stopped';
+    }
+    
+    const componentName = component.charAt(0).toUpperCase() + component.slice(1);
+    
+    col.innerHTML = `
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-${getComponentIcon(component)}"></i>
+                    ${componentName}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-${statusClass} mb-2">
+                    <i class="fas fa-${statusIcon}"></i>
+                    <strong>${statusText}</strong>
+                </div>
+                <div class="small">
+                    ${getComponentDetails(component, status)}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+function getComponentIcon(component) {
+    const icons = {
+        'database': 'database',
+        'scheduler': 'clock',
+        'filesystem': 'folder',
+        'configuration': 'cog'
+    };
+    return icons[component] || 'info-circle';
+}
+
+function getComponentDetails(component, status) {
+    switch (component) {
+        case 'database':
+            return `
+                <div><strong>Connected:</strong> ${status.connected ? 'Yes' : 'No'}</div>
+                ${status.error ? `<div class="text-danger"><strong>Error:</strong> ${status.error}</div>` : ''}
+            `;
+        case 'scheduler':
+            return `
+                <div><strong>Enabled:</strong> ${status.enabled ? 'Yes' : 'No'}</div>
+                <div><strong>Running:</strong> ${status.running ? 'Yes' : 'No'}</div>
+                <div><strong>Thread Alive:</strong> ${status.thread_alive ? 'Yes' : 'No'}</div>
+                ${status.error ? `<div class="text-danger"><strong>Error:</strong> ${status.error}</div>` : ''}
+            `;
+        case 'filesystem':
+            return `
+                <div><strong>Data Directory:</strong> ${status.data_directory_exists ? 'Exists' : 'Missing'}</div>
+                <div><strong>Database Directory:</strong> ${status.database_directory_exists ? 'Exists' : 'Missing'}</div>
+                ${status.error ? `<div class="text-danger"><strong>Error:</strong> ${status.error}</div>` : ''}
+            `;
+        case 'configuration':
+            return `
+                <div><strong>Config Loaded:</strong> ${status.config_loaded ? 'Yes' : 'No'}</div>
+                <div><strong>Environment:</strong> ${status.environment}</div>
+                ${status.error ? `<div class="text-danger"><strong>Error:</strong> ${status.error}</div>` : ''}
+            `;
+        default:
+            return '';
+    }
+}
+
+function showDetailedHealth() {
+    if (healthData) {
+        document.getElementById('detailed-health-json').textContent = JSON.stringify(healthData, null, 2);
+        new bootstrap.Modal(document.getElementById('detailedHealthModal')).show();
+    }
+}
+
+function exportHealthReport() {
+    if (healthData) {
+        const dataStr = JSON.stringify(healthData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `health-report-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+}
+</script>
+{% endblock %} 

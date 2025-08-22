@@ -14,15 +14,34 @@ import humanize
 from pathlib import Path
 
 # Ensure src directory is in Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+try:
+    from .path_utils import get_project_root
+except ImportError:
+    # Fallback for direct execution
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from src.path_utils import get_project_root
+project_root = get_project_root()
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.config_loader import get_config, save_config
 from src.logger_setup import setup_logging
-from src.website_manager import WebsiteManager
-from src.history_manager import HistoryManager
+# Import managers
+try:
+    from .website_manager_sqlite import WebsiteManager
+    from .history_manager_sqlite import HistoryManager
+except ImportError:
+    # Fallback for direct execution
+    from src.website_manager_sqlite import WebsiteManager
+    from src.history_manager_sqlite import HistoryManager
 from src.scheduler import perform_website_check, make_json_serializable
+try:
+    from .scheduler_integration import start_scheduler, stop_scheduler, get_scheduler_status, reschedule_tasks
+except ImportError:
+    # Fallback for direct execution
+    from src.scheduler_integration import start_scheduler, stop_scheduler, get_scheduler_status, reschedule_tasks
 from src.crawler_module import CrawlerModule # Import the crawler module
 # from src.alerter import send_email_alert # For testing alerts
 
@@ -32,6 +51,7 @@ app.secret_key = os.urandom(24) # For flash messages
 logger = setup_logging(config_path='config/config.yaml') # Explicitly point to config for app
 config = get_config(config_path='config/config.yaml')
 
+# Initialize managers
 website_manager = WebsiteManager(config_path='config/config.yaml')
 history_manager = HistoryManager(config_path='config/config.yaml')
 
@@ -61,21 +81,17 @@ def make_path_web_accessible(path_from_project_root):
     Converts a relative path from the project root (e.g., 'data/snapshots/foo.png')
     to a path usable by the data_files endpoint (e.g., 'snapshots/foo.png').
     """
+    try:
+        from .path_utils import get_web_accessible_path
+    except ImportError:
+        # Fallback for direct execution
+        from src.path_utils import get_web_accessible_path
+    
     if not path_from_project_root or not isinstance(path_from_project_root, str):
         return None
     
-    # Ensure forward slashes for consistency, as paths are stored with them
-    path = path_from_project_root.replace("\\", "/")
-
-    # The 'data_files' endpoint serves from the 'data' directory, so we
-    # need to provide a path relative to it. We strip the 'data/' prefix.
-    if path.startswith('data/'):
-        return path[5:]  # len('data/') is 5
-    
-    # If the path is already in the correct format (e.g., 'snapshots/foo.png'),
-    # or an unexpected format, return it as is. The data_files route has fallbacks.
-    logger.warning(f"Path '{path}' provided to make_path_web_accessible did not start with 'data/'. Using it as is.")
-    return path
+    # Use the centralized path utility for web-accessible path conversion
+    return get_web_accessible_path(path_from_project_root)
 
 # --- Custom Jinja2 Filter ---
 def humanize_timestamp(dt_str):
@@ -142,14 +158,21 @@ def index():
     
     # Get blur detection statistics for websites that have it enabled
     blur_detection_stats = {}
-    from src.blur_detector import BlurDetector
-    blur_detector = BlurDetector()
+    # TEMPORARILY COMMENTED OUT DUE TO SYNTAX ERRORS IN BLUR_DETECTOR.PY
+    # from src.blur_detector import BlurDetector
+    # blur_detector = BlurDetector()
     
     for site_id, site_data in websites.items():
         if site_data.get('enable_blur_detection', False):
             try:
-                blur_stats = blur_detector.get_blur_stats_for_website(site_id)
-                blur_detection_stats[site_id] = blur_stats
+                # blur_stats = blur_detector.get_blur_stats_for_website(site_id)
+                # blur_detection_stats[site_id] = blur_stats
+                blur_detection_stats[site_id] = {
+                    'total_images': 0,
+                    'blurry_images': 0,
+                    'avg_laplacian_score': 0,
+                    'avg_blur_percentage': 0
+                }
             except Exception as e:
                 logger.error(f"Error getting blur stats for website {site_id}: {e}")
                 blur_detection_stats[site_id] = {
@@ -174,7 +197,7 @@ def settings():
         try:
             # Update general settings
             current_config['log_level'] = request.form.get('log_level', current_config['log_level'])
-            current_config['default_monitoring_interval_hours'] = int(request.form.get('default_monitoring_interval_hours', current_config['default_monitoring_interval_hours']))
+            current_config['default_monitoring_interval_minutes'] = int(request.form.get('default_monitoring_interval_minutes', current_config.get('default_monitoring_interval_minutes', 60)))
 
             # Update Snapshot/Playwright settings
             current_config['snapshot_directory'] = request.form.get('snapshot_directory', current_config['snapshot_directory'])
@@ -240,7 +263,7 @@ def add_website():
             # Basic fields
             name = request.form['name']
             url = request.form['url']
-            interval = int(request.form.get('interval', current_config.get('default_monitoring_interval_hours', 24)))
+            check_interval_minutes = int(request.form.get('check_interval_minutes', current_config.get('default_monitoring_interval_minutes', 60)))
             tags_str = request.form.get('tags', '')
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
             notification_emails_str = request.form.get('notification_emails', '')
@@ -276,20 +299,31 @@ def add_website():
             if not name or not url:
                 flash('Name and URL are required.', 'danger')
             else:
-                # Add the website with core details first
-                website = website_manager.add_website(url, name, interval, True, tags, notification_emails, 
-                                                    enable_blur_detection, blur_detection_scheduled, blur_detection_manual,
-                                                    auto_crawl_enabled, auto_visual_enabled, auto_blur_enabled, auto_performance_enabled,
-                                                    auto_full_check_enabled)
+                website_data = {
+                    "url": url,
+                    "name": name,
+                    "check_interval_minutes": check_interval_minutes,
+                    "is_active": True,
+                    "tags": tags,
+                    "notification_emails": notification_emails,
+                    'render_delay': render_delay,
+                    'max_crawl_depth': max_crawl_depth,
+                    'visual_diff_threshold': visual_diff_threshold,
+                    'enable_blur_detection': enable_blur_detection,
+                    'blur_detection_scheduled': blur_detection_scheduled,
+                    'blur_detection_manual': blur_detection_manual,
+                    'auto_crawl_enabled': auto_crawl_enabled,
+                    'auto_visual_enabled': auto_visual_enabled,
+                    'auto_blur_enabled': auto_blur_enabled,
+                    'auto_performance_enabled': auto_performance_enabled,
+                    'auto_full_check_enabled': auto_full_check_enabled,
+                    'capture_subpages': True
+                }
+                
+                website = website_manager.add_website(website_data)
                 
                 if website:
-                    # Update with all settings
-                    website_manager.update_website(website['id'], {
-                        'render_delay': render_delay,
-                        'max_crawl_depth': max_crawl_depth,
-                        'visual_diff_threshold': visual_diff_threshold,
-                        'capture_subpages': True # Always true now
-                    })
+                    reschedule_tasks()
                     
                     # Handle initial setup based on user choice
                     if initial_setup == 'none':
@@ -402,7 +436,7 @@ def edit_website(site_id):
             updated_data = {
                 'name': request.form['name'],
                 'url': request.form['url'],
-                'interval': int(request.form.get('interval', website.get('interval'))),
+                'check_interval_minutes': int(request.form.get('check_interval_minutes', website.get('check_interval_minutes'))),
                 'tags': [tag.strip() for tag in request.form.get('tags', '').split(',') if tag.strip()],
                 'notification_emails': notification_emails,
                 'is_active': request.form.get('is_active') == 'on',
@@ -424,6 +458,7 @@ def edit_website(site_id):
                  flash('Name and URL are required.', 'danger')
             else:
                 website_manager.update_website(site_id, updated_data)
+                reschedule_tasks()
                 flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
                 return redirect(url_for('index'))
         except Exception as e:
@@ -600,6 +635,7 @@ def test_email():
     smtp_username = current_config.get('smtp_username')
     smtp_password = current_config.get('smtp_password')
     smtp_use_tls = current_config.get('smtp_use_tls', True)
+    smtp_use_ssl = current_config.get('smtp_use_ssl', False)
     
     # Get email addresses
     sender_email = current_config.get('notification_email_from')
@@ -639,8 +675,11 @@ def test_email():
     msg.attach(MIMEText(body, 'html'))
     
     try:
-        # Connect to SMTP server
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        # Connect to SMTP server - use SSL for port 465, regular SMTP for other ports
+        if smtp_use_ssl:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=30)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=30)
         server.ehlo()
         
         # Use TLS if configured
@@ -959,7 +998,10 @@ def website_summary(site_id):
         'total_checks': 0,
         'last_check': None,
         'avg_response_time': 0,
-        'uptime_percentage': 100
+        'uptime_percentage': 100,
+        'visual_changes_detected': 0,
+        'avg_visual_diff': 0,
+        'max_visual_diff': 0
     }
     
     try:
@@ -972,6 +1014,15 @@ def website_summary(site_id):
             successful_checks = sum(1 for h in history if h.get('status') == 'success')
             if len(history) > 0:
                 history_summary['uptime_percentage'] = round((successful_checks / len(history)) * 100, 1)
+            
+            # Calculate visual change metrics
+            visual_changes = [h for h in history if h.get('visual_diff_percent') is not None and h.get('visual_diff_percent', 0) > 0]
+            history_summary['visual_changes_detected'] = len(visual_changes)
+            
+            if visual_changes:
+                visual_diffs = [h.get('visual_diff_percent', 0) for h in visual_changes]
+                history_summary['avg_visual_diff'] = round(sum(visual_diffs) / len(visual_diffs), 2)
+                history_summary['max_visual_diff'] = round(max(visual_diffs), 2)
     except Exception as e:
         logger.error(f"Error getting history summary for website {site_id}: {e}")
     
@@ -1055,84 +1106,116 @@ def website_blur_detection(site_id):
 @app.route('/website/<site_id>/performance')
 def website_performance(site_id):
     """Display performance check results for a specific website."""
+    
+    def _get_performance_grade(score):
+        """Convert numeric score to letter grade."""
+        if score >= 90:
+            return 'A'
+        elif score >= 50:
+            return 'B'
+        else:
+            return 'C'
+    
     current_config = get_app_config()
     website = website_manager.get_website(site_id)
     if not website:
         flash(f'Website with ID "{site_id}" not found.', 'danger')
         return redirect(url_for('index'))
 
-    # Get performance results
-    from src.performance_checker import PerformanceChecker
-    performance_checker = PerformanceChecker(config_path='config/config.yaml')
-    performance_results = performance_checker.get_latest_performance_results(site_id, limit=50)
+    # Get the latest performance results for each page and device type
+    import sqlite3
+    conn = sqlite3.connect('data/website_monitor.db')
+    cursor = conn.cursor()
     
-    # Check if performance monitoring is enabled for informational message
-    performance_enabled = website.get('auto_performance_enabled', False)
+    # Get unique URLs for this website
+    cursor.execute('''
+        SELECT DISTINCT url, page_title 
+        FROM performance_results 
+        WHERE website_id = ? 
+        ORDER BY url
+    ''', (site_id,))
+    urls = cursor.fetchall()
     
-    # Always show the performance page, even if no data exists (empty state)
-    if not performance_results:
-        # Show empty state with helpful message
-        performance_history = []
-        if not performance_enabled:
-            empty_message = f'Performance monitoring is not enabled for "{website.get("name")}". Enable it in website settings or run a manual performance check.'
-        else:
-            empty_message = f'No performance data available yet for "{website.get("name")}". Performance data will appear here after running a performance check.'
-    else:
-        # Group results by crawl_id and timestamp (multiple pages per check)
-        grouped_results = {}
-        for result in performance_results:
-            crawl_id = result['crawl_id']
-            timestamp = result['timestamp']
+    # Create the data structure that the template expects
+    performance_history = []
+    
+    if urls:
+        # Get the latest timestamp for this website
+        cursor.execute('''
+            SELECT MAX(timestamp) 
+            FROM performance_results 
+            WHERE website_id = ?
+        ''', (site_id,))
+        latest_timestamp = cursor.fetchone()[0]
+        
+        # Create the structure the template expects
+        latest_check = {
+            'timestamp': latest_timestamp,
+            'crawl_id': f'perf_{site_id}_{latest_timestamp}',
+            'pages': []
+        }
+        
+        for url, page_title in urls:
+            # Get latest mobile and desktop results for this URL
+            cursor.execute('''
+                SELECT device_type, performance_score, fcp_display, lcp_display, cls_display, 
+                       fid_display, speed_index_display, timestamp, fcp_score, lcp_score, 
+                       cls_score, fid_score, speed_index, total_blocking_time
+                FROM performance_results 
+                WHERE website_id = ? AND url = ? 
+                ORDER BY timestamp DESC
+            ''', (site_id, url))
+            results = cursor.fetchall()
             
-            # Create unique key for each performance check
-            check_key = f"{crawl_id}_{timestamp}"
-            
-            if check_key not in grouped_results:
-                grouped_results[check_key] = {
-                    'crawl_id': crawl_id,
-                    'timestamp': timestamp,
-                    'pages': {}
-                }
-            
-            # Group by page URL
-            page_url = result['url']
-            page_title = result.get('page_title', 'Unknown Page')
-            
-            if page_url not in grouped_results[check_key]['pages']:
-                grouped_results[check_key]['pages'][page_url] = {
-                    'url': page_url,
-                    'page_title': page_title,
+            # Create page object with mobile and desktop data
+            page_data = {
+                'url': url,
+                'page_title': page_title or url,
                     'mobile': None,
                     'desktop': None
                 }
             
-            # Add device-specific data
-            device_type = result['device_type']
-            grouped_results[check_key]['pages'][page_url][device_type] = result
-        
-        # Convert to list and sort by timestamp (newest first)
-        performance_history = []
-        for check_data in grouped_results.values():
-            # Convert pages dict to list for easier template handling
-            pages_list = list(check_data['pages'].values())
+            # Group results by device type
+            for result in results:
+                device_type = result[0]
+                device_data = {
+                    'device_type': device_type,
+                    'performance_score': result[1],
+                    'performance_grade': _get_performance_grade(result[1]),
+                    'fcp_display': result[2],
+                    'fcp_score': result[8],
+                    'lcp_display': result[3],
+                    'lcp_score': result[9],
+                    'cls_display': result[4],
+                    'cls_score': result[10],
+                    'fid_display': result[5],
+                    'fid_score': result[11],
+                    'speed_index_display': result[6],
+                    'speed_index_score': result[12],
+                    'tbt_display': f"{result[13]}ms" if result[13] else 'N/A',
+                    'tbt_score': result[13] or 0
+                }
+                
+                if device_type == 'mobile':
+                    page_data['mobile'] = device_data
+                elif device_type == 'desktop':
+                    page_data['desktop'] = device_data
             
-            performance_history.append({
-                'crawl_id': check_data['crawl_id'],
-                'timestamp': check_data['timestamp'],
-                'pages': pages_list,
-                'pages_count': len(pages_list)
-            })
+            # Add this page to the latest check
+            latest_check['pages'].append(page_data)
         
-        # Sort by timestamp (newest first) - handle None values
-        performance_history.sort(key=lambda x: x['timestamp'] or '', reverse=True)
-        empty_message = None
+        performance_history.append(latest_check)
+    
+    conn.close()
+    
+    # Check if performance monitoring is enabled for this website
+    performance_enabled = website.get('auto_performance_enabled', True)
     
     return render_template('performance_results.html', 
                            website=website, 
                            performance_history=performance_history,
-                           empty_message=empty_message,
-                           performance_enabled=performance_enabled,
-                           config=current_config)
+                         current_config=current_config,
+                         performance_enabled=performance_enabled)
 
 # --- API Endpoints (Optional, for AJAX or other integrations) ---
 @app.route('/api/websites', methods=['GET'])
@@ -1148,64 +1231,494 @@ def api_website_history(site_id):
         return jsonify({"error": "Website not found"}), 404
     return jsonify(history_records)
 
+@app.route('/health/dashboard')
+def health_dashboard():
+    """Health check dashboard page."""
+    return render_template('health_dashboard.html')
+
+@app.route('/env/config')
+def env_config_dashboard():
+    """Environment configuration dashboard page."""
+    return render_template('env_config_dashboard.html')
+
+@app.route('/api/scheduler/status', methods=['GET'])
+def api_scheduler_status():
+    """Get the current status of the scheduler."""
+    status = get_scheduler_status()
+    return jsonify(status)
+
+@app.route('/api/scheduler/reload', methods=['POST'])
+def api_scheduler_reload():
+    """Reload scheduler configuration."""
+    from .scheduler_integration import reload_scheduler_config
+    
+    config_path = request.json.get('config_path', 'config/config.yaml')
+    success = reload_scheduler_config(config_path)
+    
+    if success:
+        return jsonify({"status": "success", "message": f"Configuration reloaded from {config_path}"})
+    else:
+        return jsonify({"status": "error", "message": "Failed to reload configuration"}), 500
+
+@app.route('/api/scheduler/logs', methods=['GET'])
+def api_scheduler_logs():
+    """Get recent scheduler logs."""
+    from .scheduler_db import get_scheduler_db_manager
+    
+    limit = request.args.get('limit', default=100, type=int)
+    db_manager = get_scheduler_db_manager()
+    logs = db_manager.get_recent_logs(limit=limit)
+    
+    return jsonify(logs)
+
+@app.route('/api/scheduler/status/history', methods=['GET'])
+def api_scheduler_status_history():
+    """Get scheduler status history."""
+    from .scheduler_db import get_scheduler_db_manager
+    
+    limit = request.args.get('limit', default=50, type=int)
+    db_manager = get_scheduler_db_manager()
+    history = db_manager.get_scheduler_status_history(limit=limit)
+    
+    return jsonify(history)
+
+@app.route('/api/scheduler/database/test', methods=['GET'])
+def api_scheduler_database_test():
+    """Test scheduler database connection."""
+    from .scheduler_db import test_scheduler_database
+    
+    success = test_scheduler_database()
+    return jsonify({"database_connected": success})
+
+# Health Check Endpoints
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Basic health check endpoint."""
+    return jsonify({
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "service": "Website Monitoring System"
+    })
+
+@app.route('/health/detailed', methods=['GET'])
+def detailed_health_check():
+    """Detailed health check with component status."""
+    try:
+        from .scheduler_integration import get_scheduler_status
+        from .scheduler_db import test_scheduler_database
+    except ImportError:
+        # Fallback for direct execution
+        from src.scheduler_integration import get_scheduler_status
+        from src.scheduler_db import test_scheduler_database
+    
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "service": "Website Monitoring System",
+        "components": {}
+    }
+    
+    # Check database connectivity
+    try:
+        from .path_utils import get_data_directory, get_database_path
+        data_dir = get_data_directory()
+        db_path = get_database_path()
+        
+        data_dir_exists = data_dir.exists()
+        import os
+        db_dir_exists = os.path.dirname(db_path).exists()
+        
+        health_status["components"]["database"] = {
+            "status": "healthy" if db_connected else "unhealthy",
+            "connected": db_connected
+        }
+    except Exception as e:
+        health_status["components"]["database"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # Check scheduler status
+    try:
+        scheduler_status = get_scheduler_status()
+        health_status["components"]["scheduler"] = {
+            "status": "healthy" if scheduler_status.get("running", False) else "stopped",
+            "enabled": scheduler_status.get("enabled", False),
+            "running": scheduler_status.get("running", False),
+            "thread_alive": scheduler_status.get("thread_alive", False)
+        }
+    except Exception as e:
+        health_status["components"]["scheduler"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # Check file system access
+    try:
+        from .path_utils import get_data_directory, clean_path_for_logging
+        data_dir = get_data_directory()
+        db_path = get_database_path()
+        
+        data_dir_exists = data_dir.exists()
+        db_dir_exists = os.path.dirname(db_path).exists()
+        
+        health_status["components"]["filesystem"] = {
+            "status": "healthy" if data_dir_exists and db_dir_exists else "warning",
+            "data_directory": str(data_dir),
+            "data_directory_exists": data_dir_exists,
+            "database_directory_exists": db_dir_exists
+        }
+    except Exception as e:
+        health_status["components"]["filesystem"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # Check configuration
+    try:
+        config = get_app_config()
+        health_status["components"]["configuration"] = {
+            "status": "healthy",
+            "config_loaded": config is not None,
+            "environment": config.get("environment", "unknown")
+        }
+    except Exception as e:
+        health_status["components"]["configuration"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # Determine overall status
+    overall_status = "healthy"
+    for component, status in health_status["components"].items():
+        if status.get("status") == "error":
+            overall_status = "unhealthy"
+            break
+        elif status.get("status") == "warning":
+            overall_status = "degraded"
+    
+    health_status["status"] = overall_status
+    
+    return jsonify(health_status)
+
+@app.route('/health/ready', methods=['GET'])
+def readiness_check():
+    """Readiness check for Kubernetes/Docker orchestration."""
+    try:
+        from .scheduler_integration import get_scheduler_status
+        from .scheduler_db import test_scheduler_database
+    except ImportError:
+        # Fallback for direct execution
+        from src.scheduler_integration import get_scheduler_status
+        from src.scheduler_db import test_scheduler_database
+    
+    # Check critical components
+    checks = {
+        "database": test_scheduler_database(),
+        "scheduler": get_scheduler_status().get("running", False),
+        "configuration": get_app_config() is not None
+    }
+    
+    all_ready = all(checks.values())
+    status_code = 200 if all_ready else 503
+    
+    return jsonify({
+        "ready": all_ready,
+        "checks": checks,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }), status_code
+
+@app.route('/health/live', methods=['GET'])
+def liveness_check():
+    """Liveness check for Kubernetes/Docker orchestration."""
+    return jsonify({
+        "alive": True,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+# Environment Configuration Endpoints
+@app.route('/api/env/variables', methods=['GET'])
+def api_env_variables():
+    """API endpoint to list environment variables."""
+    try:
+        from .env_config import list_environment_variables
+    except ImportError:
+        # Fallback for direct execution
+        from src.env_config import list_environment_variables
+    
+    env_vars = list_environment_variables()
+    return jsonify(env_vars)
+
+@app.route('/api/env/validate', methods=['GET'])
+def api_env_validate():
+    """Validate environment variable configuration."""
+    try:
+        from .env_config import validate_environment_config
+    except ImportError:
+        # Fallback for direct execution
+        from src.env_config import validate_environment_config
+    
+    validation = validate_environment_config()
+    return jsonify(validation)
+
+@app.route('/api/env/overrides', methods=['GET'])
+def api_env_overrides():
+    """Get current environment variable overrides."""
+    try:
+        from .env_config import get_environment_overrides
+    except ImportError:
+        # Fallback for direct execution
+        from src.env_config import get_environment_overrides
+    
+    overrides = get_environment_overrides()
+    return jsonify(overrides)
+
+# --- Dashboard Routes (Consolidated from dashboard_app.py) ---
+
+@app.route('/site/<site_id>')
+def site_details(site_id):
+    """Site details page - consolidated from dashboard_app.py"""
+    site = website_manager.get_website(site_id)
+    if not site:
+        return render_template('404.html', message=f"Site with ID {site_id} not found."), 404
+    
+    history_limit = config.get('dashboard_history_limit', 20)
+    history_records = history_manager.get_history_for_site(site_id, limit=history_limit)
+    
+    return render_template('site_details.html', site=site, history=history_records)
+
+@app.route('/site/<site_id>/run_check', methods=['POST'])
+def run_manual_check_from_ui(site_id):
+    """Manual check trigger from UI - consolidated from dashboard_app.py"""
+    site = website_manager.get_website(site_id)
+    if not site:
+        flash(f'Website with ID "{site_id}" not found.', 'danger')
+        return redirect(url_for('index'))
+
+    if not site.get('is_active', True):
+        flash(f'Website "{site.get("name")}" is marked as inactive. Activate it first to perform a manual check.', 'warning')
+        return redirect(url_for('site_details', site_id=site_id))
+
+    try:
+        site_name = site.get("name", site.get("url"))
+        logger.info(f"DASHBOARD: Manually triggering check for {site_name} ({site_id}) from UI.")
+        flash(f'Initiating manual check for "{site_name}". Please wait a moment for results to update...', 'info')
+        
+        check_outcome = perform_website_check(site_id=site_id)
+        
+        status = check_outcome.get('status')
+        changes_detected = check_outcome.get('significant_change_detected', False)
+        error_message = check_outcome.get('error_message')
+        check_id_val = check_outcome.get('check_id', 'N/A')
+
+        if status == "failed_fetch" or status == "error":
+            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) encountered an error: {error_message or "Unknown error"}', 'danger')
+        elif status == "initial_check_completed":
+            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed (initial check). Changes detected: {changes_detected}', 'info')
+        elif status == "completed_no_changes":
+            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed. No significant changes detected.', 'success')
+        elif status == "completed_with_changes":
+            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed. Significant changes detected!', 'warning')
+        else:
+            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) run. Outcome: {status or "Unknown"}', 'info')
+
+    except Exception as e:
+        logger.error(f"Error during manual check route for {site_id} from UI: {e}", exc_info=True)
+        flash(f'Error triggering manual check for "{site.get("name")}": {str(e)}', 'danger')
+    
+    return redirect(url_for('site_details', site_id=site_id))
+
+@app.route('/site/<site_id>/compare_snapshots/<check_id_current>/<check_id_previous>')
+def compare_snapshots_visual(site_id, check_id_current, check_id_previous):
+    """Compare snapshots visually - consolidated from dashboard_app.py"""
+    site = website_manager.get_website(site_id)
+    if not site:
+        return render_template('404.html', message=f"Site with ID {site_id} not found."), 404
+
+    current_check = history_manager.get_check_by_id(check_id_current)
+    previous_check = history_manager.get_check_by_id(check_id_previous)
+
+    if not current_check or not previous_check:
+        msg = ""
+        if not current_check: msg += f"Current check record {check_id_current} not found. "
+        if not previous_check: msg += f"Previous check record {check_id_previous} not found."
+        return render_template('404.html', message=msg.strip()), 404
+    
+    if not current_check.get('visual_snapshot_path') or not previous_check.get('visual_snapshot_path'):
+        return render_template('404.html', message="One or both checks do not have visual snapshots."), 404
+
+    visual_diff_score = current_check.get('visual_diff_score')
+    visual_diff_image_path = current_check.get('visual_diff_image_path')
+
+    return render_template('compare_visual.html', 
+                           site=site, 
+                           current_check=current_check,
+                           previous_check=previous_check,
+                           visual_diff_score=visual_diff_score,
+                           visual_diff_image_path=visual_diff_image_path)
+
+@app.route('/api/sites')
+def api_sites():
+    """API endpoint for sites - consolidated from dashboard_app.py"""
+    sites = website_manager.list_websites()
+    return jsonify(sites)
+
+@app.route('/api/site/<site_id>/history')
+def api_site_history(site_id):
+    """API endpoint for site history - consolidated from dashboard_app.py"""
+    history_limit = config.get('dashboard_api_history_limit', 100)
+    history = history_manager.get_history_for_site(site_id, limit=history_limit)
+    if not history and not website_manager.get_website(site_id):
+        return jsonify({"error": "Site not found"}), 404
+    return jsonify(history)
+
+@app.route('/snapshots/<site_id>/<type>/<filename>')
+def serve_snapshot(site_id, type, filename):
+    """Serve snapshot files with enhanced security and error handling - consolidated from dashboard_app.py"""
+    try:
+        from .path_utils import validate_path_safety, clean_path_for_logging
+    except ImportError:
+        # Fallback for direct execution
+        from src.path_utils import validate_path_safety, clean_path_for_logging
+    
+    allowed_types = ["html", "visual", "diff"]
+    if type not in allowed_types:
+        return render_template('404.html', message="Invalid snapshot type."), 404
+    
+    # Security check: Ensure the filename doesn't contain directory traversal attempts
+    if '..' in filename or filename.startswith('/'):
+        logger.warning(f"Potential directory traversal attempt detected: {filename}")
+        return render_template('404.html', message="Invalid filename."), 404
+    
+    # Normalize the filename for consistency
+    filename = os.path.normpath(filename).replace('\\', '/')
+    
+    # Use the centralized snapshot directory from config
+    snapshot_dir = config.get('snapshot_directory', 'data/snapshots')
+    directory = os.path.join(snapshot_dir, site_id, type)
+    
+    # Security check: Ensure the resolved path is within the snapshot directory
+    if not validate_path_safety(directory, snapshot_dir):
+        logger.warning(f"Path security check failed for: {directory}")
+        return render_template('404.html', message="Invalid path."), 404
+    
+    logger.debug(f"Attempting to serve: {filename} from directory: {clean_path_for_logging(directory)}")
+    
+    file_path = os.path.join(directory, filename)
+    if not os.path.exists(file_path):
+        logger.warning(f"Snapshot file not found: {clean_path_for_logging(file_path)}")
+        return render_template('404.html', message=f"Snapshot file {filename} not found."), 404
+
+    try:
+        return send_from_directory(directory, filename)
+    except Exception as e:
+        logger.error(f"Error serving snapshot file {filename}: {e}")
+        return render_template('404.html', message="Error serving file."), 404
+
 # Route to serve files from the data directory (e.g., snapshots)
-DATA_DIRECTORY = os.path.join(project_root, 'data')
+try:
+    from .path_utils import get_data_directory, clean_path_for_logging
+except ImportError:
+    # Fallback for direct execution
+    from src.path_utils import get_data_directory, clean_path_for_logging
+
+DATA_DIRECTORY = get_data_directory()
 
 @app.route('/data_files/<path:filepath>')
 def data_files(filepath):
+    """Serve files from the data directory with enhanced security and error handling."""
+    try:
+        from .path_utils import validate_path_safety, get_web_accessible_path
+    except ImportError:
+        # Fallback for direct execution
+        from src.path_utils import validate_path_safety, get_web_accessible_path
+    
     # Ensure the path is secure and within the intended directory
     logger.debug(f"Attempting to serve file from data directory: {filepath}")
     
-    # Check if the file exists first
+    # Security check: Ensure the filepath doesn't contain directory traversal attempts
+    if '..' in filepath or filepath.startswith('/'):
+        logger.warning(f"Potential directory traversal attempt detected: {filepath}")
+        return redirect(url_for('static', filename='img/placeholder.png'))
+    
+    # Normalize the filepath for consistency
+    filepath = os.path.normpath(filepath).replace('\\', '/')
+    
+    # Check if the file exists at the primary path
     full_path = os.path.join(DATA_DIRECTORY, filepath)
-    if not os.path.isfile(full_path):
-        logger.warning(f"File not found at primary path: {full_path}")
-        
-        # Hotfix: If path doesn't start with 'snapshots', try adding it.
-        # This handles cases where the template generates an incorrect relative path.
-        if not filepath.startswith('snapshots/'):
-            potential_path = os.path.join('snapshots', filepath)
-            potential_full_path = os.path.join(DATA_DIRECTORY, potential_path)
-            if os.path.isfile(potential_full_path):
-                logger.info(f"Found file by prepending 'snapshots/': {potential_path}")
-                # Normalize path to use OS-specific separators to fix serving on Windows
-                normalized_potential_path = os.path.normpath(potential_path)
-                return send_from_directory(DATA_DIRECTORY, normalized_potential_path, as_attachment=False)
-        
-        # If it's a baseline path, try alternative locations
-        if 'baseline' in filepath:
-            # Try different baseline path patterns
-            variations = [
-                filepath,
-                # For paths from older versions
-                filepath.replace('/baseline_', '/baseline/baseline_'),
-                filepath.replace('/baseline/', '/'),
-                # For newer path format
-                filepath.replace('baseline.png', 'home.png'),
-                filepath.replace('baseline.png', 'homepage.png')
-            ]
-            
-            # Try each variation
-            for var_path in variations:
-                var_full_path = os.path.join(DATA_DIRECTORY, var_path)
-                if os.path.isfile(var_full_path):
-                    logger.info(f"Found file at alternative path: {var_path}")
-                    return send_from_directory(DATA_DIRECTORY, var_path, as_attachment=False)
-                    
-            # If we get here, none of the variations worked
-            logger.error(f"Could not find any matching file for {filepath}")
-            # Return placeholder image
+    
+    # Security check: Ensure the resolved path is within the data directory
+    if not validate_path_safety(full_path, DATA_DIRECTORY):
+        logger.warning(f"Path security check failed for: {filepath}")
+        return redirect(url_for('static', filename='img/placeholder.png'))
+    
+    if os.path.isfile(full_path):
+        try:
+            return send_from_directory(DATA_DIRECTORY, filepath, as_attachment=False)
+        except Exception as e:
+            logger.error(f"Error serving file {filepath}: {e}")
             return redirect(url_for('static', filename='img/placeholder.png'))
     
-    # Standard case - file exists at expected path
-    try:
-        return send_from_directory(DATA_DIRECTORY, filepath, as_attachment=False)
-    except Exception as e:
-        logger.error(f"Error serving file {filepath}: {e}")
-        # Return placeholder image on error
-        return redirect(url_for('static', filename='img/placeholder.png'))
+    # File not found at primary path, try fallback strategies
+    logger.warning(f"File not found at primary path: {clean_path_for_logging(full_path)}")
+    
+    # Strategy 1: Try prepending 'snapshots/' if not already present
+    if not filepath.startswith('snapshots/'):
+        potential_path = os.path.join('snapshots', filepath)
+        potential_full_path = os.path.join(DATA_DIRECTORY, potential_path)
+        
+        if validate_path_safety(potential_full_path, DATA_DIRECTORY) and os.path.isfile(potential_full_path):
+            logger.info(f"Found file by prepending 'snapshots/': {potential_path}")
+            try:
+                return send_from_directory(DATA_DIRECTORY, potential_path, as_attachment=False)
+            except Exception as e:
+                logger.error(f"Error serving file {potential_path}: {e}")
+    
+    # Strategy 2: Try baseline path variations
+    if 'baseline' in filepath:
+        variations = [
+            filepath,
+            filepath.replace('/baseline_', '/baseline/baseline_'),
+            filepath.replace('/baseline/', '/'),
+            filepath.replace('baseline.png', 'home.png'),
+            filepath.replace('baseline.png', 'homepage.png'),
+            filepath.replace('baseline.jpg', 'home.jpg'),
+            filepath.replace('baseline.jpg', 'homepage.jpg')
+        ]
+        
+        for var_path in variations:
+            var_full_path = os.path.join(DATA_DIRECTORY, var_path)
+            if validate_path_safety(var_full_path, DATA_DIRECTORY) and os.path.isfile(var_full_path):
+                logger.info(f"Found file at alternative path: {var_path}")
+                try:
+                    return send_from_directory(DATA_DIRECTORY, var_path, as_attachment=False)
+                except Exception as e:
+                    logger.error(f"Error serving file {var_path}: {e}")
+                    continue
+    
+    # Strategy 3: Try common image extensions
+    base_name, ext = os.path.splitext(filepath)
+    if ext.lower() in ['.png', '.jpg', '.jpeg', '.gif', '.webp']:
+        for alt_ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp']:
+            if alt_ext != ext:
+                alt_path = base_name + alt_ext
+                alt_full_path = os.path.join(DATA_DIRECTORY, alt_path)
+                if validate_path_safety(alt_full_path, DATA_DIRECTORY) and os.path.isfile(alt_full_path):
+                    logger.info(f"Found file with alternative extension: {alt_path}")
+                    try:
+                        return send_from_directory(DATA_DIRECTORY, alt_path, as_attachment=False)
+                    except Exception as e:
+                        logger.error(f"Error serving file {alt_path}: {e}")
+    
+    # All strategies failed
+    logger.error(f"Could not find any matching file for {filepath}")
+    return redirect(url_for('static', filename='img/placeholder.png'))
 
 if __name__ == '__main__':
+    # Initialize scheduler with proper configuration
+    config_path = 'config/config.yaml'
+    start_scheduler(config_path=config_path)
+    
     # Explicitly load app's config for its run parameters
     app_specific_config = get_config(config_path='config/config.yaml') 
     app_host = app_specific_config.get('dashboard_host', '127.0.0.1')

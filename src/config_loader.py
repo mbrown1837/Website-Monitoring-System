@@ -4,6 +4,25 @@ import os
 # Default configuration path
 DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'config.yaml')
 
+# Environment detection
+def get_environment():
+    """Detect the current environment based on environment variables."""
+    return os.getenv('FLASK_ENV', os.getenv('ENVIRONMENT', 'development')).lower()
+
+def get_config_path_for_environment():
+    """Get the appropriate config path for the current environment."""
+    env = get_environment()
+    base_dir = os.path.dirname(DEFAULT_CONFIG_PATH)
+    
+    if env == 'production':
+        return os.path.join(base_dir, 'config.production.yaml')
+    elif env == 'staging':
+        return os.path.join(base_dir, 'config.staging.yaml')
+    elif env == 'testing':
+        return os.path.join(base_dir, 'config.testing.yaml')
+    else:
+        return DEFAULT_CONFIG_PATH
+
 # Global cache for the default configuration
 _default_config_cache = None
 _default_config_loaded = False
@@ -69,26 +88,36 @@ def load_config(config_path: str = DEFAULT_CONFIG_PATH, force_reload: bool = Fal
 
 def get_config(config_path: str = None, force_reload: bool = False) -> dict:
     """
-    Returns the configuration data.
+    Returns the configuration data with environment variable overrides applied.
     If config_path is provided, loads from that path.
-    Otherwise, returns the (potentially cached) default configuration.
+    Otherwise, returns the environment-specific configuration.
 
     Args:
         config_path (str, optional): Specific path to a configuration file.
         force_reload (bool): If True and using default path, forces a reload from disk.
 
     Returns:
-        dict: The configuration data.
+        dict: The configuration data with environment overrides.
     """
+    # Get base configuration first
     if config_path:
-        # Load specific config file, do not use/update global default cache directly unless path is default
-        return load_config(config_path=config_path, force_reload=force_reload)
+        # Load specific config file
+        base_config = load_config(config_path=config_path, force_reload=force_reload)
     else:
-        # Ensure default config is loaded if not already
+        # Use environment-specific config path
+        env_config_path = get_config_path_for_environment()
         global _default_config_loaded
         if not _default_config_loaded or force_reload:
-            load_config(config_path=DEFAULT_CONFIG_PATH, force_reload=True) # Will populate cache
-        return _default_config_cache if _default_config_cache is not None else {}
+            load_config(config_path=env_config_path, force_reload=True) # Will populate cache
+        base_config = _default_config_cache if _default_config_cache is not None else {}
+    
+    # Apply environment overrides
+    try:
+        from .env_config import merge_config_with_env
+        return merge_config_with_env(base_config)
+    except ImportError:
+        # Fallback if env_config is not available
+        return base_config
 
 def save_config(config_data: dict, config_path: str = DEFAULT_CONFIG_PATH) -> None:
     """

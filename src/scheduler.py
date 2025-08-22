@@ -5,8 +5,8 @@ import signal # For graceful shutdown
 import threading # For graceful shutdown
 import os # For reading previous snapshot files
 # Import manager CLASSES
-from src.website_manager import WebsiteManager
-from src.history_manager import HistoryManager
+from src.website_manager_sqlite import WebsiteManager
+from src.history_manager_sqlite import HistoryManager
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
 from src.image_processor import create_visual_diff_report # Import the new function
@@ -27,11 +27,49 @@ from src.history_manager import HistoryManager
 logger = setup_logging()
 config = get_config()
 
-# Instantiate managers for the scheduler's own use
-# These will use the default application configuration
-website_manager = WebsiteManager() 
-history_manager = HistoryManager()
-crawler_module = CrawlerModule()  # Initialize the crawler module
+# Global variables for scheduler managers
+_website_manager = None
+_history_manager = None
+_crawler_module = None
+_scheduler_config = None
+
+def get_scheduler_managers(config_path=None, website_manager=None, history_manager=None, crawler_module=None):
+    """Get or create scheduler managers with proper configuration."""
+    global _website_manager, _history_manager, _crawler_module, _scheduler_config
+    
+    # Allow passing in existing manager instances (useful for testing)
+    if website_manager:
+        _website_manager = website_manager
+    if history_manager:
+        _history_manager = history_manager
+    if crawler_module:
+        _crawler_module = crawler_module
+    
+    # Load configuration with proper path
+    if config_path and _scheduler_config is None:
+        _scheduler_config = get_config(config_path=config_path)
+        logger.info(f"SCHEDULER: Loaded configuration from {config_path}")
+    elif _scheduler_config is None:
+        _scheduler_config = get_config()
+        logger.info("SCHEDULER: Loaded default configuration")
+    
+    # Initialize managers with proper configuration
+    if _website_manager is None:
+        _website_manager = WebsiteManager(config_path=config_path)
+        logger.info("SCHEDULER: Initialized website manager")
+    
+    if _history_manager is None:
+        _history_manager = HistoryManager(config_path=config_path)
+        logger.info("SCHEDULER: Initialized history manager")
+    
+    if _crawler_module is None:
+        _crawler_module = CrawlerModule()
+        logger.info("SCHEDULER: Initialized crawler module")
+    
+    return _website_manager, _history_manager, _crawler_module, _scheduler_config
+
+# Initialize managers with default config for backward compatibility
+website_manager, history_manager, crawler_module, config = get_scheduler_managers()
 
 # Event to signal shutdown
 _shutdown_event = threading.Event()
@@ -189,13 +227,30 @@ def determine_significance(results: dict, site_config: dict) -> list:
 
     return significant_changes_found
 
-def perform_website_check(site_id: str, crawler_options_override: dict = None):
+def perform_website_check(site_id: str, crawler_options_override: dict = None, config_path: str = None):
     """
     Performs a comprehensive check for a single website.
     """
+    # Get properly configured managers
+    website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
+    
+    # During tests, the managers might be pre-configured mocks.
+    # If not, we initialize them as usual.
+    if website_manager is None:
+        website_manager = WebsiteManager(config_path=config_path)
+    if history_manager is None:
+        history_manager = HistoryManager(config_path=config_path)
+    if crawler_module is None:
+        crawler_module = CrawlerModule(config_path=config_path)
+
+    # Get database manager for logging
+    from .scheduler_db import get_scheduler_db_manager
+    db_manager = get_scheduler_db_manager(config_path)
+    
     website = website_manager.get_website(site_id)
     if not website:
         logger.error(f"check_website_task: Website with ID {site_id} not found.")
+        db_manager.log_scheduler_event("ERROR", f"Website with ID {site_id} not found", site_id, None)
         return {"status": "error", "message": "Website not found"}
 
     # Determine if this is a scheduled check or manual check
@@ -274,6 +329,10 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None):
         history_manager.add_check_record(**serializable_result)
 
         logger.info(f"Check for '{website.get('name')}' completed. Status: {check_result['status']}")
+        
+        # Log the check completion
+        db_manager.log_scheduler_event("INFO", f"Check completed: {check_result['status']}", site_id, check_result.get('check_id'))
+        
         return serializable_result
 
     except Exception as e:
@@ -284,10 +343,13 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None):
         history_manager.add_check_record(**serializable_result)
         return serializable_result
 
-def schedule_website_monitoring_tasks():
+def schedule_website_monitoring_tasks(config_path=None):
     """Loads websites and schedules monitoring tasks for active ones."""
     logger.info("SCHEDULER: Loading websites and setting up monitoring schedules...")
     schedule.clear() # Clear any existing schedules before setting new ones
+
+    # Get properly configured managers
+    website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
 
     try:
         all_websites_map = website_manager.list_websites()
@@ -300,21 +362,21 @@ def schedule_website_monitoring_tasks():
         logger.warning("SCHEDULER: No active websites found to schedule.")
         return
 
-    default_interval = config.get('default_monitoring_interval_hours', 24)
+    default_interval_minutes = config.get('default_monitoring_interval_minutes', 60)
     for site in active_websites:
         site_id = site.get('id')
-        interval = site.get('interval', default_interval)
+        interval_minutes = site.get('check_interval_minutes', default_interval_minutes)
         if not site_id:
             logger.error(f"SCHEDULER: Skipping site due to missing ID: {site.get('name')}")
             continue
         
-        if not isinstance(interval, (int, float)) or interval <= 0:
-            logger.warning(f"SCHEDULER: Invalid monitoring interval for {site.get('name')}. Using default.")
-            interval = default_interval
+        if not isinstance(interval_minutes, (int, float)) or interval_minutes <= 0:
+            logger.warning(f"SCHEDULER: Invalid monitoring interval for {site.get('name')}. Using default of {default_interval_minutes} minutes.")
+            interval_minutes = default_interval_minutes
 
         try:
-            logger.info(f"SCHEDULER: Scheduling check for {site.get('name')} every {interval} hours.")
-            schedule.every(interval).hours.do(perform_website_check, site_id=site_id)
+            logger.info(f"SCHEDULER: Scheduling check for {site.get('name')} every {interval_minutes} minutes.")
+            schedule.every(interval_minutes).minutes.do(perform_website_check, site_id=site_id, config_path=config_path)
         except Exception as e:
             logger.error(f"SCHEDULER: Error scheduling task for {site.get('name')}: {e}", exc_info=True)
     
@@ -350,7 +412,7 @@ if __name__ == '__main__':
     logger.info("----- Scheduler Service Starting -----")
     if not website_manager.list_websites():
         logger.info("Scheduler Demo: No websites found. Adding test websites.")
-        website_manager.add_website("https://example.com", "Example Domain Check", monitoring_interval_hours=0.002)
-        website_manager.add_website("https://www.google.com", "Google Check", monitoring_interval_hours=0.004)
+        website_manager.add_website({"url": "https://example.com", "name": "Example Domain Check", "check_interval_minutes": 1})
+        website_manager.add_website({"url": "https://www.google.com", "name": "Google Check", "check_interval_minutes": 2})
     run_scheduler()
     logger.info("----- Scheduler Service Terminated -----") 

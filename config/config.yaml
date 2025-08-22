@@ -10,8 +10,8 @@ playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537
   (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
 playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
-notification_email_from: support@westlanddre.com
-notification_email_to: sarmadsahib786@gmail.com
+notification_email_from: websitecheckapp@digitalclics.com
+notification_email_to: websitecheckapp@digitalclics.com
 content_change_threshold: 1.0
 image_diff_threshold: 1000
 structure_change_threshold: 1.0
@@ -36,12 +36,13 @@ log_level_dashboard: INFO
 log_file_dashboard: data/dashboard.log
 dashboard_history_limit: 20
 dashboard_api_history_limit: 100
-smtp_server: mail.westlanddre.com
-smtp_port: 587
-smtp_username: support@westlanddre.com
-smtp_password: KZyxqnTVFe99XCLy3HYT
-smtp_use_tls: true
-default_notification_email: admin@example.com
+smtp_server: mail.digitalclics.com
+smtp_port: 465
+smtp_username: websitecheckapp@digitalclics.com
+smtp_password: ']d1n2%|121@3'
+smtp_use_tls: false
+smtp_use_ssl: true
+default_notification_email: websitecheckapp@digitalclics.com
 crawler_max_depth: 2
 crawler_respect_robots: false
 crawler_check_external_links: true
@@ -66,6 +67,7 @@ enable_scheduler: true
 blur_detection_threshold: 100
 blur_detection_percentage_threshold: 15
 blur_detection_min_image_size: 100
+blur_detection_timeout: 30
 blur_detection_resize_dimensions:
 - 1280
 - 720
@@ -98,3 +100,6 @@ blur_detection_email_template: 'Subject: Blurry Images Detected - {website_name}
   '
 visual_difference_threshold: 5.0
 google_pagespeed_api_key: AIzaSyBalq6kgTjMTDlulVWnJ69Pu8mT3sZ_kZU
+scheduler_enabled: true
+scheduler_startup_delay_seconds: 10
+scheduler_check_interval_seconds: 60
