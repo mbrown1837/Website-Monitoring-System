@@ -29,16 +29,10 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     libdrm2 \
     libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxrandr2 \
     libgbm1 \
-    libasound2 \
+    libgl1-mesa-glx \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Playwright browsers
-RUN playwright install chromium
-RUN playwright install-deps chromium
 
 # Set working directory
 WORKDIR /app
@@ -52,11 +46,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p data/snapshots data/logs
+# Install Playwright browsers
+RUN playwright install --with-deps chromium
 
-# Set permissions
-RUN chmod -R 755 data/
+# Create necessary directories and set permissions
+RUN mkdir -p data/snapshots data/logs && chmod -R 755 data/
 
 # Expose port
 EXPOSE 5001

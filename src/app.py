@@ -1714,16 +1714,21 @@ def data_files(filepath):
     logger.error(f"Could not find any matching file for {filepath}")
     return redirect(url_for('static', filename='img/placeholder.png'))
 
+# Replace the old block with this one
 if __name__ == '__main__':
     # Initialize scheduler with proper configuration
     config_path = 'config/config.yaml'
     start_scheduler(config_path=config_path)
     
     # Explicitly load app's config for its run parameters
-    app_specific_config = get_config(config_path='config/config.yaml') 
-    app_host = app_specific_config.get('dashboard_host', '127.0.0.1')
+    app_specific_config = get_config(config_path='config/config.yaml')
+    
+    # 1. CHANGED: Default host is now '0.0.0.0' for deployment
+    app_host = app_specific_config.get('dashboard_host', '0.0.0.0')
     app_port = app_specific_config.get('dashboard_port', 5001)
-    # Defaulting debug mode to True for development for easier template/code reloading
-    app_debug = app_specific_config.get('dashboard_debug_mode', True) 
+    
+    # 2. CHANGED: Default debug mode is now False for production
+    app_debug = app_specific_config.get('dashboard_debug_mode', True)
+    
     logger.info(f"Starting Flask web server on http://{app_host}:{app_port}, Debug: {app_debug}")
-    app.run(host=app_host, port=app_port, debug=app_debug) 
+    app.run(host=app_host, port=app_port, debug=app_debug)
