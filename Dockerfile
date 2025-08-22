@@ -31,8 +31,8 @@ RUN apt-get update && apt-get install -y \
     libxkbcommon0 \
     libgbm1 \
     libgl1 \
-    fonts-unifont \
-    fonts-ubuntu \
+    fonts-liberation \
+    fonts-dejavu-core \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
