@@ -43,6 +43,9 @@ class CrawlerModule:
         # Initialize database
         self._initialize_database()
         
+        # Initialize website manager
+        self.website_manager = WebsiteManager(config_path=config_path)
+        
     def _initialize_database(self):
         """Initialize the SQLite database for storing crawler results."""
         # Use centralized path resolution
@@ -476,10 +479,15 @@ class CrawlerModule:
     def _handle_snapshots(self, results, is_baseline):
         from src.snapshot_tool import save_visual_snapshot
         from src.comparators import compare_screenshots_percentage # Import our comparison function
-        from src.website_manager_sqlite import WebsiteManager # To get baseline paths
 
-        website_manager = WebsiteManager()
-        website_config = website_manager.get_website(results['website_id'])
+        # Use the existing website_manager instance instead of creating a new one
+        website_config = self.website_manager.get_website(results['website_id'])
+        
+        # Handle case where website_config is None
+        if website_config is None:
+            self.logger.error(f"Website config not found for ID: {results['website_id']}. Cannot capture snapshots.")
+            return
+            
         all_baselines = website_config.get('all_baselines', {})
         
         log_action = "baseline" if is_baseline else "latest"
