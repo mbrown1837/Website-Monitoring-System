@@ -200,10 +200,65 @@ class SchedulerManager:
             self.logger.error(f"SCHEDULER: Failed to reload configuration: {e}", exc_info=True)
             return False
 
+    def clear_all_tasks(self):
+        """Clear all scheduled tasks from the scheduler."""
+        try:
+            import schedule
+            self.logger.info("SCHEDULER: Clearing all scheduled tasks...")
+            
+            # Clear all jobs
+            schedule.clear()
+            
+            self.db_manager.log_scheduler_event("INFO", "All scheduled tasks cleared", None, None)
+            self.db_manager.update_scheduler_status("running", True, 0)
+            
+            self.logger.info("SCHEDULER: All scheduled tasks cleared successfully.")
+            return True
+        except Exception as e:
+            self.logger.error(f"SCHEDULER: Error clearing all tasks: {e}", exc_info=True)
+            return False
+
+    def remove_site_task(self, site_id: str):
+        """Remove scheduler task for a specific website."""
+        try:
+            import schedule
+            self.logger.info(f"SCHEDULER: Removing scheduler task for site {site_id}...")
+            
+            # Find and remove jobs that match this site_id
+            jobs_to_remove = []
+            for job in schedule.jobs:
+                # Check if this job is for the specific site
+                if hasattr(job.job_func, 'keywords') and job.job_func.keywords.get('site_id') == site_id:
+                    jobs_to_remove.append(job)
+                elif hasattr(job.job_func, 'args') and len(job.job_func.args) > 0 and job.job_func.args[0] == site_id:
+                    jobs_to_remove.append(job)
+            
+            # Remove the identified jobs
+            for job in jobs_to_remove:
+                schedule.cancel_job(job)
+                self.logger.info(f"SCHEDULER: Removed scheduled task for site {site_id}")
+            
+            if jobs_to_remove:
+                active_jobs = len(schedule.jobs)
+                self.db_manager.log_scheduler_event("INFO", f"Removed scheduler task for site {site_id}. {active_jobs} tasks remaining.", None, None)
+                self.db_manager.update_scheduler_status("running", True, active_jobs)
+            else:
+                self.logger.warning(f"SCHEDULER: No scheduled tasks found for site {site_id}")
+                
+            return True
+        except Exception as e:
+            self.logger.error(f"SCHEDULER: Error removing task for site {site_id}: {e}", exc_info=True)
+            return False
+
     def reschedule_tasks(self):
-        """Reschedule all monitoring tasks by re-running the scheduling function."""
+        """Reschedule all monitoring tasks by clearing existing tasks and re-running the scheduling function."""
         try:
             self.logger.info("SCHEDULER: Rescheduling all monitoring tasks...")
+            
+            # First clear all existing tasks
+            self.clear_all_tasks()
+            
+            # Then reschedule all tasks
             schedule_website_monitoring_tasks(config_path=self.config_path)
             
             import schedule
@@ -269,4 +324,22 @@ def reschedule_tasks():
         return manager.reschedule_tasks()
     elif manager:
         manager.logger.warning("SCHEDULER: Reschedule requested, but scheduler is not running.")
+    return False
+
+def clear_all_scheduler_tasks():
+    """Clear all scheduled tasks from the scheduler."""
+    manager = get_scheduler_manager()
+    if manager and manager.is_running():
+        return manager.clear_all_tasks()
+    elif manager:
+        manager.logger.warning("SCHEDULER: Clear all tasks requested, but scheduler is not running.")
+    return False
+
+def remove_site_scheduler_task(site_id: str):
+    """Remove scheduler task for a specific website."""
+    manager = get_scheduler_manager()
+    if manager and manager.is_running():
+        return manager.remove_site_task(site_id)
+    elif manager:
+        manager.logger.warning(f"SCHEDULER: Remove task for site {site_id} requested, but scheduler is not running.")
     return False 
