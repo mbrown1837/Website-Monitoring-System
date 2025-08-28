@@ -32,10 +32,12 @@ from src.logger_setup import setup_logging
 try:
     from .website_manager_sqlite import WebsiteManager
     from .history_manager_sqlite import HistoryManager
+    from .crawler_module import CrawlerModule
 except ImportError:
     # Fallback for direct execution
     from src.website_manager_sqlite import WebsiteManager
     from src.history_manager_sqlite import HistoryManager
+    from src.crawler_module import CrawlerModule
 from src.scheduler import perform_website_check, make_json_serializable
 try:
     from .scheduler_integration import start_scheduler, stop_scheduler, get_scheduler_status, reschedule_tasks
@@ -54,6 +56,7 @@ config = get_config(config_path='config/config.yaml')
 # Initialize managers
 website_manager = WebsiteManager(config_path='config/config.yaml')
 history_manager = HistoryManager(config_path='config/config.yaml')
+crawler_module = CrawlerModule(config_path='config/config.yaml')
 
 # --- Task Management ---
 tasks = {}
@@ -369,9 +372,11 @@ def add_website():
                             }
                         )
                         
+                        # Add manager instances to args to fix database consistency
+                        full_args = thread_args + (website_manager, history_manager, crawler_module)
                         thread = threading.Thread(
                             target=run_background_task,
-                            args=(task_id, perform_website_check) + thread_args
+                            args=(task_id, perform_website_check) + full_args
                         )
                         thread.daemon = True
                         thread.start()
@@ -401,9 +406,11 @@ def add_website():
                             }
                         )
                         
+                        # Add manager instances to args to fix database consistency
+                        full_args = thread_args + (website_manager, history_manager, crawler_module)
                         thread = threading.Thread(
                             target=run_background_task,
-                            args=(task_id, perform_website_check) + thread_args
+                            args=(task_id, perform_website_check) + full_args
                         )
                         thread.daemon = True
                         thread.start()
@@ -581,13 +588,18 @@ def manual_check_website(site_id):
         'performance_check_only': check_type == 'performance'
     }
     
-    # Get check configuration - use automated config if Full Check is enabled, otherwise use manual config
-    if website.get('auto_full_check_enabled', False) and check_type == 'full':
-        # If Full Check is enabled on the website and user clicked full check, use automated config
-        check_config = website_manager.get_automated_check_config(site_id)
-        logger.info(f"Using automated Full Check configuration for website {site_id}: {check_config}")
+    # Get check configuration - force full config when user requests full check
+    if check_type == 'full':
+        # When user clicks "Run Full Check Now", enable ALL components regardless of website settings
+        check_config = {
+            'crawl_enabled': True,
+            'visual_enabled': True,
+            'blur_enabled': True,
+            'performance_enabled': True
+        }
+        logger.info(f"Using forced Full Check configuration for website {site_id}: {check_config}")
     else:
-        # Use manual check configuration
+        # Use manual check configuration for specific check types
         check_config = website_manager.get_manual_check_config(check_type)
         logger.info(f"Using manual check configuration for check type '{check_type}': {check_config}")
     
@@ -607,9 +619,10 @@ def manual_check_website(site_id):
     }
 
     # Start the check in a background thread
+    # Pass manager instances to fix database consistency
     thread = threading.Thread(
         target=run_background_task,
-        args=(task_id, perform_website_check, site_id, crawler_options)
+        args=(task_id, perform_website_check, site_id, crawler_options, None, website_manager, history_manager, crawler_module)
     )
     thread.daemon = True
     thread.start()
@@ -802,9 +815,11 @@ def website_crawler(site_id):
     broken_links_count_total = len(crawler_results.get('broken_links', []))
     missing_tags_count_total = len(crawler_results.get('missing_meta_tags', []))
     
-    # Get blur detection statistics if enabled
+    # Get blur detection statistics if enabled (check both old and new blur flags)
     blur_stats = None
-    if website.get('enable_blur_detection', False):
+    blur_enabled = (website.get('enable_blur_detection', False) or 
+                   website.get('auto_blur_enabled', False))
+    if blur_enabled:
         try:
             from src.blur_detector import BlurDetector
             blur_detector = BlurDetector()
@@ -1003,9 +1018,11 @@ def website_summary(site_id):
     # Get crawler statistics
     crawler_stats = crawler.get_latest_crawl_stats(site_id)
     
-    # Get blur detection statistics if enabled
+    # Get blur detection statistics if enabled (check both old and new blur flags)
     blur_stats = None
-    if website.get('enable_blur_detection', False):
+    blur_enabled = (website.get('enable_blur_detection', False) or 
+                   website.get('auto_blur_enabled', False))
+    if blur_enabled:
         try:
             from src.blur_detector import BlurDetector
             blur_detector = BlurDetector()
@@ -1525,7 +1542,9 @@ def run_manual_check_from_ui(site_id):
         logger.info(f"DASHBOARD: Manually triggering check for {site_name} ({site_id}) from UI.")
         flash(f'Initiating manual check for "{site_name}". Please wait a moment for results to update...', 'info')
         
-        check_outcome = perform_website_check(site_id=site_id)
+        check_outcome = perform_website_check(site_id=site_id, website_manager_instance=website_manager, 
+                                               history_manager_instance=history_manager, 
+                                               crawler_module_instance=crawler_module)
         
         status = check_outcome.get('status')
         changes_detected = check_outcome.get('significant_change_detected', False)
