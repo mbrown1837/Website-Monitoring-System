@@ -14,8 +14,8 @@ logger = setup_logging()
 config = get_config() # Ensures config is loaded
 
 # Instantiate managers for CLI use, using default config
-website_mng = WebsiteManager()
-history_mng = HistoryManager()
+website_mng = WebsiteManager(config_path='config/config.yaml')
+history_mng = HistoryManager(config_path='config/config.yaml')
 # No instance of Alerter needed if using module functions
 
 @click.group()

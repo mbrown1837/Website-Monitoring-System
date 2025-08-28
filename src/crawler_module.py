@@ -40,11 +40,11 @@ class CrawlerModule:
             check_external_links=self.config.get('check_external_links', True)
         )
         
-        # Initialize database
-        self._initialize_database()
-        
         # Initialize website manager
         self.website_manager = WebsiteManager(config_path=config_path)
+        
+        # Initialize database
+        self._initialize_database()
         
     def _initialize_database(self):
         """Initialize the SQLite database for storing crawler results."""
@@ -75,8 +75,6 @@ class CrawlerModule:
         )
         ''')
         self.logger.info("CrawlerModule initialized with enhanced Greenflare crawler")
-        
-        self.website_manager = WebsiteManager()
         
     def _check_and_migrate_schema(self, cursor):
         """Check and migrate database schema if needed."""
@@ -582,7 +580,7 @@ class CrawlerModule:
         if not baselines_by_url:
             return
             
-        website_manager = WebsiteManager()
+        website_manager = WebsiteManager(config_path=self.config.get('config_path'))
         website = website_manager.get_website(website_id)
         
         if not website:
@@ -840,7 +838,7 @@ class CrawlerModule:
         from src.website_manager_sqlite import WebsiteManager
         
         # Get website configuration
-        website_manager = WebsiteManager()
+        website_manager = WebsiteManager(config_path=self.config.get('config_path'))
         website = website_manager.get_website(website_id)
         
         if not website:
@@ -1032,7 +1030,7 @@ class CrawlerModule:
         from src.website_manager_sqlite import WebsiteManager
         
         # Get website configuration
-        website_manager = WebsiteManager()
+        website_manager = WebsiteManager(config_path=self.config.get('config_path'))
         website = website_manager.get_website(website_id)
         
         if not website:
@@ -1168,7 +1166,7 @@ class CrawlerModule:
         self.logger.info(f"_run_performance_check_if_enabled called for website {website_id} with options: {options}")
         
         # Get website configuration
-        website_manager = WebsiteManager()
+        website_manager = WebsiteManager(config_path=self.config.get('config_path'))
         website = website_manager.get_website(website_id)
         
         if not website:

@@ -110,7 +110,7 @@ class PerformanceChecker:
         """
         
         # Get website details
-        website_manager = WebsiteManager()
+        website_manager = WebsiteManager(config_path='config/config.yaml')
         website = website_manager.get_website(website_id)
         
         if not website:
