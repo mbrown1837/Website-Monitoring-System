@@ -151,15 +151,15 @@
                         <th>Baseline Created:</th>
                         <td>
                             {% if website.baseline_visual_path %}
-                                {{ website.baseline_captured_utc | humanize_datetime if website.baseline_captured_utc else 'Previously' }}
-                                <button class="btn btn-sm btn-warning ms-2" id="updateBaselineBtn">
-                                    <i class="bi bi-arrow-repeat"></i> Update Baseline
-                                </button>
+                                <span class="text-success">
+                                    <i class="bi bi-check-circle"></i> 
+                                    {{ website.baseline_captured_utc | humanize_datetime if website.baseline_captured_utc else 'Previously' }}
+                                </span>
                         {% else %}
-                                <span class="text-danger">No baseline</span>
-                                <button class="btn btn-sm btn-success ms-2" id="createBaselineBtn">
-                                    <i class="bi bi-plus-circle"></i> Create Baseline
-                                </button>
+                                <span class="text-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> No baseline created yet
+                                </span>
+                                <small class="text-muted d-block">Use "Create/Update Baseline" button below to create one</small>
                     {% endif %}
                 </td>
                     </tr>

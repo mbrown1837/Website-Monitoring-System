@@ -227,21 +227,29 @@ def determine_significance(results: dict, site_config: dict) -> list:
 
     return significant_changes_found
 
-def perform_website_check(site_id: str, crawler_options_override: dict = None, config_path: str = None):
+def perform_website_check(site_id: str, crawler_options_override: dict = None, config_path: str = None, 
+                          website_manager_instance=None, history_manager_instance=None, crawler_module_instance=None):
     """
     Performs a comprehensive check for a single website.
     """
-    # Get properly configured managers
-    website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
-    
-    # During tests, the managers might be pre-configured mocks.
-    # If not, we initialize them as usual.
-    if website_manager is None:
-        website_manager = WebsiteManager(config_path=config_path)
-    if history_manager is None:
-        history_manager = HistoryManager(config_path=config_path)
-    if crawler_module is None:
-        crawler_module = CrawlerModule(config_path=config_path)
+    # Use provided manager instances if available (from main app), otherwise get from scheduler managers
+    if website_manager_instance is not None:
+        website_manager = website_manager_instance
+        history_manager = history_manager_instance  
+        crawler_module = crawler_module_instance
+        config = get_config(config_path=config_path)
+    else:
+        # Get properly configured managers
+        website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
+        
+        # During tests, the managers might be pre-configured mocks.
+        # If not, we initialize them as usual.
+        if website_manager is None:
+            website_manager = WebsiteManager(config_path=config_path)
+        if history_manager is None:
+            history_manager = HistoryManager(config_path=config_path)
+        if crawler_module is None:
+            crawler_module = CrawlerModule(config_path=config_path)
 
     # Get database manager for logging
     from .scheduler_db import get_scheduler_db_manager
