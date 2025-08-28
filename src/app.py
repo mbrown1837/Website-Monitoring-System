@@ -322,6 +322,9 @@ def add_website():
             if not name or not url:
                 flash('Name and URL are required.', 'danger')
             else:
+                # Clean and normalize URL to prevent data corruption
+                url = url.strip()
+                
                 website_data = {
                     "url": url,
                     "name": name,
@@ -462,7 +465,7 @@ def edit_website(site_id):
             # Create update data
             updated_data = {
                 'name': request.form['name'],
-                'url': request.form['url'],
+                'url': request.form['url'].strip(),  # Clean URL to prevent data corruption
                 'check_interval_minutes': int(request.form.get('check_interval_minutes', website.get('check_interval_minutes'))),
                 'tags': [tag.strip() for tag in request.form.get('tags', '').split(',') if tag.strip()],
                 'notification_emails': notification_emails,
