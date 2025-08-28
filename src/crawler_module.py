@@ -654,7 +654,7 @@ class CrawlerModule:
             
             for tag in results.get("missing_meta_tags", []):
                 cursor.execute('INSERT INTO missing_meta_tags (crawl_id, url, type, element, details) VALUES (?, ?, ?, ?, ?)',
-                               (crawl_id, tag["url"], tag.get("type"), tag.get("element"), tag.get("details")))
+                               (crawl_id, tag["url"], tag.get("tag_type"), tag.get("element"), tag.get("details")))
 
             conn.commit()
             self.logger.info(f"Crawl results for {results['url']} saved to database with crawl_id: {crawl_id}")
