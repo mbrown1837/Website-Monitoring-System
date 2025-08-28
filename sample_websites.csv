@@ -1,31 +1,9 @@
 name,url
-Website 1,https://example1.com
-Website 2,https://example2.com
-Website 3,https://example3.com
-Website 4,https://example4.com
-Website 5,https://example5.com
-Website 6,https://example6.com
-Website 7,https://example7.com
-Website 8,https://example8.com
-Website 9,https://example9.com
-Website 10,https://example10.com
-Website 11,https://example11.com
-Website 12,https://example12.com
-Website 13,https://example13.com
-Website 14,https://example14.com
-Website 15,https://example15.com
-Website 16,https://example16.com
-Website 17,https://example17.com
-Website 18,https://example18.com
-Website 19,https://example19.com
-Website 20,https://example20.com
-Website 21,https://example21.com
-Website 22,https://example22.com
-Website 23,https://example23.com
-Website 24,https://example24.com
-Website 25,https://example25.com
-Website 26,https://example26.com
-Website 27,https://example27.com
-Website 28,https://example28.com
-Website 29,https://example29.com
-Website 30,https://example30.com
+Google,https://google.com
+GitHub,https://github.com
+Stack Overflow,https://stackoverflow.com
+Example Website,https://example.com
+My Blog,myblog.com
+Test Site 1,https://testsite1.com
+Test Site 2,https://testsite2.com
+Test Site 3,https://testsite3.com
