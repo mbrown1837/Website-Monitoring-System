@@ -266,7 +266,7 @@ class CrawlerModule:
                         'check_external_links': False,  # Don't check external links for blur-only
                         'extract_images': True,  # Essential for blur detection
                         'extract_alt_text': True,  # Also useful for accessibility
-                        'meta_tags': ["title", "description"]  # Minimal meta tags for blur-only
+                        'meta_tags': self.config.get('meta_tags_to_check', ["title", "description"])  # Use configured meta tags for blur-only
                     }
                     
                     crawler = self.bot.configure(greenflare_config)
@@ -287,7 +287,7 @@ class CrawlerModule:
                     'check_external_links': options.get('check_external_links', True),
                     'extract_images': True,  # Enable image extraction for blur detection
                     'extract_alt_text': True,  # Also extract alt text for accessibility checks
-                    'meta_tags': ["title", "description", "keywords", "robots", "canonical"]  # Standard meta tags
+                                            'meta_tags': self.config.get('meta_tags_to_check', ["title", "description", "keywords", "robots", "canonical"])  # Use configured meta tags
                 }
                 
                 # Run crawl if crawl is enabled OR performance check is enabled (need pages for performance analysis)
@@ -698,7 +698,7 @@ class CrawlerModule:
             broken_links = [{"url": r[0], "status_code": r[1], "referring_page": r[2], "error_type": r[3], "error_message": r[4], "is_internal": r[5]} for r in cursor.fetchall()]
 
             cursor.execute('SELECT url, type, element, details FROM missing_meta_tags WHERE crawl_id = ?', (crawl_id,))
-            missing_meta_tags = [{"url": r[0], "type": r[1], "element": r[2], "details": r[3]} for r in cursor.fetchall()]
+            missing_meta_tags = [{"url": r[0], "tag_type": r[1], "element": r[2], "details": r[3]} for r in cursor.fetchall()]
 
             return {
                 "crawl_id": crawl_id, "timestamp": timestamp, **crawl_data,
@@ -727,7 +727,7 @@ class CrawlerModule:
             broken_links = [{"url": r[0], "status_code": r[1], "referring_page": r[2], "error_type": r[3], "error_message": r[4], "is_internal": r[5]} for r in cursor.fetchall()]
 
             cursor.execute('SELECT url, type, element, details FROM missing_meta_tags WHERE crawl_id = ?', (crawl_id,))
-            missing_meta_tags = [{"url": r[0], "type": r[1], "element": r[2], "details": r[3]} for r in cursor.fetchall()]
+            missing_meta_tags = [{"url": r[0], "tag_type": r[1], "element": r[2], "details": r[3]} for r in cursor.fetchall()]
 
             return {
                 "crawl_id": crawl_id, "timestamp": timestamp, "website_id": website_id, **crawl_data,
