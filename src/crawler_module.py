@@ -580,21 +580,24 @@ class CrawlerModule:
         if not baselines_by_url:
             return
             
-        website_manager = WebsiteManager(config_path=self.config.get('config_path'))
-        website = website_manager.get_website(website_id)
+        # Use the existing website_manager instance instead of creating a new one
+        website = self.website_manager.get_website(website_id)
         
         if not website:
             return
 
         all_baselines = website.get("all_baselines", {})
+        current_time = datetime.now(timezone.utc).isoformat()
+        
         for url, path in baselines_by_url.items():
-            all_baselines[url] = {'path': path, 'timestamp': datetime.now(timezone.utc).isoformat()}
+            all_baselines[url] = {'path': path, 'timestamp': current_time}
         
         updates = {"all_baselines": all_baselines, "has_subpage_baselines": True}
         if not website.get('baseline_visual_path') and website.get('url') in all_baselines:
             updates['baseline_visual_path'] = all_baselines[website.get('url')]['path']
+            updates['baseline_captured_utc'] = current_time
         
-        website_manager.update_website(website_id, updates)
+        self.website_manager.update_website(website_id, updates)
             
     def _normalize_url(self, url):
         if not url:
