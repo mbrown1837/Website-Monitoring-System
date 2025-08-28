@@ -19,9 +19,8 @@ semantic_similarity_threshold: 0.9
 ssim_similarity_threshold: 0.95
 visual_change_alert_threshold_percent: 0.01
 meta_tags_to_check:
-- description
-- keywords
 - title
+- description
 visual_comparison_ignore_regions: null
 check_history_file_path: data/check_history.json
 fetch_retry_total: 3

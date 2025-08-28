@@ -171,8 +171,8 @@
     <div class="row mb-3">
         <div class="col-12">
             <label for="meta_tags_to_check" class="form-label">Meta Tags to Monitor (comma-separated)</label>
-            <input type="text" class="form-control" id="meta_tags_to_check" name="meta_tags_to_check" value="{{ config.get('meta_tags_to_check', ['description', 'keywords', 'title']) | join(', ') }}">
-            <div class="form-text">List of meta tag names to check (e.g., description, keywords, viewport, title).</div>
+            <input type="text" class="form-control" id="meta_tags_to_check" name="meta_tags_to_check" value="{{ config.get('meta_tags_to_check', ['title', 'description']) | join(', ') }}">
+            <div class="form-text">List of meta tag names to check (e.g., title, description).</div>
         </div>
     </div>
 
@@ -239,5 +239,33 @@
         </div>
     </div>
 </form>
+
+<!-- Scheduler Management Section -->
+<hr>
+<div class="row mt-4">
+    <div class="col-12">
+        <h4>Scheduler Management</h4>
+        <p class="text-muted">Administrative actions for managing the task scheduler.</p>
+    </div>
+</div>
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="card-title text-warning">⚠️ Clear All Scheduled Tasks</h6>
+                <p class="card-text">
+                    This will remove all scheduled monitoring tasks from the scheduler. 
+                    New tasks will be automatically rescheduled when websites are added or edited.
+                </p>
+                <form method="POST" action="{{ url_for('clear_scheduler_tasks') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-warning" 
+                            onclick="return confirm('Are you sure you want to clear all scheduled tasks? This action cannot be undone.')">
+                        Clear All Scheduler Tasks
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %} 

@@ -329,6 +329,14 @@ class WebsiteManagerSQLite:
                     if website_id in self._websites_cache:
                         del self._websites_cache[website_id]
                     
+                    # Clean up scheduler task for this website
+                    try:
+                        from .scheduler_integration import remove_site_scheduler_task
+                        remove_site_scheduler_task(website_id)
+                        self.logger.info(f"Removed scheduler task for website {website_id}")
+                    except Exception as scheduler_error:
+                        self.logger.warning(f"Could not remove scheduler task for website {website_id}: {scheduler_error}")
+                    
                     self.logger.info(f"Removed website {website_id}")
                     return True
                 else:

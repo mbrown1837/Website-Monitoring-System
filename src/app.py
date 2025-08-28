@@ -255,6 +255,26 @@ def settings():
             
     return render_template('settings.html', config=current_config)
 
+@app.route('/admin/clear_scheduler_tasks', methods=['POST'])
+def clear_scheduler_tasks():
+    """Admin route to clear all scheduled tasks."""
+    try:
+        from .scheduler_integration import clear_all_scheduler_tasks
+        success = clear_all_scheduler_tasks()
+        
+        if success:
+            flash('All scheduler tasks cleared successfully!', 'success')
+            logger.info("Admin action: All scheduler tasks cleared")
+        else:
+            flash('Failed to clear scheduler tasks. Check logs for details.', 'warning')
+            logger.warning("Admin action: Failed to clear scheduler tasks")
+            
+    except Exception as e:
+        logger.error(f"Error clearing scheduler tasks: {e}", exc_info=True)
+        flash(f'Error clearing scheduler tasks: {str(e)}', 'danger')
+    
+    return redirect(url_for('settings'))
+
 @app.route('/website/add', methods=['GET', 'POST'])
 def add_website():
     current_config = get_app_config()
@@ -475,8 +495,9 @@ def remove_website(site_id):
     try:
         website = website_manager.get_website(site_id)
         if website:
+            # Remove the website (this will also clean up the scheduler task)
             website_manager.remove_website(site_id)
-            flash(f'Website "{website.get("name", site_id)}" removed successfully!', 'success')
+            flash(f'Website "{website.get("name", site_id)}" and its scheduler task removed successfully!', 'success')
         else:
             flash(f'Website with ID "{site_id}" not found.', 'danger')
     except Exception as e:

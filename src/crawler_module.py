@@ -287,7 +287,7 @@ class CrawlerModule:
                     'check_external_links': options.get('check_external_links', True),
                     'extract_images': True,  # Enable image extraction for blur detection
                     'extract_alt_text': True,  # Also extract alt text for accessibility checks
-                                            'meta_tags': self.config.get('meta_tags_to_check', ["title", "description", "keywords", "robots", "canonical"])  # Use configured meta tags
+                                            'meta_tags': self.config.get('meta_tags_to_check', ["title", "description"])  # Use configured meta tags
                 }
                 
                 # Run crawl if crawl is enabled OR performance check is enabled (need pages for performance analysis)
