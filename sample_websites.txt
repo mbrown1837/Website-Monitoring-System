@@ -1,0 +1,35 @@
+# Sample websites for bulk import
+# One URL per line, comments start with #
+# Replace these with your actual 60 websites
+https://example1.com
+https://example2.com
+https://example3.com
+https://example4.com
+https://example5.com
+https://example6.com
+https://example7.com
+https://example8.com
+https://example9.com
+https://example10.com
+https://example11.com
+https://example12.com
+https://example13.com
+https://example14.com
+https://example15.com
+https://example16.com
+https://example17.com
+https://example18.com
+https://example19.com
+https://example20.com
+https://example21.com
+https://example22.com
+https://example23.com
+https://example24.com
+https://example25.com
+https://example26.com
+https://example27.com
+https://example28.com
+https://example29.com
+https://example30.com
+https://example31.com
+# Add more websites up to 60 or however many you need...

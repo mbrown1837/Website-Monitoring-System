@@ -589,13 +589,52 @@ class CrawlerModule:
         all_baselines = website.get("all_baselines", {})
         current_time = datetime.now(timezone.utc).isoformat()
         
+        # Log baseline URLs for debugging
+        self.logger.info(f"Processing {len(baselines_by_url)} baseline URLs: {list(baselines_by_url.keys())}")
+        self.logger.info(f"Website main URL: {website.get('url')}")
+        
         for url, path in baselines_by_url.items():
             all_baselines[url] = {'path': path, 'timestamp': current_time}
         
         updates = {"all_baselines": all_baselines, "has_subpage_baselines": True}
-        if not website.get('baseline_visual_path') and website.get('url') in all_baselines:
-            updates['baseline_visual_path'] = all_baselines[website.get('url')]['path']
+        
+        # Enhanced logic to find the main page baseline
+        website_url = website.get('url')
+        main_baseline_path = None
+        
+        # First, try exact URL match
+        if website_url in all_baselines:
+            main_baseline_path = all_baselines[website_url]['path']
+            self.logger.info(f"Found exact URL match for baseline: {website_url}")
+        else:
+            # Try to find the homepage by checking common variations
+            homepage_candidates = [
+                website_url,
+                website_url.rstrip('/'),
+                website_url + '/',
+            ]
+            
+            # Also check for any URL that matches the domain and has 'home' in the path
+            for url in all_baselines.keys():
+                if url.startswith(website_url.rstrip('/')) and ('home' in url.lower() or url.rstrip('/') == website_url.rstrip('/')):
+                    homepage_candidates.append(url)
+            
+            for candidate in homepage_candidates:
+                if candidate in all_baselines:
+                    main_baseline_path = all_baselines[candidate]['path']
+                    self.logger.info(f"Found baseline match for candidate URL: {candidate}")
+                    break
+        
+        # Update the main baseline path if found and not already set
+        if main_baseline_path and not website.get('baseline_visual_path'):
+            updates['baseline_visual_path'] = main_baseline_path
             updates['baseline_captured_utc'] = current_time
+            self.logger.info(f"Updated baseline_visual_path: {main_baseline_path}")
+        elif website.get('baseline_visual_path'):
+            self.logger.info(f"Baseline already exists: {website.get('baseline_visual_path')}")
+        else:
+            self.logger.warning(f"Could not find main page baseline for website: {website_url}")
+            self.logger.warning(f"Available baseline URLs: {list(all_baselines.keys())}")
         
         self.website_manager.update_website(website_id, updates)
             
