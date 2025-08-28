@@ -32548,5 +32548,4316 @@
         }
       }
     }
+  },
+  {
+    "check_id": "b469445a-45df-4827-abe5-18cd3dac383f",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T01:24:18.681879+00:00",
+    "timestamp_readable": "2025-08-28 01:27:40 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T06:24:18.694530",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_012420_739641_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 237,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T06:26:28.675910",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 74,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4252.288749389183,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.19
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4252.288749389183,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.43
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.04145243759944741,
+                    "displayValue": "0.041",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 141,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.86
+                  },
+                  "speed_index": {
+                    "value": 4252.288749389183,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.77
+                  },
+                  "total_blocking_time": {
+                    "value": 115.5,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 91,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1167.106330828737,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1460.825307713088,
+                    "displayValue": "1.5\u00a0s",
+                    "score": 0.82
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009852883606375368,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 103,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  },
+                  "speed_index": {
+                    "value": 1167.106330828737,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 104.5,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3517.043640184919,
+                    "displayValue": "3.5\u00a0s",
+                    "score": 0.34
+                  },
+                  "largest_contentful_paint": {
+                    "value": 10446.38792323925,
+                    "displayValue": "10.4\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 90,
+                    "displayValue": "90\u00a0ms",
+                    "score": 0.98
+                  },
+                  "speed_index": {
+                    "value": 3517.043640184919,
+                    "displayValue": "3.5\u00a0s",
+                    "score": 0.88
+                  },
+                  "total_blocking_time": {
+                    "value": 62,
+                    "displayValue": "60\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 97,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 881.8832668284916,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.92
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1040.9828206165207,
+                    "displayValue": "1.0\u00a0s",
+                    "score": 0.94
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.00731223193098037,
+                    "displayValue": "0.007",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 53,
+                    "displayValue": "50\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 975.0955390673362,
+                    "displayValue": "1.0\u00a0s",
+                    "score": 0.97
+                  },
+                  "total_blocking_time": {
+                    "value": 1.5,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "ef7d6df2-9544-4bc2-9614-434e46a71c7e",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T01:29:18.682996+00:00",
+    "timestamp_readable": "2025-08-28 01:30:09 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T06:29:18.684200",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 238,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite2.com",
+        "timestamp": "2025-08-28T06:29:19.461862",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite2.com": {
+            "page_title": "Test Site 2",
+            "url": "http://testsite2.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 705.7562639222144,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 201,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 201,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 17,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 372.7930835088094,
+                    "displayValue": "0.4\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              }
+            }
+          },
+          "http://testsite2.com/": {
+            "page_title": "",
+            "url": "http://testsite2.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 796.9442620000979,
+                    "displayValue": "0.8\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 282.93679166675236,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "8dabfb28-bfd3-4319-aa97-f0fa212b94d6",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T01:32:40.275606+00:00",
+    "timestamp_readable": "2025-08-28 01:36:09 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T06:32:40.276535",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_013241_874712_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 239,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T06:34:49.470242",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 66,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3655.7345897878604,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 9970.765745099283,
+                    "displayValue": "10.0\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 141,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.86
+                  },
+                  "speed_index": {
+                    "value": 3655.7345897878604,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 114.5,
+                    "displayValue": "110\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 82,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1160.8048749936574,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1200.8060602836936,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.89
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009852883606375368,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 189,
+                    "displayValue": "190\u00a0ms",
+                    "score": 0.7
+                  },
+                  "speed_index": {
+                    "value": 1160.8048749936574,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 302.1508834545209,
+                    "displayValue": "300\u00a0ms",
+                    "score": 0.58
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3664.055302245606,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 9843.77815283869,
+                    "displayValue": "9.8\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 95,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.97
+                  },
+                  "speed_index": {
+                    "value": 3664.055302245606,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 61,
+                    "displayValue": "60\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 97,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 910.4779504802277,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.91
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1031.7817067356652,
+                    "displayValue": "1.0\u00a0s",
+                    "score": 0.94
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.00913879763611288,
+                    "displayValue": "0.009",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 92,
+                    "displayValue": "90\u00a0ms",
+                    "score": 0.97
+                  },
+                  "speed_index": {
+                    "value": 932.3016732344347,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.98
+                  },
+                  "total_blocking_time": {
+                    "value": 94.5,
+                    "displayValue": "90\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "426bb762-add4-4e94-b9ec-f4cee98a7709",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T01:40:09.755050+00:00",
+    "timestamp_readable": "2025-08-28 01:41:02 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T06:40:09.758378",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 240,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite2.com",
+        "timestamp": "2025-08-28T06:40:10.652399",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite2.com": {
+            "page_title": "Test Site 2",
+            "url": "http://testsite2.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 699.4614640041591,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 197,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 197,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 292.0530082543691,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              }
+            }
+          },
+          "http://testsite2.com/": {
+            "page_title": "",
+            "url": "http://testsite2.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 635,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 703.4726599941254,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 196,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 196,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 292.2120416673521,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "3a30f69c-73c4-4910-94d6-70df772a6e5b",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T01:41:09.643761+00:00",
+    "timestamp_readable": "2025-08-28 01:44:43 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T06:41:09.645084",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_014111_506018_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 241,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T06:43:18.657183",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3664.9368728090103,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 10330.48784630387,
+                    "displayValue": "10.3\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 69,
+                    "displayValue": "70\u00a0ms",
+                    "score": 0.99
+                  },
+                  "speed_index": {
+                    "value": 3664.9368728090103,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 26,
+                    "displayValue": "30\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 96,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 881.020227152555,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.92
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1163.7350629569428,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.91
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.00430404052070938,
+                    "displayValue": "0.004",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 95,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.97
+                  },
+                  "speed_index": {
+                    "value": 905.9664386847721,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.98
+                  },
+                  "total_blocking_time": {
+                    "value": 77.5,
+                    "displayValue": "80\u00a0ms",
+                    "score": 0.99
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "error": "No data received from API"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 95,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1128.0767278265112,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.79
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1168.077509380846,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.9
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009922932982857013,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 100,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  },
+                  "speed_index": {
+                    "value": 1128.0767278265112,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.95
+                  },
+                  "total_blocking_time": {
+                    "value": 49.00000000000023,
+                    "displayValue": "50\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "4378f568-738b-4d9d-9b75-3b32d907d6fc",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T01:49:43.371437+00:00",
+    "timestamp_readable": "2025-08-28 01:53:03 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T06:49:43.374345",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_014945_423670_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 242,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T06:51:54.284483",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3369.3383405757213,
+                    "displayValue": "3.4\u00a0s",
+                    "score": 0.38
+                  },
+                  "largest_contentful_paint": {
+                    "value": 9775.435952211466,
+                    "displayValue": "9.8\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.0001259419817450575,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 131,
+                    "displayValue": "130\u00a0ms",
+                    "score": 0.89
+                  },
+                  "speed_index": {
+                    "value": 3590.9187253867167,
+                    "displayValue": "3.6\u00a0s",
+                    "score": 0.87
+                  },
+                  "total_blocking_time": {
+                    "value": 113.5,
+                    "displayValue": "110\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 90,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1154.091596735016,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.78
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1458.865951126169,
+                    "displayValue": "1.5\u00a0s",
+                    "score": 0.82
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009812659263328204,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 135,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.88
+                  },
+                  "speed_index": {
+                    "value": 1154.091596735016,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 133.00000000000023,
+                    "displayValue": "130\u00a0ms",
+                    "score": 0.92
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 76,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4162.574653571882,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.2
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4162.574653571882,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.45
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.04725820808503567,
+                    "displayValue": "0.047",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 121,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.92
+                  },
+                  "speed_index": {
+                    "value": 4162.574653571882,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.78
+                  },
+                  "total_blocking_time": {
+                    "value": 82.5,
+                    "displayValue": "80\u00a0ms",
+                    "score": 0.99
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 97,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 882.8162833393372,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.92
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1118.9213165587332,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.92
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 60,
+                    "displayValue": "60\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 891.3297638432975,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.98
+                  },
+                  "total_blocking_time": {
+                    "value": 12.65772788871709,
+                    "displayValue": "10\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "cda60ae1-1157-4ca1-8eb5-e7b1e76c4734",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T01:53:04.757134+00:00",
+    "timestamp_readable": "2025-08-28 01:53:54 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T06:53:04.758025",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 243,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite2.com",
+        "timestamp": "2025-08-28T06:53:05.509866",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite2.com": {
+            "page_title": "Test Site 2",
+            "url": "http://testsite2.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 807.7420499464273,
+                    "displayValue": "0.8\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 290.07599166954554,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              }
+            }
+          },
+          "http://testsite2.com/": {
+            "page_title": "",
+            "url": "http://testsite2.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 634,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 736.0379279995823,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 192,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 192,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 297.1288999982178,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "38017366-0e4a-4f45-9b89-8eada8e0e38d",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T01:59:15.117972+00:00",
+    "timestamp_readable": "2025-08-28 02:02:40 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T06:59:15.118813",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_015917_658893_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 244,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T07:01:24.476677",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3368.3686207173428,
+                    "displayValue": "3.4\u00a0s",
+                    "score": 0.38
+                  },
+                  "largest_contentful_paint": {
+                    "value": 10448.920255738056,
+                    "displayValue": "10.4\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 119,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.92
+                  },
+                  "speed_index": {
+                    "value": 3368.3686207173428,
+                    "displayValue": "3.4\u00a0s",
+                    "score": 0.9
+                  },
+                  "total_blocking_time": {
+                    "value": 115,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 81,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1132.7743116833403,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.79
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1172.776136750978,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.9
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.011286497902006906,
+                    "displayValue": "0.011",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 204,
+                    "displayValue": "200\u00a0ms",
+                    "score": 0.65
+                  },
+                  "speed_index": {
+                    "value": 1132.7743116833403,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 324.0000000000002,
+                    "displayValue": "320\u00a0ms",
+                    "score": 0.54
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3655.8085623752813,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 10447.891789317622,
+                    "displayValue": "10.4\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 58,
+                    "displayValue": "60\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 3655.8085623752813,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 9.5,
+                    "displayValue": "10\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 95,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1137.0229556439624,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.79
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1137.0229556439624,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.91
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.011553496809361238,
+                    "displayValue": "0.012",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 101,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  },
+                  "speed_index": {
+                    "value": 1140.2554922752527,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 33.5,
+                    "displayValue": "30\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "b28d7628-ad37-478d-85a6-084335ad812a",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T02:04:15.127001+00:00",
+    "timestamp_readable": "2025-08-28 02:05:06 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T07:04:15.128258",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 245,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite2.com",
+        "timestamp": "2025-08-28T07:04:16.011041",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite2.com": {
+            "page_title": "Test Site 2",
+            "url": "http://testsite2.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 636,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 636,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 708.7767761831284,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 195,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 195,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 310.9837000131607,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              }
+            }
+          },
+          "http://testsite2.com/": {
+            "page_title": "",
+            "url": "http://testsite2.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 637,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 637,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 704.5255839922427,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 194,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 194,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 278.14995834430056,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "79bbc742-05ce-40ad-94cd-15a357de6c2a",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T02:07:40.389700+00:00",
+    "timestamp_readable": "2025-08-28 02:11:00 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T07:07:40.390552",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_020742_230407_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 246,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T07:09:48.873955",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 66,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3678.340470873888,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 9987.50348304468,
+                    "displayValue": "10.0\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 132,
+                    "displayValue": "130\u00a0ms",
+                    "score": 0.89
+                  },
+                  "speed_index": {
+                    "value": 3678.340470873888,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 93.5,
+                    "displayValue": "90\u00a0ms",
+                    "score": 0.98
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 93,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1163.431367312873,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1203.4317393858119,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.89
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009901278169351425,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 129,
+                    "displayValue": "130\u00a0ms",
+                    "score": 0.9
+                  },
+                  "speed_index": {
+                    "value": 1163.431367312873,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 104.5,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 74,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4248.30083016298,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.19
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4248.30083016298,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.43
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.04857165714143563,
+                    "displayValue": "0.049",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 136,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.88
+                  },
+                  "speed_index": {
+                    "value": 4248.30083016298,
+                    "displayValue": "4.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "total_blocking_time": {
+                    "value": 133,
+                    "displayValue": "130\u00a0ms",
+                    "score": 0.96
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 87,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1131.1718050346983,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.79
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1187.471853612367,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.9
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009922932982857013,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 148,
+                    "displayValue": "150\u00a0ms",
+                    "score": 0.84
+                  },
+                  "speed_index": {
+                    "value": 1131.1718050346983,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 229.99999999999977,
+                    "displayValue": "230\u00a0ms",
+                    "score": 0.73
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "b28512fc-6194-447a-a69f-8562cc5ff66f",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T02:15:06.283027+00:00",
+    "timestamp_readable": "2025-08-28 02:15:56 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T07:15:06.284150",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 247,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite2.com",
+        "timestamp": "2025-08-28T07:15:07.086926",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite2.com": {
+            "page_title": "Test Site 2",
+            "url": "http://testsite2.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 636,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 636,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 688.2013957281113,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 193,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 289.764341663445,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 2"
+              }
+            }
+          },
+          "http://testsite2.com/": {
+            "page_title": "",
+            "url": "http://testsite2.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 638,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 638,
+                    "displayValue": "0.6\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 734.1629919946195,
+                    "displayValue": "0.7\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 100,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 194,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "largest_contentful_paint": {
+                    "value": 194,
+                    "displayValue": "0.2\u00a0s",
+                    "score": 1
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 16,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  },
+                  "speed_index": {
+                    "value": 335.860783333374,
+                    "displayValue": "0.3\u00a0s",
+                    "score": 1
+                  },
+                  "total_blocking_time": {
+                    "value": 0,
+                    "displayValue": "0\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": ""
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "120671de-3074-4d49-9d50-5e432ac5947a",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T02:16:00.268631+00:00",
+    "timestamp_readable": "2025-08-28 02:19:13 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T07:16:00.269999",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_021602_109581_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 248,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T07:18:08.588185",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 67,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 3664.308247253881,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.3
+                  },
+                  "largest_contentful_paint": {
+                    "value": 9822.871948753938,
+                    "displayValue": "9.8\u00a0s",
+                    "score": 0
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 99,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.96
+                  },
+                  "speed_index": {
+                    "value": 3664.308247253881,
+                    "displayValue": "3.7\u00a0s",
+                    "score": 0.86
+                  },
+                  "total_blocking_time": {
+                    "value": 48,
+                    "displayValue": "50\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 94,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1168.2788282565746,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1208.2793880453669,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.89
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.011127286803520462,
+                    "displayValue": "0.011",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 95,
+                    "displayValue": "100\u00a0ms",
+                    "score": 0.97
+                  },
+                  "speed_index": {
+                    "value": 1168.2788282565746,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 22.5,
+                    "displayValue": "20\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 73,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4254.534146291906,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.19
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4254.534146291906,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.43
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.0412388631117542,
+                    "displayValue": "0.041",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 152,
+                    "displayValue": "150\u00a0ms",
+                    "score": 0.83
+                  },
+                  "speed_index": {
+                    "value": 4254.534146291906,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.76
+                  },
+                  "total_blocking_time": {
+                    "value": 167,
+                    "displayValue": "170\u00a0ms",
+                    "score": 0.93
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 95,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1129.5933023434422,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.79
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1129.5933023434422,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.91
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009922932982857013,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 93,
+                    "displayValue": "90\u00a0ms",
+                    "score": 0.97
+                  },
+                  "speed_index": {
+                    "value": 1129.5933023434422,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 38.5,
+                    "displayValue": "40\u00a0ms",
+                    "score": 1
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "41ba6d5e-2de0-43cb-b8d8-18ed0b7e817e",
+    "site_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp_utc": "2025-08-28T02:27:58.618532+00:00",
+    "timestamp_readable": "2025-08-28 02:31:16 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite1.com",
+    "significant_change_detected": false,
+    "website_id": "28226738-fb8e-4c2b-b032-71eb2a86b6c1",
+    "timestamp": "2025-08-28T07:27:58.619408",
+    "broken_links": [],
+    "missing_meta_tags": [
+      {
+        "url": "http://testsite1.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "http://testsite1.com/",
+        "status_code": 200,
+        "title": "HugeDomains.com",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/logo.png",
+            "alt": "logo"
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/phone-icon.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/care.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/guarant-footer.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/escrow.png",
+            "alt": ""
+          },
+          {
+            "src": "https://static.hugedomains.com/images/hdv3-img/geo.png",
+            "alt": ""
+          },
+          {
+            "src": "//c.statcounter.com/5694535/0/91f91c19/1/",
+            "alt": "shopify\r\n    site analytics"
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "http://testsite1.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite1.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {
+      "http://testsite1.com/": "data/snapshots/testsite1_com/28226738-fb8e-4c2b-b032-71eb2a86b6c1/visual/20250828_022800_675660_utc.png"
+    },
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "page_results": {
+      "http://testsite1.com/": {
+        "url_path": "home"
+      }
+    },
+    "crawl_id": 249,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 0,
+      "blurry_images": 0,
+      "total_images_processed": 0,
+      "total_blurry_images": 0,
+      "blur_percentage": 0,
+      "duplicates_removed": 0,
+      "unique_images_processed": 0,
+      "total_images_found": 0
+    },
+    "performance_check": {
+      "performance_check_summary": {
+        "enabled": true,
+        "main_url": "http://testsite1.com",
+        "timestamp": "2025-08-28T07:30:07.199705",
+        "pages_analyzed": 2,
+        "results": {
+          "http://testsite1.com": {
+            "page_title": "Test Site 1",
+            "url": "http://testsite1.com",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 75,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4257.556125643069,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.18
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4257.556125643069,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.43
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.045847905148545566,
+                    "displayValue": "0.046",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 119,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.92
+                  },
+                  "speed_index": {
+                    "value": 4257.556125643069,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.76
+                  },
+                  "total_blocking_time": {
+                    "value": 77.5,
+                    "displayValue": "80\u00a0ms",
+                    "score": 0.99
+                  }
+                },
+                "page_title": "Test Site 1"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 88,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 1159.3258745070164,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.77
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1462.3821180431553,
+                    "displayValue": "1.5\u00a0s",
+                    "score": 0.82
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.009882708639809848,
+                    "displayValue": "0.01",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 144,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.86
+                  },
+                  "speed_index": {
+                    "value": 1159.3258745070164,
+                    "displayValue": "1.2\u00a0s",
+                    "score": 0.94
+                  },
+                  "total_blocking_time": {
+                    "value": 176.99999999999977,
+                    "displayValue": "180\u00a0ms",
+                    "score": 0.84
+                  }
+                },
+                "page_title": "Test Site 1"
+              }
+            }
+          },
+          "http://testsite1.com/": {
+            "page_title": "HugeDomains.com",
+            "url": "http://testsite1.com/",
+            "results": {
+              "mobile": {
+                "device_type": "mobile",
+                "performance_score": 74,
+                "performance_grade": "B",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 4254.871815147849,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.19
+                  },
+                  "largest_contentful_paint": {
+                    "value": 4254.871815147849,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.43
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0.04725820808503567,
+                    "displayValue": "0.047",
+                    "score": 0.99
+                  },
+                  "max_potential_fid": {
+                    "value": 143,
+                    "displayValue": "140\u00a0ms",
+                    "score": 0.86
+                  },
+                  "speed_index": {
+                    "value": 4254.871815147849,
+                    "displayValue": "4.3\u00a0s",
+                    "score": 0.76
+                  },
+                  "total_blocking_time": {
+                    "value": 121.5,
+                    "displayValue": "120\u00a0ms",
+                    "score": 0.97
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              },
+              "desktop": {
+                "device_type": "desktop",
+                "performance_score": 97,
+                "performance_grade": "A",
+                "metrics": {
+                  "first_contentful_paint": {
+                    "value": 881.6963426548714,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.92
+                  },
+                  "largest_contentful_paint": {
+                    "value": 1112.347676781239,
+                    "displayValue": "1.1\u00a0s",
+                    "score": 0.92
+                  },
+                  "cumulative_layout_shift": {
+                    "value": 0,
+                    "displayValue": "0",
+                    "score": 1
+                  },
+                  "max_potential_fid": {
+                    "value": 83,
+                    "displayValue": "80\u00a0ms",
+                    "score": 0.98
+                  },
+                  "speed_index": {
+                    "value": 881.6963426548714,
+                    "displayValue": "0.9\u00a0s",
+                    "score": 0.98
+                  },
+                  "total_blocking_time": {
+                    "value": 72,
+                    "displayValue": "70\u00a0ms",
+                    "score": 0.99
+                  }
+                },
+                "page_title": "HugeDomains.com"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "check_id": "9b9902a5-ad2c-426a-8109-8a44f923e591",
+    "site_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp_utc": "2025-08-28T02:32:58.603712+00:00",
+    "timestamp_readable": "2025-08-28 02:32:59 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "http://testsite2.com",
+    "significant_change_detected": false,
+    "website_id": "caa662c9-1d02-4623-9d48-1cf783dd8912",
+    "timestamp": "2025-08-28T07:32:58.637948",
+    "broken_links": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "referring_page": "",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      }
+    ],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "http://testsite2.com/",
+        "status_code": 403,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": null
+      }
+    ],
+    "internal_urls": [
+      "http://testsite2.com/"
+    ],
+    "external_urls": [],
+    "processed_urls": [
+      "http://testsite2.com/"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 1,
+      "total_links": 1,
+      "total_images": 0,
+      "status_code_counts": {
+        "403": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": true,
+      "blur_enabled": true,
+      "performance_enabled": true
+    },
+    "crawl_id": 250
+  },
+  {
+    "check_id": "2b0b8983-9340-4bc5-90ba-460305d55f52",
+    "site_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+    "timestamp_utc": "2025-08-28T08:19:30.823821+00:00",
+    "timestamp_readable": "2025-08-28 08:19:52 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://adrianl61.sg-host.com/",
+    "significant_change_detected": false,
+    "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+    "timestamp": "2025-08-28T13:19:30.825813",
+    "broken_links": [
+      {
+        "url": "https://adrianl61.sg-host.com/contact-us",
+        "status_code": 404,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/services",
+        "status_code": 404,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": true
+      },
+      {
+        "url": "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+        "status_code": 429,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "error_type": "HTTP Error",
+        "error_message": "",
+        "is_internal": false
+      }
+    ],
+    "missing_meta_tags": [
+      {
+        "url": "https://adrianl61.sg-host.com/",
+        "tag_type": "title",
+        "element": "title",
+        "details": "Title too long (102 chars)",
+        "suggestion": "Shorten the title to improve readability (recommended: 30-60 characters)."
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/",
+        "tag_type": "description",
+        "element": "description",
+        "details": "Missing meta description",
+        "suggestion": "Add a meta description between 120-160 characters that summarizes the page content and encourages clicks."
+      }
+    ],
+    "all_pages": [
+      {
+        "url": "https://adrianl61.sg-host.com/",
+        "status_code": 200,
+        "title": "Rios Broker Agency \u2013 Your trusted California insurance partner for Medicare, Health, and Life coverage",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/Rios-broker-agency-1024x1024.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/pexels-alexander-suhorucov-6457544-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/asian-young-female-insurance-agent-in-formal-suit-2022-04-19-04-03-47-6G9Z37M-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hands-handshake-partnership-8062985-1-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hammer-libra-dish-802301-768x576-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/mayor-signature-sign-917149-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/computer-work-business-2360069-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/a-happy-and-loving-family-a-cropped-portrait-of-a-2023-11-27-04-50-32-2AYG3X3.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-01.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-02.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-03.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.20-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.27-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.40-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/Rios-broker-agency-1024x1024.png",
+            "alt": ""
+          }
+        ]
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/contact-us",
+        "status_code": 404,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://www.facebook.com/profile.php?id=61560587246314",
+        "status_code": 200,
+        "title": "Rios Broker Agency, LLC",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": {
+          "description": "\u200f\u200eRios Broker Agency, LLC\u200e\u200f\u06d4 \u200f\u200eWe are a back office support team. Our main goal is to make scaling your business easy to understand and help you feel..."
+        },
+        "images": null
+      },
+      {
+        "url": "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+        "status_code": 999,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/services",
+        "status_code": 404,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+        "status_code": 429,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "http://www.linkedin.com/in/riosbrokeragency",
+        "status_code": 999,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://digitalclics.com/",
+        "status_code": 200,
+        "title": "Home - Digital Clics",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://www.facebook.com/tr?id=1056435316302654&ev=PageView&noscript=1",
+            "alt": "fbpx"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/04/DC-Marketing-Logo-BLUE-Transparent.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/04/DC-Marketing-Logo-BLUE-Transparent.png",
+            "alt": ""
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Wo We Are"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/who-we-are.png",
+            "alt": "Wo We Are"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Uniquely Integrated"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/integrated-banner.png",
+            "alt": "Uniquely Integrated"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "who-you-are"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/who-you-are.png",
+            "alt": "who-you-are"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "quote"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/quote.png",
+            "alt": "quote"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Laptop"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/laptop.png",
+            "alt": "Laptop"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Brands"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/brands-e1652477418987.png",
+            "alt": "Brands"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "https://adrianl61.sg-host.com/",
+      "https://adrianl61.sg-host.com/contact-us",
+      "https://adrianl61.sg-host.com/services"
+    ],
+    "external_urls": [
+      "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+      "https://www.facebook.com/profile.php?id=61560587246314",
+      "http://www.linkedin.com/in/riosbrokeragency",
+      "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+      "https://digitalclics.com/"
+    ],
+    "processed_urls": [
+      "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+      "https://adrianl61.sg-host.com/",
+      "https://adrianl61.sg-host.com/contact-us",
+      "https://www.facebook.com/profile.php?id=61560587246314",
+      "http://www.linkedin.com/in/riosbrokeragency",
+      "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+      "https://digitalclics.com/",
+      "https://adrianl61.sg-host.com/services"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 8,
+      "total_links": 8,
+      "total_images": 0,
+      "status_code_counts": {
+        "200": 3,
+        "404": 2,
+        "999": 2,
+        "429": 1
+      },
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": true,
+      "visual_enabled": false,
+      "blur_enabled": false,
+      "performance_enabled": false
+    },
+    "crawl_id": 253
+  },
+  {
+    "check_id": "d73c3f08-c4cb-413a-91b7-bfbd94f55043",
+    "site_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+    "timestamp_utc": "2025-08-28T08:24:49.762368+00:00",
+    "timestamp_readable": "2025-08-28 08:25:10 UTC",
+    "status": "No significant change",
+    "html_snapshot_path": null,
+    "html_content_hash": null,
+    "visual_snapshot_path": null,
+    "url": "https://adrianl61.sg-host.com/",
+    "significant_change_detected": false,
+    "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+    "timestamp": "2025-08-28T13:24:49.763723",
+    "broken_links": [],
+    "missing_meta_tags": [],
+    "all_pages": [
+      {
+        "url": "https://adrianl61.sg-host.com/",
+        "status_code": 200,
+        "title": "Rios Broker Agency \u2013 Your trusted California insurance partner for Medicare, Health, and Life coverage",
+        "is_internal": true,
+        "referring_page": "",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/Rios-broker-agency-1024x1024.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/pexels-alexander-suhorucov-6457544-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/asian-young-female-insurance-agent-in-formal-suit-2022-04-19-04-03-47-6G9Z37M-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hands-handshake-partnership-8062985-1-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hammer-libra-dish-802301-768x576-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/mayor-signature-sign-917149-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/computer-work-business-2360069-768x512-1.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/a-happy-and-loving-family-a-cropped-portrait-of-a-2023-11-27-04-50-32-2AYG3X3.jpg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-01.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-02.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-03.png",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.20-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.27-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.40-1024x683.jpeg",
+            "alt": ""
+          },
+          {
+            "src": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/Rios-broker-agency-1024x1024.png",
+            "alt": ""
+          }
+        ],
+        "blur_detection_results": [
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/Rios-broker-agency-1024x1024.png",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_Rios-broker-agency-1024x1024.png",
+            "is_blurry": true,
+            "laplacian_score": 302.36,
+            "blur_percentage": 89.5,
+            "image_width": 1024,
+            "image_height": 1024,
+            "file_size": 34156,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.576250+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/pexels-alexander-suhorucov-6457544-768x512-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_pexels-alexander-suhorucov-6457544-768x512-1.jpg",
+            "is_blurry": "True",
+            "laplacian_score": 55.49,
+            "blur_percentage": 65.7,
+            "image_width": 768,
+            "image_height": 512,
+            "file_size": 56289,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.600299+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/asian-young-female-insurance-agent-in-formal-suit-2022-04-19-04-03-47-6G9Z37M-768x512-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_asian-young-female-insurance-agent-in-formal-suit-2022-04-19-04-03-47-6G9Z37M-768x512-1.jpg",
+            "is_blurry": false,
+            "laplacian_score": 205.35,
+            "blur_percentage": 4.8,
+            "image_width": 768,
+            "image_height": 512,
+            "file_size": 95067,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.628162+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hands-handshake-partnership-8062985-1-768x512-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_hands-handshake-partnership-8062985-1-768x512-1.jpg",
+            "is_blurry": "True",
+            "laplacian_score": 15.7,
+            "blur_percentage": 91.8,
+            "image_width": 768,
+            "image_height": 512,
+            "file_size": 31474,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.650158+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/hammer-libra-dish-802301-768x576-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_hammer-libra-dish-802301-768x576-1.jpg",
+            "is_blurry": true,
+            "laplacian_score": 116.56,
+            "blur_percentage": 68.8,
+            "image_width": 768,
+            "image_height": 576,
+            "file_size": 44046,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.675543+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/mayor-signature-sign-917149-768x512-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_mayor-signature-sign-917149-768x512-1.jpg",
+            "is_blurry": "True",
+            "laplacian_score": 68.52,
+            "blur_percentage": 68.5,
+            "image_width": 768,
+            "image_height": 512,
+            "file_size": 46897,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.698578+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/computer-work-business-2360069-768x512-1.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_computer-work-business-2360069-768x512-1.jpg",
+            "is_blurry": true,
+            "laplacian_score": 179.61,
+            "blur_percentage": 48.3,
+            "image_width": 768,
+            "image_height": 512,
+            "file_size": 59647,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.720738+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/a-happy-and-loving-family-a-cropped-portrait-of-a-2023-11-27-04-50-32-2AYG3X3.jpg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_a-happy-and-loving-family-a-cropped-portrait-of-a-2023-11-27-04-50-32-2AYG3X3.jpg",
+            "is_blurry": false,
+            "laplacian_score": 1014.97,
+            "blur_percentage": 0,
+            "image_width": 1080,
+            "image_height": 1080,
+            "file_size": 162022,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.743581+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-01.png",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_logo-ipsum-01.png",
+            "is_blurry": "True",
+            "laplacian_score": 5.11,
+            "blur_percentage": 100.0,
+            "image_width": 800,
+            "image_height": 400,
+            "file_size": 11207,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.767281+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-02.png",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_logo-ipsum-02.png",
+            "is_blurry": "True",
+            "laplacian_score": 4.52,
+            "blur_percentage": 100.0,
+            "image_width": 800,
+            "image_height": 400,
+            "file_size": 9655,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.806021+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/logo-ipsum-03.png",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_logo-ipsum-03.png",
+            "is_blurry": "True",
+            "laplacian_score": 4.75,
+            "blur_percentage": 100.0,
+            "image_width": 800,
+            "image_height": 400,
+            "file_size": 9460,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.827166+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.20-1024x683.jpeg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_WhatsApp-Image-2025-08-27-at-02.23.20-1024x683.jpeg",
+            "is_blurry": true,
+            "laplacian_score": 105.9,
+            "blur_percentage": 72.5,
+            "image_width": 1024,
+            "image_height": 683,
+            "file_size": 55572,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.847637+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.27-1024x683.jpeg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_WhatsApp-Image-2025-08-27-at-02.23.27-1024x683.jpeg",
+            "is_blurry": true,
+            "laplacian_score": 118.65,
+            "blur_percentage": 54.6,
+            "image_width": 1024,
+            "image_height": 683,
+            "file_size": 62608,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.871709+00:00"
+          },
+          {
+            "image_url": "https://adrianl61.sg-host.com/wp-content/uploads/2025/08/WhatsApp-Image-2025-08-27-at-02.23.40-1024x683.jpeg",
+            "image_local_path": "snapshots\\87ca34f9-5a24-4f86-bffb-a715b8048073\\blur_images\\page_1_WhatsApp-Image-2025-08-27-at-02.23.40-1024x683.jpeg",
+            "is_blurry": "True",
+            "laplacian_score": 75.77,
+            "blur_percentage": 82.7,
+            "image_width": 1024,
+            "image_height": 683,
+            "file_size": 42490,
+            "threshold": 100,
+            "skipped": false,
+            "page_url": "https://adrianl61.sg-host.com/",
+            "website_id": "87ca34f9-5a24-4f86-bffb-a715b8048073",
+            "crawl_id": 254,
+            "timestamp": "2025-08-28T08:25:09.896184+00:00"
+          }
+        ]
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/contact-us",
+        "status_code": 404,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://www.facebook.com/profile.php?id=61560587246314",
+        "status_code": 200,
+        "title": "Rios Broker Agency, LLC",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": {
+          "description": "\u200f\u200eRios Broker Agency, LLC\u200e\u200f\u06d4 \u200f\u200eWe are a back office support team. Our main goal is to make scaling your business easy to understand and help you feel..."
+        },
+        "images": null
+      },
+      {
+        "url": "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+        "status_code": 999,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://adrianl61.sg-host.com/services",
+        "status_code": 404,
+        "title": "",
+        "is_internal": true,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+        "status_code": 429,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "http://www.linkedin.com/in/riosbrokeragency",
+        "status_code": 999,
+        "title": "",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": null
+      },
+      {
+        "url": "https://digitalclics.com/",
+        "status_code": 200,
+        "title": "Home - Digital Clics",
+        "is_internal": false,
+        "referring_page": "https://adrianl61.sg-host.com/",
+        "meta": null,
+        "images": [
+          {
+            "src": "https://www.facebook.com/tr?id=1056435316302654&ev=PageView&noscript=1",
+            "alt": "fbpx"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/04/DC-Marketing-Logo-BLUE-Transparent.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/04/DC-Marketing-Logo-BLUE-Transparent.png",
+            "alt": ""
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Wo We Are"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/who-we-are.png",
+            "alt": "Wo We Are"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Uniquely Integrated"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/integrated-banner.png",
+            "alt": "Uniquely Integrated"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "who-you-are"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/who-you-are.png",
+            "alt": "who-you-are"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "quote"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/quote.png",
+            "alt": "quote"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Laptop"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/laptop.png",
+            "alt": "Laptop"
+          },
+          {
+            "src": "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "alt": "Brands"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/uploads/2022/05/brands-e1652477418987.png",
+            "alt": "Brands"
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          },
+          {
+            "src": "https://digitalclics.com/wp-content/plugins/elementor/assets/images/placeholder.png",
+            "alt": ""
+          }
+        ]
+      }
+    ],
+    "internal_urls": [
+      "https://adrianl61.sg-host.com/",
+      "https://adrianl61.sg-host.com/contact-us",
+      "https://adrianl61.sg-host.com/services"
+    ],
+    "external_urls": [
+      "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+      "https://www.facebook.com/profile.php?id=61560587246314",
+      "http://www.linkedin.com/in/riosbrokeragency",
+      "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+      "https://digitalclics.com/"
+    ],
+    "processed_urls": [
+      "http://www.linkedin.com/in/riosbrokeragencylinkedin.com",
+      "https://adrianl61.sg-host.com/",
+      "https://adrianl61.sg-host.com/contact-us",
+      "https://www.facebook.com/profile.php?id=61560587246314",
+      "http://www.linkedin.com/in/riosbrokeragency",
+      "https://www.google.com/search?q=rios+broker+agency+business&sca_esv=dd6f30f1e54205e3&authuser=1&biw=2240&bih=1173&sxsrf=ADLYWIJcJNXG11hgvy5feoch2oC7ubxrmw%3A1716958301377&ei=XbRWZpTPFobDkPIPi5axoAw&ved=0ahUKEwjU8ZaNiLKGAxWGIUQIHQtLDMQQ4dUDCBE&uact=5&oq=rios+broker+agency+business&gs_lp=Egxnd3Mtd2l6LXNlcnAiG3Jpb3MgYnJva2VyIGFnZW5jeSBidXNpbmVzczIFECEYoAEyBRAhGKABMgUQIRigATIFECEYoAEyBRAhGKABMgUQIRirAjIFECEYqwIyBRAhGKsCSPEgUPAEWKQYcAF4AZABAJgBTqAB8QSqAQE5uAEDyAEA-AEBmAIKoAKeBcICChAAGLADGNYEGEfCAgYQABgWGB7CAgsQABiABBiGAxiKBcICCBAAGIAEGKIEwgIFECEYnwWYAwCIBgGQBgKSBwIxMKAHm0E&sclient=gws-wiz-serp",
+      "https://digitalclics.com/",
+      "https://adrianl61.sg-host.com/services"
+    ],
+    "visual_baselines": [],
+    "latest_snapshots": {},
+    "crawl_stats": {
+      "pages_crawled": 8,
+      "total_links": 8,
+      "total_images": 0,
+      "status_code_counts": {},
+      "sitemap_found": false
+    },
+    "check_config": {
+      "crawl_enabled": false,
+      "visual_enabled": false,
+      "blur_enabled": true,
+      "performance_enabled": false
+    },
+    "crawl_id": 254,
+    "blur_detection_summary": {
+      "enabled": true,
+      "total_images": 14,
+      "blurry_images": 12,
+      "total_images_processed": 14,
+      "total_blurry_images": 12,
+      "blur_percentage": 85.7
+    }
   }
 ]
