@@ -372,8 +372,8 @@ def add_website():
                             }
                         )
                         
-                        # Add manager instances to args to fix database consistency
-                        full_args = thread_args + (website_manager, history_manager, crawler_module)
+                        # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
+                        full_args = thread_args + ('config/config.yaml', website_manager, history_manager, crawler_module)
                         thread = threading.Thread(
                             target=run_background_task,
                             args=(task_id, perform_website_check) + full_args
@@ -406,8 +406,8 @@ def add_website():
                             }
                         )
                         
-                        # Add manager instances to args to fix database consistency
-                        full_args = thread_args + (website_manager, history_manager, crawler_module)
+                        # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
+                        full_args = thread_args + ('config/config.yaml', website_manager, history_manager, crawler_module)
                         thread = threading.Thread(
                             target=run_background_task,
                             args=(task_id, perform_website_check) + full_args
@@ -622,7 +622,7 @@ def manual_check_website(site_id):
     # Pass manager instances to fix database consistency
     thread = threading.Thread(
         target=run_background_task,
-        args=(task_id, perform_website_check, site_id, crawler_options, None, website_manager, history_manager, crawler_module)
+        args=(task_id, perform_website_check, site_id, crawler_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
     )
     thread.daemon = True
     thread.start()
