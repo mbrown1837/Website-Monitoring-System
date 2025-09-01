@@ -63,7 +63,7 @@ playwright_retries: 2
 snapshot_format: png
 monitoring_interval_seconds: 300
 enable_scheduler: true
-blur_detection_threshold: 100
+blur_detection_threshold: 85
 blur_detection_percentage_threshold: 15
 blur_detection_min_image_size: 100
 blur_detection_timeout: 30

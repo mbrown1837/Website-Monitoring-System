@@ -82,7 +82,7 @@ def bulk_import_websites():
     
     # Your requested configuration for all 60+ sites
     default_config = {
-        'check_interval_minutes': 3600,  # 60 hours as requested
+        'check_interval_minutes': 1440,  # 24 hours as requested
         'is_active': True,
         'capture_subpages': True,
         'render_delay': 3,
@@ -98,7 +98,7 @@ def bulk_import_websites():
         'auto_full_check_enabled': True,  # Enable full check as requested
     }
     
-    print(f"✅ Scheduling Interval: {default_config['check_interval_minutes']} minutes (60 hours)")
+    print(f"✅ Scheduling Interval: {default_config['check_interval_minutes']} minutes (24 hours)")
     print(f"✅ Full Check Enabled: {default_config['auto_full_check_enabled']}")
     print(f"✅ Baseline Creation: Enabled")
     print(f"✅ Active Monitoring: {default_config['is_active']}")

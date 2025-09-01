@@ -1,0 +1,3 @@
+name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,description
+digitalclicsva.com,https://digitalclicsva.com,1440,true,true,true,true,2,
+studio7event.com,https://studio7event.com,1440,true,true,true,true,2,

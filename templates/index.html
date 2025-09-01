@@ -155,12 +155,7 @@
                                 </a>
                                 {% endif %}
                                 
-                                <button type="button" class="btn btn-sm btn-outline-success check-now-btn" 
-                                        data-site-id="{{ site_id }}" 
-                                        data-site-name="{{ site_data.name }}"
-                                        {% if not site_data.is_active %}disabled title="Activate website to run check"{% endif %}>
-                                    <i class="bi bi-play-circle"></i> Check Now
-                                </button>
+
                                 
                                 <a href="{{ url_for('edit_website', site_id=site_id) }}" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-pencil"></i> Edit
@@ -186,74 +181,7 @@
 </div>
 {% endif %}
 
-<!-- Check Now Modal -->
-<div class="modal fade" id="checkOptionsModal" tabindex="-1" aria-labelledby="checkOptionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="checkOptionsModalLabel">Check Options</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="checkWebsiteForm" method="POST">
-                <div class="modal-body">
-                    <h6 class="mb-3">Select Check Type:</h6>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-primary text-white">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" id="fullCheck" name="check_type" value="full" checked>
-                                        <label class="form-check-label fw-bold" for="fullCheck">
-                                            Full Check
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text small">Performs both visual comparison and crawler checks.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-info text-white">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" id="visualOnly" name="check_type" value="visual">
-                                        <label class="form-check-label fw-bold" for="visualOnly">
-                                            Visual Check Only
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text small">Only take screenshots and compare them with baselines.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-secondary text-white">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" id="crawlOnly" name="check_type" value="crawl">
-                                        <label class="form-check-label fw-bold" for="crawlOnly">
-                                            Crawl Only
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-text small">Only crawl the site for broken links and SEO issues.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Run Check</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 
 <!-- Remove Website Confirmation Modal -->
 <div class="modal fade" id="removeWebsiteModal" tabindex="-1" aria-labelledby="removeWebsiteModalLabel" aria-hidden="true">
@@ -295,68 +223,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle Check Now buttons
-    const checkNowButtons = document.querySelectorAll('.check-now-btn');
-    const checkNotification = document.getElementById('checkNotification');
-    const checkedWebsiteName = document.getElementById('checkedWebsiteName');
-    const checkOptionsModal = new bootstrap.Modal(document.getElementById('checkOptionsModal'));
-    const checkWebsiteForm = document.getElementById('checkWebsiteForm');
-    
-    checkNowButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const siteId = this.getAttribute('data-site-id');
-            const siteName = this.getAttribute('data-site-name');
-            
-            // Update form action
-            checkWebsiteForm.action = `/website/${siteId}/manual_check`;
-            
-            // Show options modal
-            checkOptionsModal.show();
-            
-            // Handle form submission
-            checkWebsiteForm.onsubmit = function(e) {
-                e.preventDefault();
-                
-                // Hide modal
-                checkOptionsModal.hide();
-                
-                // Show notification
-                checkedWebsiteName.textContent = siteName;
-                const toast = new bootstrap.Toast(checkNotification);
-                toast.show();
-                
-                // Add spinner to the button
-                button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
-                button.disabled = true;
-                
-                // Submit form via AJAX
-                const formData = new FormData(checkWebsiteForm);
-                
-                fetch(checkWebsiteForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Check initiated:', data);
-                    
-                    // Reset button after 3 seconds
-                    setTimeout(() => {
-                        button.innerHTML = '<i class="bi bi-play-circle"></i> Check Now';
-                        button.disabled = false;
-                    }, 3000);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    button.innerHTML = '<i class="bi bi-play-circle"></i> Check Now';
-                    button.disabled = false;
-                });
-            };
-        });
-    });
+
     
     // Handle Remove Website buttons
     const removeButtons = document.querySelectorAll('.remove-website-btn');

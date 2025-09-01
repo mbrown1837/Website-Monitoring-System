@@ -172,13 +172,15 @@ class CrawlerModule:
                     self.logger.error(f"Could not get automated check config for website {website_id}")
                     return {"website_id": website_id, "url": url, "timestamp": datetime.now().isoformat(), "error": "Website not found"}
             else:
-                # For manual checks, use legacy options for backward compatibility
+                # For manual checks, construct from legacy options to respect button purpose
+                # This ensures specific check buttons (visual-only, crawl-only, etc.) work correctly
                 check_config = {
-                    'crawl_enabled': not options.get('visual_check_only', False) and not options.get('blur_check_only', False),
-                    'visual_enabled': not options.get('crawl_only', False) and not options.get('blur_check_only', False),
+                    'crawl_enabled': not options.get('visual_check_only', False) and not options.get('blur_check_only', False) and not options.get('performance_check_only', False),
+                    'visual_enabled': not options.get('crawl_only', False) and not options.get('blur_check_only', False) and not options.get('performance_check_only', False),
                     'blur_enabled': options.get('blur_check_only', False),
                     'performance_enabled': options.get('performance_check_only', False)
                 }
+                self.logger.info(f"Using manual check configuration derived from options for website {website_id}: {check_config}")
         
         # Store the original options to pass down to check methods
         original_options = dict(options)
@@ -389,35 +391,44 @@ class CrawlerModule:
             self.logger.info(f"Check type flags - crawl_only: {crawl_only}, visual_check_only: {visual_check_only}, blur_check_only: {blur_check_only}")
 
             # Run visual checks if enabled
-            if check_config.get('visual_enabled', True) and not crawl_only and not blur_check_only:
+            # For visual-only checks, always run visual comparison regardless of other check types
+            visual_check_only = options.get('visual_check_only', False)
+            if check_config.get('visual_enabled', True) and not crawl_only and (not blur_check_only or visual_check_only):
                 if create_baseline:
                     self._create_visual_baselines(results)
                 else:
                     self._capture_latest_snapshots(results)
             else:
-                self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}")
+                self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
 
             # Save crawl results first to get crawl_id
             crawl_id = self._save_crawl_results(results)
             results['crawl_id'] = crawl_id
 
             # Run blur detection if enabled for this website (after saving to get crawl_id)
+            blur_enabled = check_config.get('blur_enabled', False)
+            self.logger.info(f"Blur check evaluation - blur_check_only: {blur_check_only}, blur_enabled: {blur_enabled}")
+            
             if blur_check_only:
                 # For blur-only checks, always run blur detection regardless of website settings
+                self.logger.info(f"Running blur-only check for website {website_id}")
                 self._run_blur_detection_for_blur_check(results, website_id, original_options)
-            elif check_config.get('blur_enabled', False):
+            elif blur_enabled:
                 # For other checks, run blur detection if enabled in configuration
+                self.logger.info(f"Running blur detection (enabled in config) for website {website_id}")
                 self._run_blur_detection_if_enabled(results, website_id, original_options)
             else:
-                self.logger.debug(f"Blur detection disabled for this check type")
+                self.logger.debug(f"Blur detection disabled - blur_check_only: {blur_check_only}, blur_enabled: {blur_enabled}")
             
             # Run performance checks if enabled
             performance_enabled = check_config.get('performance_enabled', False)
             performance_check_only = options.get('performance_check_only', False)
             self.logger.info(f"Performance check evaluation - performance_enabled: {performance_enabled}, performance_check_only: {performance_check_only}, check_config: {check_config}")
             
-            if performance_enabled or performance_check_only:
-                self.logger.info(f"Running performance check for website {website_id}")
+            # For performance-only checks, always run regardless of other settings
+            # For other checks, only run if performance is enabled in the check configuration
+            if performance_check_only or performance_enabled:
+                self.logger.info(f"Running performance check for website {website_id} (performance_check_only: {performance_check_only}, performance_enabled: {performance_enabled})")
                 self._run_performance_check_if_enabled(results, website_id, original_options)
             else:
                 self.logger.debug(f"Performance check disabled - performance_enabled: {performance_enabled}, performance_check_only: {performance_check_only}")

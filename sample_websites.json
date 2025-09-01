@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Example Site",
+    "url": "https://example.com",
+    "monitoring_interval": 300,
+    "enable_crawl": true,
+    "enable_visual": true,
+    "enable_blur_detection": false,
+    "enable_performance": false,
+    "max_depth": 2,
+    "description": "Example website for testing"
+  },
+  {
+    "name": "Test Blog",
+    "url": "https://blog.example.com",
+    "monitoring_interval": 600,
+    "enable_crawl": true,
+    "enable_visual": true,
+    "enable_blur_detection": true,
+    "enable_performance": true,
+    "max_depth": 3,
+    "description": "Blog with performance monitoring"
+  },
+  {
+    "name": "Demo Store",
+    "url": "https://store.example.com",
+    "monitoring_interval": 900,
+    "enable_crawl": true,
+    "enable_visual": true,
+    "enable_blur_detection": false,
+    "enable_performance": true,
+    "max_depth": 2,
+    "description": "E-commerce site monitoring"
+  }
+]

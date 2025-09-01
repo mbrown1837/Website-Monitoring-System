@@ -161,21 +161,15 @@ def index():
     
     # Get blur detection statistics for websites that have it enabled
     blur_detection_stats = {}
-    # TEMPORARILY COMMENTED OUT DUE TO SYNTAX ERRORS IN BLUR_DETECTOR.PY
-    # from src.blur_detector import BlurDetector
-    # blur_detector = BlurDetector()
+    # BlurDetector import restored - syntax errors have been fixed
+    from src.blur_detector import BlurDetector
+    blur_detector = BlurDetector()
     
     for site_id, site_data in websites.items():
         if site_data.get('enable_blur_detection', False):
             try:
-                # blur_stats = blur_detector.get_blur_stats_for_website(site_id)
-                # blur_detection_stats[site_id] = blur_stats
-                blur_detection_stats[site_id] = {
-                    'total_images': 0,
-                    'blurry_images': 0,
-                    'avg_laplacian_score': 0,
-                    'avg_blur_percentage': 0
-                }
+                blur_stats = blur_detector.get_blur_stats_for_website(site_id)
+                blur_detection_stats[site_id] = blur_stats
             except Exception as e:
                 logger.error(f"Error getting blur stats for website {site_id}: {e}")
                 blur_detection_stats[site_id] = {
@@ -262,7 +256,7 @@ def settings():
 def clear_scheduler_tasks():
     """Admin route to clear all scheduled tasks."""
     try:
-        from .scheduler_integration import clear_all_scheduler_tasks
+        from src.scheduler_integration import clear_all_scheduler_tasks
         success = clear_all_scheduler_tasks()
         
         if success:
@@ -332,9 +326,9 @@ def add_website():
                     "is_active": True,
                     "tags": tags,
                     "notification_emails": notification_emails,
-                    'render_delay': render_delay,
-                    'max_crawl_depth': max_crawl_depth,
-                    'visual_diff_threshold': visual_diff_threshold,
+                        'render_delay': render_delay,
+                        'max_crawl_depth': max_crawl_depth,
+                        'visual_diff_threshold': visual_diff_threshold,
                     'enable_blur_detection': enable_blur_detection,
                     'blur_detection_scheduled': blur_detection_scheduled,
                     'blur_detection_manual': blur_detection_manual,
@@ -357,7 +351,7 @@ def add_website():
                         flash(f'Website "{name}" added successfully. No initial checks were run.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'baseline':
-                        # Create baseline only (crawl + visual baselines)
+                        # Create baseline + run enabled automated checks for comparison data
                         task_id = str(uuid.uuid4())
                         tasks[task_id] = {
                             'status': 'pending',
@@ -366,12 +360,24 @@ def add_website():
                         
                         logger.info(f"Creating baseline for new website ID: {website['id']} (Task ID: {task_id})")
                         
+                        # Get the automated check configuration for this website
+                        automated_check_config = website_manager.get_automated_check_config(website['id'])
+                        
+                        # For baseline creation, always enable crawl and visual, then add enabled automated checks
+                        baseline_check_config = {
+                            'crawl_enabled': True,  # Always needed for baseline
+                            'visual_enabled': True,  # Always needed for visual baseline
+                            'blur_enabled': automated_check_config.get('blur_enabled', False),
+                            'performance_enabled': automated_check_config.get('performance_enabled', False)
+                        }
+                        
                         thread_args = (
                             website['id'],
                             {
                                 'create_baseline': True,
                                 'capture_subpages': True,
-                                'check_config': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}
+                                'check_config': baseline_check_config,
+                                'is_scheduled': False  # This is a manual baseline creation, not a scheduled check
                             }
                         )
                         
@@ -387,7 +393,7 @@ def add_website():
                         flash(f'Website "{name}" added. Baseline creation started in the background.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'full':
-                        # Run full check with all enabled monitoring types
+                        # Run full check with ALL monitoring types regardless of automation settings
                         task_id = str(uuid.uuid4())
                         tasks[task_id] = {
                             'status': 'pending',
@@ -396,8 +402,14 @@ def add_website():
                         
                         logger.info(f"Running full initial check for new website ID: {website['id']} (Task ID: {task_id})")
                         
-                        # Use the automated check configuration based on what user selected
-                        check_config = website_manager.get_automated_check_config(website['id'])
+                        # Force ALL checks regardless of user's automation settings (as per requirement)
+                        check_config = {
+                            'crawl_enabled': True,
+                            'visual_enabled': True,
+                            'blur_enabled': True,
+                            'performance_enabled': True
+                        }
+                        logger.info(f"Using forced Full Check configuration for initial setup: {check_config}")
                         
                         thread_args = (
                             website['id'],
@@ -524,6 +536,38 @@ def website_history(site_id):
         flash(f'Website with ID "{site_id}" not found.', 'danger')
         return redirect(url_for('index'))
 
+    # PERMANENT FIX: Check for baseline files in filesystem if baseline_visual_path is missing
+    if not website.get('baseline_visual_path'):
+        import os
+        from pathlib import Path
+        
+        # Try to find existing baseline files by scanning the snapshots directory
+        snapshots_dir = Path('data/snapshots')
+        website_id = site_id
+        
+        # Get all possible website directory names from the snapshots folder
+        if snapshots_dir.exists():
+            for website_dir in snapshots_dir.iterdir():
+                if website_dir.is_dir():
+                    # Check if this directory contains our website_id
+                    website_id_dir = website_dir / website_id
+                    if website_id_dir.exists() and website_id_dir.is_dir():
+                        baseline_dir = website_id_dir / 'baseline'
+                        if baseline_dir.exists():
+                            # Look for baseline files
+                            baseline_files = ['baseline_home.png', 'baseline.png', 'baseline_index.png']
+                            for baseline_file in baseline_files:
+                                baseline_path = baseline_dir / baseline_file
+                                if baseline_path.exists():
+                                    relative_path = str(baseline_path).replace('\\', '/')
+                                    logger.info(f"PERMANENT FIX: Found existing baseline file for {website.get('name')}: {relative_path}")
+                                    website['baseline_visual_path'] = relative_path
+                                    # Update the database with the found baseline
+                                    website_manager.update_website(site_id, {'baseline_visual_path': relative_path})
+                                    break
+                            if website.get('baseline_visual_path'):
+                                break
+
     # Process main baseline information
     if website.get('baseline_visual_path'):
         website['baseline_visual_path_web'] = make_path_web_accessible(website['baseline_visual_path'])
@@ -581,9 +625,35 @@ def manual_check_website(site_id):
     create_baseline = request.form.get('create_baseline') == 'true'
     capture_subpages = request.form.get('capture_subpages') == 'true'
     
-    # Configure crawler options
-    crawler_options = {
-        'create_baseline': create_baseline,
+    # Special handling for baseline creation
+    if create_baseline:
+        # For baseline creation, we ONLY need visual snapshots and crawl data for internal page discovery
+        # No blur detection, no performance checks - just baseline creation
+        # ALWAYS capture subpages for baseline creation (we want baselines for all internal pages)
+        crawler_options = {
+            'create_baseline': True,
+            'capture_subpages': True,  # Force True for baseline creation - we always want all internal pages
+            'crawl_only': False,
+            'visual_check_only': False,  # We need crawl data to find internal pages
+            'blur_check_only': False,
+            'performance_check_only': False
+        }
+        
+        # Baseline creation configuration - minimal checks needed for baseline creation
+        check_config = {
+            'crawl_enabled': True,     # Need to crawl to find internal pages
+            'visual_enabled': True,    # Need to capture visual baselines
+            'blur_enabled': False,     # No blur detection for baseline creation
+            'performance_enabled': False  # No performance checks for baseline creation
+        }
+        
+        logger.info(f"Using Baseline Creation configuration for website {site_id}: {check_config}")
+        description = f"Baseline creation for {website.get('name')}"
+        
+    else:
+        # Regular manual check configuration
+        crawler_options = {
+            'create_baseline': False,
         'capture_subpages': capture_subpages,
         'crawl_only': check_type == 'crawl',
         'visual_check_only': check_type == 'visual',
@@ -591,20 +661,27 @@ def manual_check_website(site_id):
         'performance_check_only': check_type == 'performance'
     }
     
-    # Get check configuration - force full config when user requests full check
-    if check_type == 'full':
-        # When user clicks "Run Full Check Now", enable ALL components regardless of website settings
-        check_config = {
-            'crawl_enabled': True,
-            'visual_enabled': True,
-            'blur_enabled': True,
-            'performance_enabled': True
-        }
-        logger.info(f"Using forced Full Check configuration for website {site_id}: {check_config}")
-    else:
-        # Use manual check configuration for specific check types
-        check_config = website_manager.get_manual_check_config(check_type)
-        logger.info(f"Using manual check configuration for check type '{check_type}': {check_config}")
+        # Get check configuration based on check type
+        if check_type == 'full':
+            # For "Run Full Check", use the website's automated configuration
+            # This respects what the user has enabled for automated monitoring
+            check_config = website_manager.get_automated_check_config(site_id)
+            if not check_config:
+                # Fallback to all enabled if no automation config exists
+                check_config = {
+                    'crawl_enabled': True,
+                    'visual_enabled': True,
+                    'blur_enabled': True,
+                    'performance_enabled': True
+                }
+            logger.info(f"Using automated check configuration for manual Full Check (website {site_id}): {check_config}")
+        else:
+            # For specific check types, ALWAYS use targeted config (ignore automation settings)
+            # This ensures "Visual Check Only" does ONLY visual, regardless of what's enabled in automation
+            check_config = website_manager.get_manual_check_config(check_type)
+            logger.info(f"Using targeted manual check configuration for '{check_type}' button (website {site_id}): {check_config}")
+        
+        description = f"Manual '{check_type}' check for {website.get('name')}"
     
     # Add check configuration to crawler options
     crawler_options['check_config'] = check_config
@@ -612,9 +689,6 @@ def manual_check_website(site_id):
     
     # Create a task for the background job
     task_id = str(uuid.uuid4())
-    description = f"Manual '{check_type}' check for {website.get('name')}"
-    if create_baseline:
-        description = f"Baseline creation for {website.get('name')}"
 
     tasks[task_id] = {
         'status': 'pending',
@@ -1718,26 +1792,26 @@ def data_files(filepath):
                 logger.error(f"Error serving file {potential_path}: {e}")
     
     # Strategy 2: Try baseline path variations
-    if 'baseline' in filepath:
-        variations = [
-            filepath,
-            filepath.replace('/baseline_', '/baseline/baseline_'),
-            filepath.replace('/baseline/', '/'),
-            filepath.replace('baseline.png', 'home.png'),
+        if 'baseline' in filepath:
+            variations = [
+                filepath,
+                filepath.replace('/baseline_', '/baseline/baseline_'),
+                filepath.replace('/baseline/', '/'),
+                filepath.replace('baseline.png', 'home.png'),
             filepath.replace('baseline.png', 'homepage.png'),
             filepath.replace('baseline.jpg', 'home.jpg'),
             filepath.replace('baseline.jpg', 'homepage.jpg')
-        ]
-        
-        for var_path in variations:
-            var_full_path = os.path.join(DATA_DIRECTORY, var_path)
-            if validate_path_safety(var_full_path, DATA_DIRECTORY) and os.path.isfile(var_full_path):
-                logger.info(f"Found file at alternative path: {var_path}")
-                try:
-                    return send_from_directory(DATA_DIRECTORY, var_path, as_attachment=False)
-                except Exception as e:
-                    logger.error(f"Error serving file {var_path}: {e}")
-                    continue
+            ]
+            
+            for var_path in variations:
+                var_full_path = os.path.join(DATA_DIRECTORY, var_path)
+                if validate_path_safety(var_full_path, DATA_DIRECTORY) and os.path.isfile(var_full_path):
+                    logger.info(f"Found file at alternative path: {var_path}")
+                    try:
+                        return send_from_directory(DATA_DIRECTORY, var_path, as_attachment=False)
+                    except Exception as e:
+                        logger.error(f"Error serving file {var_path}: {e}")
+                        continue
     
     # Strategy 3: Try common image extensions
     base_name, ext = os.path.splitext(filepath)
@@ -1754,8 +1828,348 @@ def data_files(filepath):
                         logger.error(f"Error serving file {alt_path}: {e}")
     
     # All strategies failed
-    logger.error(f"Could not find any matching file for {filepath}")
-    return redirect(url_for('static', filename='img/placeholder.png'))
+            logger.error(f"Could not find any matching file for {filepath}")
+            return redirect(url_for('static', filename='img/placeholder.png'))
+    
+def _auto_setup_website(website):
+    """Automatically create baseline and run full check for newly imported website."""
+    try:
+        site_id = website['id']
+        site_name = website.get('name', 'Unknown')
+        
+        # Step 1: Create baseline task
+        baseline_task_id = str(uuid.uuid4())
+        tasks[baseline_task_id] = {
+            'status': 'pending',
+            'description': f'Auto-creating baseline for {site_name}'
+        }
+        
+        baseline_options = {
+            'create_baseline': True,
+            'capture_subpages': True,
+            'crawl_only': False,
+            'visual_check_only': False,
+            'blur_check_only': False,
+            'performance_check_only': False,
+            'check_config': {
+                'crawl_enabled': True,     # Need to crawl to find internal pages
+                'visual_enabled': True,    # Need to capture visual baselines
+                'blur_enabled': False,     # No blur detection during baseline creation
+                'performance_enabled': False  # No performance checks during baseline creation
+            },
+            'is_scheduled': False
+        }
+        
+        # Start baseline creation in background
+        threading.Thread(
+            target=run_background_task,
+            args=(baseline_task_id, perform_website_check, site_id, baseline_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
+        ).start()
+        
+        # Step 2: Schedule full check after baseline (wait for completion)
+        def run_full_check_after_baseline():
+            import time
+            start_time = time.time()
+            timeout_seconds = 600  # 10 minutes max wait
+            poll_interval = 3
+
+            # Wait until baseline task completes or baseline paths are present
+            while True:
+                # Check task status first
+                baseline_done = tasks.get(baseline_task_id, {}).get('status') == 'completed'
+                if baseline_done:
+                    break
+
+                # Fallback: check website record for baselines
+                site = website_manager.get_website(site_id)
+                has_flag = site and (site.get('has_subpage_baselines') or site.get('baseline_visual_path'))
+                if has_flag:
+                    break
+
+                if time.time() - start_time > timeout_seconds:
+                    logger.warning(f"Baseline wait timed out for {site_name} ({site_id}). Proceeding with full check.")
+                    break
+                time.sleep(poll_interval)
+            
+            full_check_task_id = str(uuid.uuid4())
+            tasks[full_check_task_id] = {
+                'status': 'pending',
+                'description': f'Auto-running full check for {site_name}'
+            }
+            
+            full_check_options = {
+                'create_baseline': False,
+                'capture_subpages': True,
+                'crawl_only': False,
+                'visual_check_only': False,
+                'blur_check_only': False,
+                'performance_check_only': False,
+                'check_config': {
+                    'crawl_enabled': True,
+                    'visual_enabled': True,
+                    'blur_enabled': True,
+                    'performance_enabled': True
+                },
+                'is_scheduled': False
+            }
+            
+            # Start full check in background
+            threading.Thread(
+                target=run_background_task,
+                args=(full_check_task_id, perform_website_check, site_id, full_check_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
+            ).start()
+        
+        # Start the follow-up full check watcher
+        threading.Thread(target=run_full_check_after_baseline).start()
+        
+        logger.info(f"Auto-setup initiated for website {site_name} ({site_id}): baseline + full check")
+        
+    except Exception as e:
+        logger.error(f"Error in auto-setup for website {website}: {e}")
+
+@app.route('/bulk-import', methods=['GET', 'POST'])
+def bulk_import():
+    """Developer bulk import page for managing multiple websites."""
+    current_config = get_app_config()
+    
+    if request.method == 'POST':
+        try:
+            action = request.form.get('action')
+            
+            if action == 'import_csv':
+                # Handle CSV import
+                if 'csv_file' not in request.files:
+                    flash('No CSV file selected', 'error')
+                    return redirect(url_for('bulk_import'))
+                
+                csv_file = request.files['csv_file']
+                if csv_file.filename == '':
+                    flash('No CSV file selected', 'error')
+                    return redirect(url_for('bulk_import'))
+                
+                if csv_file and csv_file.filename.endswith('.csv'):
+                    # Process CSV import
+                    import csv
+                    import io
+                    
+                    # Read CSV content
+                    csv_content = csv_file.read().decode('utf-8')
+                    csv_reader = csv.DictReader(io.StringIO(csv_content))
+                    
+                    imported_count = 0
+                    errors = []
+                    
+                    for row in csv_reader:
+                        try:
+                            # Map CSV fields to internal schema expected by WebsiteManagerSQLite
+                            name = (row.get('name') or '').strip()
+                            url = (row.get('url') or '').strip()
+                            if not name or not url:
+                                errors.append(f"Row missing name or URL: {row}")
+                                continue
+
+                            website_record = {
+                                'name': name,
+                                'url': url,
+                                'check_interval_minutes': int(row.get('monitoring_interval', 60)),
+                                'max_crawl_depth': int(row.get('max_depth', 2)),
+                                'is_active': True,
+                                'capture_subpages': True,
+                                'auto_crawl_enabled': (row.get('enable_crawl', 'true').lower() == 'true'),
+                                'auto_visual_enabled': (row.get('enable_visual', 'true').lower() == 'true'),
+                                'auto_blur_enabled': (row.get('enable_blur_detection', 'true').lower() == 'true'),
+                                'enable_blur_detection': (row.get('enable_blur_detection', 'true').lower() == 'true'),
+                                'auto_performance_enabled': (row.get('enable_performance', 'true').lower() == 'true'),
+                                'auto_full_check_enabled': True,
+                                'render_delay': 6
+                            }
+
+                            # Add website using dict signature
+                            website = website_manager.add_website(website_record)
+                            imported_count += 1
+                            
+                            # Auto-create baseline and run full check after import
+                            _auto_setup_website(website)
+                            
+                        except Exception as e:
+                            errors.append(f"Error importing row {row}: {str(e)}")
+                    
+                    if imported_count > 0:
+                        flash(f'Successfully imported {imported_count} websites', 'success')
+                    if errors:
+                        flash(f'Import completed with {len(errors)} errors. Check logs for details.', 'warning')
+                        logger.warning(f"Bulk import errors: {errors}")
+                    
+                else:
+                    flash('Please select a valid CSV file', 'error')
+            
+            elif action == 'import_json':
+                # Handle JSON import
+                if 'json_file' not in request.files:
+                    flash('No JSON file selected', 'error')
+                    return redirect(url_for('bulk_import'))
+                
+                json_file = request.files['json_file']
+                if json_file.filename == '':
+                    flash('No JSON file selected', 'error')
+                    return redirect(url_for('bulk_import'))
+                
+                if json_file and json_file.filename.endswith('.json'):
+                    try:
+                        # Process JSON import
+                        json_content = json_file.read().decode('utf-8')
+                        websites_data = json.loads(json_content)
+                        
+                        imported_count = 0
+                        errors = []
+                        
+                        for website in websites_data:
+                            try:
+                                # Validate
+                                if not website.get('name') or not website.get('url'):
+                                    errors.append(f"Website missing name or URL: {website}")
+                                    continue
+
+                                # Normalize to internal schema
+                                website_record = {
+                                    'name': website.get('name').strip(),
+                                    'url': website.get('url').strip(),
+                                    'check_interval_minutes': int(website.get('monitoring_interval', 60)),
+                                    'max_crawl_depth': int(website.get('max_depth', 2)),
+                                    'is_active': True,
+                                    'capture_subpages': True,
+                                    'auto_crawl_enabled': bool(website.get('enable_crawl', True)),
+                                    'auto_visual_enabled': bool(website.get('enable_visual', True)),
+                                    'auto_blur_enabled': bool(website.get('enable_blur_detection', True)),
+                                    'enable_blur_detection': bool(website.get('enable_blur_detection', True)),
+                                    'auto_performance_enabled': bool(website.get('enable_performance', True)),
+                                    'auto_full_check_enabled': True,
+                                    'render_delay': 6
+                                }
+
+                                website = website_manager.add_website(website_record)
+                                imported_count += 1
+                                
+                                # Auto-create baseline and run full check after import
+                                _auto_setup_website(website)
+                                
+                            except Exception as e:
+                                errors.append(f"Error importing website {website}: {str(e)}")
+                        
+                        if imported_count > 0:
+                            flash(f'Successfully imported {imported_count} websites', 'success')
+                        if errors:
+                            flash(f'Import completed with {len(errors)} errors. Check logs for details.', 'warning')
+                            logger.warning(f"Bulk import errors: {errors}")
+                            
+                    except json.JSONDecodeError as e:
+                        flash(f'Invalid JSON file: {str(e)}', 'error')
+                    except Exception as e:
+                        flash(f'Error processing JSON file: {str(e)}', 'error')
+                else:
+                    flash('Please select a valid JSON file', 'error')
+            
+            elif action == 'export_csv':
+                # Handle CSV export
+                websites = website_manager.list_websites()
+                
+                # Create CSV content
+                import csv
+                import io
+                
+                output = io.StringIO()
+                fieldnames = ['name', 'url', 'monitoring_interval', 'enable_crawl', 'enable_visual', 
+                             'enable_blur_detection', 'enable_performance', 'max_depth', 'description']
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                for site_id, site_data in websites.items():
+                    writer.writerow({
+                        'name': site_data.get('name', ''),
+                        'url': site_data.get('url', ''),
+                        'monitoring_interval': site_data.get('monitoring_interval', 300),
+                        'enable_crawl': site_data.get('enable_crawl', True),
+                        'enable_visual': site_data.get('enable_visual', True),
+                        'enable_blur_detection': site_data.get('enable_blur_detection', False),
+                        'enable_performance': site_data.get('enable_performance', False),
+                        'max_depth': site_data.get('max_depth', 2),
+                        'description': site_data.get('description', '')
+                    })
+                
+                # Return CSV file
+                from flask import Response
+                output.seek(0)
+                return Response(
+                    output.getvalue(),
+                    mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment; filename=websites_export.csv'}
+                )
+            
+            elif action == 'export_json':
+                # Handle JSON export
+                websites = website_manager.list_websites()
+                
+                # Convert to exportable format
+                export_data = []
+                for site_id, site_data in websites.items():
+                    export_data.append({
+                        'name': site_data.get('name', ''),
+                        'url': site_data.get('url', ''),
+                        'monitoring_interval': site_data.get('monitoring_interval', 300),
+                        'enable_crawl': site_data.get('enable_crawl', True),
+                        'enable_visual': site_data.get('enable_visual', True),
+                        'enable_blur_detection': site_data.get('enable_blur_detection', False),
+                        'enable_performance': site_data.get('enable_performance', False),
+                        'max_depth': site_data.get('max_depth', 2),
+                        'description': site_data.get('description', '')
+                    })
+                
+                # Return JSON file
+                from flask import Response
+                return Response(
+                    json.dumps(export_data, indent=2),
+                    mimetype='application/json',
+                    headers={'Content-Disposition': 'attachment; filename=websites_export.json'}
+                )
+            
+            elif action == 'clear_all':
+                # Handle clear all data
+                confirm = request.form.get('confirm_clear')
+                if confirm == 'yes':
+                    try:
+                        # Clear all websites - convert to list to avoid iteration error
+                        websites = website_manager.list_websites()
+                        site_ids = list(websites.keys())  # Convert to list to avoid dict modification during iteration
+                        for site_id in site_ids:
+                            website_manager.remove_website(site_id)
+                        
+                        # Clear history data using cleanup method
+                        history_manager.cleanup_old_records(days_to_keep=0)  # Clear all records
+                        
+                        flash('All website data has been cleared successfully', 'success')
+                        logger.info("Bulk clear operation completed successfully")
+                        
+                    except Exception as e:
+                        flash(f'Error clearing data: {str(e)}', 'error')
+                        logger.error(f"Error during bulk clear: {e}")
+                else:
+                    flash('Clear operation cancelled - confirmation required', 'warning')
+            
+            return redirect(url_for('bulk_import'))
+            
+        except Exception as e:
+            flash(f'Error processing request: {str(e)}', 'error')
+            logger.error(f"Bulk import error: {e}")
+            return redirect(url_for('bulk_import'))
+    
+    # GET request - show the bulk import page
+    websites = website_manager.list_websites()
+    total_websites = len(websites)
+    
+    return render_template('bulk_import.html', 
+                         current_config=current_config,
+                         total_websites=total_websites,
+                         websites=websites)
 
 # Replace the old block with this one
 if __name__ == '__main__':
@@ -1764,14 +2178,14 @@ if __name__ == '__main__':
     start_scheduler(config_path=config_path)
     
     # Explicitly load app's config for its run parameters
-    app_specific_config = get_config(config_path='config/config.yaml')
+    app_specific_config = get_config(config_path='config/config.yaml') 
     
     # 1. CHANGED: Default host is now '0.0.0.0' for deployment
     app_host = app_specific_config.get('dashboard_host', '0.0.0.0')
     app_port = app_specific_config.get('dashboard_port', 5001)
     
     # 2. CHANGED: Default debug mode is now False for production
-    app_debug = app_specific_config.get('dashboard_debug_mode', True)
+    app_debug = app_specific_config.get('dashboard_debug_mode', True) 
     
     logger.info(f"Starting Flask web server on http://{app_host}:{app_port}, Debug: {app_debug}")
-    app.run(host=app_host, port=app_port, debug=app_debug)
+    app.run(host=app_host, port=app_port, debug=app_debug) 

@@ -68,7 +68,7 @@ visual_change_alert_threshold_percent: 0.005  # More sensitive
 visual_difference_threshold: 3.0  # More sensitive
 
 # Blur Detection Settings (Optimized for Production)
-blur_detection_threshold: 100
+blur_detection_threshold: 85
 blur_detection_percentage_threshold: 15
 blur_detection_min_image_size: 100
 blur_detection_timeout: 30  # Increased timeout for hosted environments

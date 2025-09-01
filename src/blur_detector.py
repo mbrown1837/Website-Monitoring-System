@@ -673,45 +673,11 @@ class BlurDetector:
             
             self.logger.info(f"Starting parallel blur analysis for {total_images} unique images from {total_pages} pages of website {website_id} using {max_workers} workers")
             
-            # Step 1: Check image registry and skip already processed images
-            images_to_process = []
-            skipped_images = 0
+            # Process all images (cache system removed for always getting latest data)
+            images_to_process = all_images_data
+            self.logger.info(f"Processing all {len(images_to_process)} images (cache system disabled for latest data)")
             
-            for img_data in all_images_data:
-                image_url = img_data['image_url']
-                registry_check = self._check_image_registry(website_id, image_url)
-                
-                if registry_check['exists']:
-                    # Image already processed, skip download and analysis
-                    skipped_images += 1
-                    self.logger.debug(f"Skipping already processed image: {image_url}")
-                    
-                    # Create result entry using existing registry data
-                    result = {
-                        'image_url': image_url,
-                        'page_url': img_data['page_url'],
-                        'image_local_path': registry_check['image_local_path'],
-                        'is_blurry': False,  # We don't have blur analysis for this
-                        'laplacian_score': None,
-                        'blur_percentage': None,
-                        'image_width': registry_check['image_width'],
-                        'image_height': registry_check['image_height'],
-                        'file_size': registry_check['file_size'],
-                        'skipped': True,
-                        'skip_reason': 'Already processed (duplicate)',
-                        'website_id': website_id,
-                        'crawl_id': crawl_id,
-                        'timestamp': datetime.now(timezone.utc).isoformat()
-                    }
-                    results.append(result)
-                else:
-                    # New image, add to processing queue
-                    images_to_process.append(img_data)
-            
-            if skipped_images > 0:
-                self.logger.info(f"Skipped {skipped_images} already processed images, processing {len(images_to_process)} new images")
-            
-            # Step 2: Process only new images
+            # Step 2: Process all images
             if images_to_process:
                 # Parallel downloading and saving of new images
                 download_args = []
@@ -775,7 +741,7 @@ class BlurDetector:
                 actual_count = len([r for r in results if r.get('page_url') == page_url])
                 self.logger.debug(f"Processed {actual_count}/{expected_count} images from {page_url}")
             
-            self.logger.info(f"Completed parallel blur analysis: {processed_count} new images processed, {skipped_images} duplicates skipped, total results: {len(results)}")
+            self.logger.info(f"Completed parallel blur analysis: {processed_count} images processed, total results: {len(results)}")
             
             # Save all results to database if crawl_id is provided
             if crawl_id and results:

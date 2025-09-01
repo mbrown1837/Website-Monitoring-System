@@ -1,0 +1,2 @@
+name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,description
+Test Site,https://example.com,1440,true,true,true,true,2,Auto-setup test site

@@ -1,9 +1,4 @@
-name,url
-Google,https://google.com
-GitHub,https://github.com
-Stack Overflow,https://stackoverflow.com
-Example Website,https://example.com
-My Blog,myblog.com
-Test Site 1,https://testsite1.com
-Test Site 2,https://testsite2.com
-Test Site 3,https://testsite3.com
+name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,description
+Example Site,https://example.com,300,true,true,false,false,2,Example website for testing
+Test Blog,https://blog.example.com,600,true,true,true,true,3,Blog with performance monitoring
+Demo Store,https://store.example.com,900,true,true,false,true,2,E-commerce site monitoring

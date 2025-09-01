@@ -280,13 +280,20 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         'is_scheduled': is_scheduled
     }
     
-    # Override with any provided options (but preserve the check_config we determined above)
+    # Override with any provided options
     if crawler_options_override: 
-        # Don't let the override change check_config for manual checks
-        preserved_check_config = final_crawler_options['check_config']
+        # For manual checks, respect the check_config provided by the app (if any)
+        # This allows manual checks to override with specific configurations
+        manual_check_config = crawler_options_override.get('check_config')
         final_crawler_options.update(crawler_options_override)
-        if not is_scheduled:
-            final_crawler_options['check_config'] = preserved_check_config
+        
+        # If manual check provided a specific config, use it; otherwise keep automated config
+        if not is_scheduled and manual_check_config:
+            final_crawler_options['check_config'] = manual_check_config
+            logger.info(f"Using manual check configuration override for {website.get('name')}: {manual_check_config}")
+        elif not is_scheduled:
+            # Keep the automated config for consistency
+            logger.info(f"Using automated configuration for manual check of {website.get('name')}: {check_config}")
 
     logger.info(f"Performing check for '{website.get('name')}' (ID: {site_id}) with options: {final_crawler_options}")
     check_result = {

@@ -1,0 +1,320 @@
+{% extends "layout.html" %}
+
+{% block title %}Bulk Import - Developer Tools{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-upload text-primary"></i>
+                    Bulk Import - Developer Tools
+                </h1>
+                <div class="text-muted">
+                    <small>Total Websites: <span class="badge badge-info">{{ total_websites }}</span></small>
+                </div>
+            </div>
+
+            <!-- Developer Notice -->
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Developer Tools:</strong> This page is designed for developers and administrators. 
+                Use with caution as operations here can affect all website data.
+            </div>
+
+            <!-- Import Section -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-import"></i>
+                                Import Websites
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- CSV Import -->
+                            <div class="mb-4">
+                                <h6 class="text-muted">CSV Import</h6>
+                                <form method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="action" value="import_csv">
+                                    <div class="form-group">
+                                        <label for="csv_file">Select CSV File:</label>
+                                        <input type="file" class="form-control-file" id="csv_file" name="csv_file" accept=".csv" required>
+                                        <small class="form-text text-muted">
+                                            CSV format: name, url, monitoring_interval, enable_crawl, enable_visual, enable_blur_detection, enable_performance, max_depth, description
+                                        </small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload"></i>
+                                        Import CSV
+                                    </button>
+                                </form>
+                            </div>
+
+                            <hr>
+
+                            <!-- JSON Import -->
+                            <div>
+                                <h6 class="text-muted">JSON Import</h6>
+                                <form method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="action" value="import_json">
+                                    <div class="form-group">
+                                        <label for="json_file">Select JSON File:</label>
+                                        <input type="file" class="form-control-file" id="json_file" name="json_file" accept=".json" required>
+                                        <small class="form-text text-muted">
+                                            JSON array of website objects with all configuration options
+                                        </small>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-upload"></i>
+                                        Import JSON
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Section -->
+                <div class="col-lg-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-export"></i>
+                                Export Websites
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- CSV Export -->
+                            <div class="mb-4">
+                                <h6 class="text-muted">CSV Export</h6>
+                                <p class="text-muted">Export all websites to CSV format for backup or migration.</p>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="action" value="export_csv">
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                        Export CSV
+                                    </button>
+                                </form>
+                            </div>
+
+                            <hr>
+
+                            <!-- JSON Export -->
+                            <div>
+                                <h6 class="text-muted">JSON Export</h6>
+                                <p class="text-muted">Export all websites to JSON format for backup or migration.</p>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="action" value="export_json">
+                                    <button type="submit" class="btn btn-outline-success">
+                                        <i class="fas fa-download"></i>
+                                        Export JSON
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample Data Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-code"></i>
+                                Sample Data Formats
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- CSV Sample -->
+                                <div class="col-lg-6">
+                                    <h6 class="text-muted">CSV Format Sample:</h6>
+                                    <pre class="bg-light p-3 rounded"><code>name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,description
+Example Site,https://example.com,300,true,true,false,false,2,Example website for testing
+Test Blog,https://blog.example.com,600,true,true,true,true,3,Blog with performance monitoring</code></pre>
+                                </div>
+
+                                <!-- JSON Sample -->
+                                <div class="col-lg-6">
+                                    <h6 class="text-muted">JSON Format Sample:</h6>
+                                    <pre class="bg-light p-3 rounded"><code>[
+  {
+    "name": "Example Site",
+    "url": "https://example.com",
+    "monitoring_interval": 300,
+    "enable_crawl": true,
+    "enable_visual": true,
+    "enable_blur_detection": false,
+    "enable_performance": false,
+    "max_depth": 2,
+    "description": "Example website for testing"
+  }
+]</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Websites Section -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i>
+                                Current Websites ({{ total_websites }})
+                            </h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-light" type="button" data-toggle="collapse" data-target="#websitesList" aria-expanded="false">
+                                    <i class="fas fa-eye"></i>
+                                    Toggle View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="collapse" id="websitesList">
+                            <div class="card-body">
+                                {% if websites %}
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead class="thead-dark">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>URL</th>
+                                                    <th>Interval</th>
+                                                    <th>Crawl</th>
+                                                    <th>Visual</th>
+                                                    <th>Blur</th>
+                                                    <th>Performance</th>
+                                                    <th>Max Depth</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for site_id, site_data in websites.items() %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ site_data.name }}</strong>
+                                                        {% if site_data.description %}
+                                                            <br><small class="text-muted">{{ site_data.description }}</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ site_data.url }}" target="_blank" class="text-primary">
+                                                            {{ site_data.url }}
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-info">
+                                                            {{ site_data.monitoring_interval }}s
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if site_data.enable_crawl %}
+                                                            <span class="badge badge-success">✓</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">✗</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if site_data.enable_visual %}
+                                                            <span class="badge badge-success">✓</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">✗</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if site_data.enable_blur_detection %}
+                                                            <span class="badge badge-success">✓</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">✗</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if site_data.enable_performance %}
+                                                            <span class="badge badge-success">✓</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">✗</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-primary">{{ site_data.max_depth }}</span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                                        <p>No websites configured yet.</p>
+                                        <p>Use the import tools above to add websites in bulk.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Danger Zone
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Warning:</strong> This action will permanently delete all website data, 
+                                including monitoring history, snapshots, and configurations. This cannot be undone.
+                            </div>
+                            
+                            <form method="POST" id="clearAllForm">
+                                <input type="hidden" name="action" value="clear_all">
+                                <div class="form-group">
+                                    <label for="confirm_clear">Type "yes" to confirm:</label>
+                                    <input type="text" class="form-control" id="confirm_clear" name="confirm_clear" 
+                                           placeholder="Type 'yes' to confirm" required>
+                                </div>
+                                <button type="submit" class="btn btn-danger" id="clearAllBtn" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    Clear All Website Data
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enable clear button only when "yes" is typed
+document.getElementById('confirm_clear').addEventListener('input', function() {
+    const clearBtn = document.getElementById('clearAllBtn');
+    if (this.value.toLowerCase() === 'yes') {
+        clearBtn.disabled = false;
+    } else {
+        clearBtn.disabled = true;
+    }
+});
+
+// Confirm before clearing
+document.getElementById('clearAllForm').addEventListener('submit', function(e) {
+    if (!confirm('Are you absolutely sure you want to delete ALL website data? This action cannot be undone!')) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}
