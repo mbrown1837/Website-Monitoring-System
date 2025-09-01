@@ -56,24 +56,46 @@ class CrawlerModule:
         
         self.logger.info(f"Database path: {self.db_path}")
         
-        # Create tables if they don't exist
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        # Create tables if they don't exist and configure SQLite to reduce lock contention
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        try:
+            cursor = conn.cursor()
+            # Enable WAL for better concurrency and set a reasonable busy timeout
+            try:
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA synchronous=NORMAL;")
+                cursor.execute("PRAGMA busy_timeout=5000;")
+            except Exception:
+                pass
+            
+            # Check if we need to run migrations
+            # self._check_and_migrate_schema(cursor)  # Comment out this line
+            
+            # Legacy/history table (kept for compatibility)
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS crawl_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                website_id TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                broken_links_count INTEGER DEFAULT 0,
+                missing_meta_tags_count INTEGER DEFAULT 0,
+                total_pages_count INTEGER DEFAULT 0,
+                results_json TEXT
+            )
+            ''')
+            
+            # New normalized tables used by crawler and reporting
+            cursor.execute('CREATE TABLE IF NOT EXISTS crawl_results (id INTEGER PRIMARY KEY, website_id TEXT, url TEXT, timestamp TEXT, pages_crawled INTEGER, broken_links_count INTEGER, missing_meta_tags_count INTEGER, crawl_data TEXT)')
+            cursor.execute('CREATE TABLE IF NOT EXISTS broken_links (id INTEGER PRIMARY KEY, crawl_id INTEGER, url TEXT, status_code INTEGER, referring_page TEXT, error_type TEXT, error_message TEXT, is_internal BOOLEAN, FOREIGN KEY (crawl_id) REFERENCES crawl_results (id))')
+            cursor.execute('CREATE TABLE IF NOT EXISTS missing_meta_tags (id INTEGER PRIMARY KEY, crawl_id INTEGER, url TEXT, type TEXT, element TEXT, details TEXT, FOREIGN KEY (crawl_id) REFERENCES crawl_results (id))')
+            
+            conn.commit()
+            self.logger.info("Database schema initialized successfully (WAL enabled, tables ensured).")
+        except Exception as e:
+            self.logger.error(f"Error initializing database schema: {e}", exc_info=True)
+        finally:
+            conn.close()
         
-        # Check if we need to run migrations
-        # self._check_and_migrate_schema(cursor)  # Comment out this line
-        
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS crawl_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            website_id TEXT NOT NULL,
-            timestamp TEXT NOT NULL,
-            broken_links_count INTEGER DEFAULT 0,
-            missing_meta_tags_count INTEGER DEFAULT 0,
-            total_pages_count INTEGER DEFAULT 0,
-            results_json TEXT
-        )
-        ''')
         self.logger.info("CrawlerModule initialized with enhanced Greenflare crawler")
         
     def _check_and_migrate_schema(self, cursor):

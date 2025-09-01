@@ -42,7 +42,14 @@ class BlurDetector:
         # Ensure the directory exists (db_path is a string)
         db_dir = os.path.dirname(db_path)
         ensure_directory_exists(db_dir)
-        conn = sqlite3.connect(str(db_path))
+        conn = sqlite3.connect(str(db_path), timeout=30)
+        try:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL;")
+            cursor.execute("PRAGMA synchronous=NORMAL;")
+            cursor.execute("PRAGMA busy_timeout=5000;")
+        except Exception:
+            pass
         return conn
     
     def _init_blur_detection_tables(self):

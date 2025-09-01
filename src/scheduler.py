@@ -33,6 +33,10 @@ _history_manager = None
 _crawler_module = None
 _scheduler_config = None
 
+# Global concurrency control for site-level checks
+_max_concurrent_site_checks = config.get('max_concurrent_site_checks', 3)
+_site_check_semaphore = threading.Semaphore(_max_concurrent_site_checks)
+
 def get_scheduler_managers(config_path=None, website_manager=None, history_manager=None, crawler_module=None):
     """Get or create scheduler managers with proper configuration."""
     global _website_manager, _history_manager, _crawler_module, _scheduler_config
@@ -301,6 +305,9 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         "status": "pending", "url": website.get('url'), "significant_change_detected": False,
     }
 
+    # Concurrency gate: limit number of concurrent site checks
+    logger.debug(f"Awaiting site check slot (max {_max_concurrent_site_checks} concurrent)...")
+    _site_check_semaphore.acquire()
     try:
         all_results = crawler_module.crawl_website(
             website_id=site_id, 
@@ -330,24 +337,16 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             })
             logger.info(f"Significant changes detected for {website.get('name')}, preparing to send alert.")
             
-            # The visual diff report is now generated during the comparison step (in crawler_module),
-            # so we just need to pass the results to the alerter.
-            # The path to the diff image is already in check_result['visual_diff_image_path'] if one was created.
-            
             alerter.send_report(website, check_result)
         else:
             check_result['status'] = 'No significant change'
             logger.info(f"No significant changes detected for {website.get('name')}.")
 
-        # Record the final, processed result in history
         serializable_result = make_json_serializable(check_result)
         history_manager.add_check_record(**serializable_result)
 
         logger.info(f"Check for '{website.get('name')}' completed. Status: {check_result['status']}")
-        
-        # Log the check completion
         db_manager.log_scheduler_event("INFO", f"Check completed: {check_result['status']}", site_id, check_result.get('check_id'))
-        
         return serializable_result
 
     except Exception as e:
@@ -357,6 +356,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         serializable_result = make_json_serializable(check_result)
         history_manager.add_check_record(**serializable_result)
         return serializable_result
+    finally:
+        _site_check_semaphore.release()
 
 def schedule_website_monitoring_tasks(config_path=None):
     """Loads websites and schedules monitoring tasks for active ones."""
