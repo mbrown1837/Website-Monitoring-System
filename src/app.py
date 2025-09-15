@@ -660,7 +660,7 @@ def manual_check_website(site_id):
                 'position': len(queue_processor.get_queue_status()) - 1,
                 'estimated_time': 'Calculating...'
             })
-        else:
+    else:
             return jsonify({
                 'status': 'error',
                 'message': 'Failed to add check to queue'
@@ -668,7 +668,7 @@ def manual_check_website(site_id):
             
     except Exception as e:
         logger.error(f"Error adding manual check to queue: {e}")
-        return jsonify({
+    return jsonify({
             'status': 'error',
             'message': f'Failed to queue check: {str(e)}'
         }), 500
@@ -1579,21 +1579,26 @@ def run_manual_check_from_ui(site_id):
         logger.info(f"DASHBOARD: Manually triggering check for {site_name} ({site_id}) from UI.")
         flash(f'Initiating manual check for "{site_name}". Please wait a moment for results to update...', 'info')
         
-        check_outcome = perform_website_check(site_id=site_id, website_manager_instance=website_manager, 
-                                               history_manager_instance=history_manager, 
-                                               crawler_module_instance=crawler_module)
+        # Use queue system for manual checks to ensure emails are sent
+        from src.queue_processor import QueueProcessor
+        queue_processor = QueueProcessor()
+        
+        # Add full check to queue (this will send emails for all check types)
+        queue_id = website_manager.add_to_queue(site_id, 'full')
+        logger.info(f"DASHBOARD: Added full check for {site_name} to queue (ID: {queue_id})")
+        
+        # Return success immediately - the queue processor will handle the rest
+        check_outcome = {
+            'status': 'queued',
+            'check_id': queue_id,
+            'message': 'Check added to queue for processing'
+        }
         
         status = check_outcome.get('status')
-        changes_detected = check_outcome.get('significant_change_detected', False)
-        error_message = check_outcome.get('error_message')
         check_id_val = check_outcome.get('check_id', 'N/A')
 
-        if status == "failed_fetch" or status == "error":
-            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) encountered an error: {error_message or "Unknown error"}', 'danger')
-        elif status == "initial_check_completed":
-            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed (initial check). Changes detected: {changes_detected}', 'info')
-        elif status == "completed_no_changes":
-            flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed. No significant changes detected.', 'success')
+        if status == "queued":
+            flash(f'Manual check for "{site_name}" (Queue ID: {check_id_val}) has been added to the processing queue. You will receive an email notification when the check completes.', 'success')
         elif status == "completed_with_changes":
             flash(f'Manual check for "{site_name}" (Check ID: {check_id_val}) completed. Significant changes detected!', 'warning')
         else:
@@ -1998,10 +2003,14 @@ def bulk_import():
                             exclude_pages_keywords_str = row.get('exclude_pages_keywords', '').strip()
                             exclude_pages_keywords = [keyword.strip() for keyword in exclude_pages_keywords_str.split(',') if keyword.strip()] if exclude_pages_keywords_str else []
 
+                            # Convert monitoring_interval from seconds to minutes
+                            monitoring_interval_seconds = int(row.get('monitoring_interval', 86400))  # Default to 24 hours (86400 seconds)
+                            check_interval_minutes = monitoring_interval_seconds // 60
+                            
                             website_record = {
                                 'name': name,
                                 'url': url,
-                                'check_interval_minutes': int(row.get('monitoring_interval', 1440)),  # Default to 24 hours
+                                'check_interval_minutes': check_interval_minutes,  # Convert from seconds to minutes
                                 'max_crawl_depth': int(row.get('max_depth', 2)),
                                 'is_active': True,
                                 'capture_subpages': True,
@@ -2024,8 +2033,8 @@ def bulk_import():
                             website = website_manager.add_website(website_record)
                             imported_count += 1
                             
-                            # Auto-create baseline and run full check after import
-                            _auto_setup_website(website)
+                            # Small delay to respect concurrency limits (like improved script)
+                            time.sleep(0.5)
                             
                         except Exception as e:
                             errors.append(f"Error importing row {row}: {str(e)}")
@@ -2066,11 +2075,15 @@ def bulk_import():
                                     errors.append(f"Website missing name or URL: {website}")
                                     continue
 
+                                # Convert monitoring_interval from seconds to minutes
+                                monitoring_interval_seconds = int(website.get('monitoring_interval', 86400))  # Default to 24 hours (86400 seconds)
+                                check_interval_minutes = monitoring_interval_seconds // 60
+                                
                                 # Normalize to internal schema
                                 website_record = {
                                     'name': website.get('name').strip(),
                                     'url': website.get('url').strip(),
-                                    'check_interval_minutes': int(website.get('monitoring_interval', 60)),
+                                    'check_interval_minutes': check_interval_minutes,  # Convert from seconds to minutes
                                     'max_crawl_depth': int(website.get('max_depth', 2)),
                                     'is_active': True,
                                     'capture_subpages': True,
@@ -2080,14 +2093,20 @@ def bulk_import():
                                     'enable_blur_detection': bool(website.get('enable_blur_detection', True)),
                                     'auto_performance_enabled': bool(website.get('enable_performance', True)),
                                     'auto_full_check_enabled': True,
-                                    'render_delay': 6
+                                    'render_delay': 6,
+                                    'visual_diff_threshold': 5,
+                                    'blur_detection_scheduled': False,
+                                    'blur_detection_manual': True,
+                                    'exclude_pages_keywords': website.get('exclude_pages_keywords', []),
+                                    'tags': website.get('tags', []),
+                                    'notification_emails': website.get('notification_emails', [])
                                 }
 
                                 website = website_manager.add_website(website_record)
                                 imported_count += 1
                                 
-                                # Auto-create baseline and run full check after import
-                                _auto_setup_website(website)
+                                # Small delay to respect concurrency limits (like improved script)
+                                time.sleep(0.5)
                                 
                             except Exception as e:
                                 errors.append(f"Error importing website {website}: {str(e)}")
