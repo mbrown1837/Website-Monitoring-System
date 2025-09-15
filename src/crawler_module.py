@@ -1378,9 +1378,11 @@ class CrawlerModule:
             return
         
         try:
-            # Initialize performance checker
+            # Initialize performance checker with production config
             self.logger.info(f"Initializing performance checker for website {website_id}")
-            performance_checker = PerformanceChecker()
+            from src.config_loader import get_config_path_for_environment
+            config_path = get_config_path_for_environment()
+            performance_checker = PerformanceChecker(config_path=config_path)
             
             # Get the main website URL
             website_url = website.get('url')
