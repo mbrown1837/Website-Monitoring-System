@@ -4,12 +4,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage # Import for embedding images
 import html # Added for html.escape
 import os # For path handling
-from datetime import datetime
+from datetime import datetime, timezone
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
 
 logger = setup_logging()
-config = get_config()
+
+def get_config_dynamic():
+    """Get config dynamically to ensure environment variables are loaded."""
+    return get_config()
 
 def send_report(website: dict, check_results: dict):
     """
@@ -253,6 +256,7 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
     Sends an email alert using SMTP settings from the configuration.
     (Now with attachment support)
     """
+    config = get_config_dynamic()
     smtp_sender = config.get('notification_email_from')
     default_recipients_str = config.get('notification_email_to', config.get('default_notification_email'))
     
@@ -413,8 +417,7 @@ def format_alert_message(site_url: str, site_name: str, check_record: dict) -> t
             text_body_parts.append(f"- Missing Meta Tags: {missing_meta_tags_count} missing meta tags detected")
             
         # Add a link to view detailed crawler results
-        from src.config_loader import get_config
-        config = get_config()
+        config = get_config_dynamic()
         dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
         html_body_parts.append(f"<p><a href=\"{dashboard_url}/website/{check_record.get('site_id')}/crawler\">View Detailed Crawler Results</a></p>")
         text_body_parts.append(f"\nView Detailed Crawler Results: {dashboard_url}/website/{check_record.get('site_id')}/crawler")
@@ -573,6 +576,7 @@ if __name__ == '__main__':
     # smtp_use_tls: True
 
     # Check if SMTP is configured for a live test
+    config = get_config_dynamic()
     can_send_live = all(config.get(k) for k in ['notification_email_from', 'notification_email_to', 'smtp_server', 'smtp_username', 'smtp_password'])
 
     sample_check_record_alert = {
@@ -642,8 +646,7 @@ def send_single_check_email(website: dict, check_results: dict, check_type: str)
     
     # Use default email if no recipient emails configured
     if not recipient_emails:
-        from src.config_loader import get_config
-        config = get_config()
+        config = get_config_dynamic()
         default_email = config.get('default_notification_email')
         if default_email:
             recipient_emails = [default_email]
@@ -1119,8 +1122,7 @@ def send_performance_email(website: dict, performance_data: dict):
         html_body_parts.append("</div>")
     
     # Add dashboard link
-    from src.config_loader import get_config
-    config = get_config()
+    config = get_config_dynamic()
     dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     

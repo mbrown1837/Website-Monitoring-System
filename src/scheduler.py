@@ -389,7 +389,11 @@ def schedule_website_monitoring_tasks(config_path=None):
 
     try:
         all_websites_map = website_manager.list_websites()
+        logger.info(f"SCHEDULER: Loaded {len(all_websites_map)} total websites from database")
         active_websites = [site for site in all_websites_map.values() if site.get('is_active', True)]
+        logger.info(f"SCHEDULER: Found {len(active_websites)} active websites")
+        for site in active_websites:
+            logger.info(f"SCHEDULER: Active site: {site.get('name')} (ID: {site.get('id')}) - Interval: {site.get('check_interval_minutes')} minutes")
     except Exception as e:
         logger.error(f"SCHEDULER: Failed to load website list: {e}", exc_info=True)
         active_websites = []
