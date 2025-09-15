@@ -122,6 +122,12 @@ class SchedulerManager:
             self.db_manager.log_scheduler_event("INFO", f"Scheduled {active_jobs} monitoring tasks", None, None)
             self.db_manager.update_scheduler_status("running", True, active_jobs)
             
+            # Debug: Log next run time
+            if schedule.jobs:
+                next_run = schedule.next_run()
+                self.logger.info(f"SCHEDULER: Next scheduled run at: {next_run}")
+                self.db_manager.log_scheduler_event("INFO", f"Next scheduled run at: {next_run}", None, None)
+            
             self.logger.info("SCHEDULER: Starting main scheduling loop in background thread.")
             
             # Main scheduling loop
@@ -137,7 +143,16 @@ class SchedulerManager:
                     active_jobs = len(schedule.jobs)
                     self.db_manager.log_metric("active_jobs", active_jobs)
                     
+                    # Debug: Log scheduler status every 5 minutes
+                    if hasattr(self, '_last_debug_log'):
+                        if time.time() - self._last_debug_log > 300:  # 5 minutes
+                            self.logger.info(f"SCHEDULER: Loop running - {active_jobs} active jobs, next run: {schedule.next_run() if schedule.jobs else 'None'}")
+                            self._last_debug_log = time.time()
+                    else:
+                        self._last_debug_log = time.time()
+                    
                     if tasks_run:
+                        self.logger.info(f"SCHEDULER: Executed {len(tasks_run)} scheduled tasks")
                         self.db_manager.log_scheduler_event("INFO", f"Executed {len(tasks_run)} scheduled tasks", None, None)
                     
                     # Calculate wait time (minimum 1 second, maximum check_interval)

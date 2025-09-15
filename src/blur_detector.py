@@ -300,7 +300,7 @@ class BlurDetector:
                         
                         self.logger.debug(f"Successfully downloaded image from {image_url} ({len(image_data)} bytes)")
                         return image_data
-            
+                        
                 except requests.exceptions.Timeout:
                     if attempt < max_retries - 1:
                         wait_time = (2 ** attempt) * 2  # Exponential backoff: 2s, 4s, 8s
@@ -646,8 +646,8 @@ class BlurDetector:
         # Initialize results at the beginning to avoid UnboundLocalError
         results = []
         
+        # Step 0: Deduplicate images to avoid processing the same image multiple times
         try:
-            # Step 0: Deduplicate images to avoid processing the same image multiple times
             original_count = len(all_images_data)
             all_images_data = self._deduplicate_images(website_id, all_images_data)
             deduplicated_count = len(all_images_data)
@@ -696,52 +696,52 @@ class BlurDetector:
                     page_index = list(pages_with_images.keys()).index(page_url) + 1
                     
                     download_args.append((i, image_url, page_url, blur_dir, page_index))
+            
+            downloaded_images = []
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as download_executor:
+                download_results = download_executor.map(self._download_and_save_image_batch, download_args)
                 
-                downloaded_images = []
-                
-                with ThreadPoolExecutor(max_workers=max_workers) as download_executor:
-                    download_results = download_executor.map(self._download_and_save_image_batch, download_args)
-                    
-                    for i, result in enumerate(download_results):
-                        if result and result[3]:  # If download was successful
-                            downloaded_images.append((result[0], result[1], result[2]))  # (local_path, image_url, page_url)
-                        elif result and not result[3]:  # If download failed
-                            self.logger.warning(f"Failed to download image: {result[1]}")
-                
-                        # Add small delay every few downloads to be respectful to servers
-                        if (i + 1) % 3 == 0:
-                            time.sleep(0.5)  # 0.5 second delay every 3 downloads
+                for i, result in enumerate(download_results):
+                    if result and result[3]:  # If download was successful
+                        downloaded_images.append((result[0], result[1], result[2]))  # (local_path, image_url, page_url)
+                    elif result and not result[3]:  # If download failed
+                        self.logger.warning(f"Failed to download image: {result[1]}")
+            
+                    # Add small delay every few downloads to be respectful to servers
+                    if (i + 1) % 3 == 0:
+                        time.sleep(0.5)  # 0.5 second delay every 3 downloads
                 
                 self.logger.info(f"Downloaded {len(downloaded_images)} out of {len(images_to_process)} new images successfully")
                 
                 # Step 3: Parallel analysis of downloaded images
-                if downloaded_images:
-                    with ProcessPoolExecutor(max_workers=min(max_workers, multiprocessing.cpu_count())) as analysis_executor:
-                        analysis_results = analysis_executor.map(self._analyze_image_parallel_batch, downloaded_images)
-                        
-                        for (local_path, image_url, page_url), analysis_result in zip(downloaded_images, analysis_results):
-                            if analysis_result:
-                                # Convert absolute path to relative path for web serving
-                                relative_path = os.path.relpath(local_path, 'data')
-                                analysis_result['image_local_path'] = relative_path
-                                analysis_result['page_url'] = page_url
-                                analysis_result['website_id'] = website_id
-                                analysis_result['crawl_id'] = crawl_id
-                                analysis_result['timestamp'] = datetime.now(timezone.utc).isoformat()
-                                
-                                # Add to image registry
-                                if 'file_size' in analysis_result and 'image_width' in analysis_result and 'image_height' in analysis_result:
-                                    self._add_image_to_registry(
-                                        website_id, image_url, relative_path, page_url,
-                                        analysis_result['file_size'], analysis_result['image_width'], analysis_result['image_height']
-                                    )
-                                
-                                results.append(analysis_result)
-                                processed_count += 1
-                            else:
-                                # Clean up failed analysis
-                                if os.path.exists(local_path):
-                                    os.remove(local_path)
+            if downloaded_images:
+                with ProcessPoolExecutor(max_workers=min(max_workers, multiprocessing.cpu_count())) as analysis_executor:
+                    analysis_results = analysis_executor.map(self._analyze_image_parallel_batch, downloaded_images)
+                    
+                    for (local_path, image_url, page_url), analysis_result in zip(downloaded_images, analysis_results):
+                        if analysis_result:
+                            # Convert absolute path to relative path for web serving
+                            relative_path = os.path.relpath(local_path, 'data')
+                            analysis_result['image_local_path'] = relative_path
+                            analysis_result['page_url'] = page_url
+                            analysis_result['website_id'] = website_id
+                            analysis_result['crawl_id'] = crawl_id
+                            analysis_result['timestamp'] = datetime.now(timezone.utc).isoformat()
+                            
+                            # Add to image registry
+                            if 'file_size' in analysis_result and 'image_width' in analysis_result and 'image_height' in analysis_result:
+                                self._add_image_to_registry(
+                                    website_id, image_url, relative_path, page_url,
+                                    analysis_result['file_size'], analysis_result['image_width'], analysis_result['image_height']
+                                )
+                            
+                            results.append(analysis_result)
+                            processed_count += 1
+                        else:
+                            # Clean up failed analysis
+                            if os.path.exists(local_path):
+                                os.remove(local_path)
             
             # Log detailed results by page
             for page_url, expected_count in pages_with_images.items():
@@ -749,7 +749,7 @@ class BlurDetector:
                 self.logger.debug(f"Processed {actual_count}/{expected_count} images from {page_url}")
             
             self.logger.info(f"Completed parallel blur analysis: {processed_count} images processed, total results: {len(results)}")
-            
+        
             # Save all results to database if crawl_id is provided
             if crawl_id and results:
                 self._save_results_to_db(crawl_id, results)
@@ -757,14 +757,12 @@ class BlurDetector:
             return results
                 
         except Exception as e:
-            self.logger.error(f"Error during blur detection for website {website_id}: {e}", exc_info=True)
+            self.logger.error(f"Error in parallel blur analysis for website {website_id}: {e}")
             # Return partial results if any were processed
             if results:
                 self.logger.info(f"Returning {len(results)} partial results despite error")
                 return results
-            else:
-                self.logger.error(f"No blur detection results available for website {website_id} due to error")
-                return []
+            return []
     
     def _download_and_save_image_batch(self, args):
         """Helper function for parallel batch image downloading and saving."""
@@ -874,7 +872,7 @@ class BlurDetector:
                 self._save_results_to_db(crawl_id, results)
             
             return results
-            
+                
         except Exception as e:
             self.logger.error(f"Error during blur detection for page {page_url}: {e}", exc_info=True)
             # Return partial results if any were processed

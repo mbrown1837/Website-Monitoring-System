@@ -5,7 +5,7 @@ import json
 import hashlib
 import requests
 from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 from typing import Dict, List, Any, Optional, Tuple
 import sqlite3
 from src.website_manager_sqlite import WebsiteManager
@@ -40,8 +40,9 @@ class CrawlerModule:
             check_external_links=self.config.get('check_external_links', True)
         )
         
-        # Initialize website manager
-        self.website_manager = WebsiteManager(config_path=config_path)
+        # Initialize website manager (use SQLite version)
+        from src.website_manager_sqlite import WebsiteManagerSQLite
+        self.website_manager = WebsiteManagerSQLite(config_path=config_path)
         
         # Initialize database
         self._initialize_database()
@@ -169,10 +170,50 @@ class CrawlerModule:
         if lowered.startswith(("mailto:", "tel:", "javascript:")):
             return True
         return False
+    
+    def _should_exclude_url_for_checks(self, url: str, check_type: str = "all", website_id: str = None) -> bool:
+        """
+        Return True if the URL should be excluded from specific checks (visual, blur, baseline).
+        This helps save resources by skipping resource-intensive checks on non-essential pages.
+        
+        Args:
+            url (str): The URL to check
+            check_type (str): Type of check ("visual", "blur", "baseline", "all")
+            website_id (str): Optional website ID to check for per-site exclude pages
+        
+        Returns:
+            bool: True if URL should be excluded from the specified check type
+        """
+        # First, check per-site exclude pages if website_id is provided
+        if website_id:
+            website = self.website_manager.get_website(website_id)
+            if website and website.get('exclude_pages_keywords'):
+                exclude_keywords = website['exclude_pages_keywords']
+                self.logger.debug(f"Using per-site exclude keywords for website {website_id}: {exclude_keywords}")
+            else:
+                # Fall back to global config
+                exclude_keywords = self.config.get('exclude_pages_keywords', ['products', 'blogs', 'blog', 'product'])
+                self.logger.debug(f"Using global exclude keywords for website {website_id}: {exclude_keywords}")
+        else:
+            # Use global config only
+            exclude_keywords = self.config.get('exclude_pages_keywords', ['products', 'blogs', 'blog', 'product'])
+            self.logger.debug(f"Using global exclude keywords: {exclude_keywords}")
+        
+        # Convert to lowercase for case-insensitive matching
+        url_lower = url.lower()
+        
+        # Check if URL contains any exclude keywords
+        for keyword in exclude_keywords:
+            if keyword.lower() in url_lower:
+                self.logger.debug(f"Excluding URL from {check_type} checks due to keyword '{keyword}': {url}")
+                return True
+        
+        return False
         
     def crawl_website(self, website_id, url, check_config=None, is_scheduled=False, **options):
         """
         Crawl a website to detect broken links and missing meta tags.
+        Enhanced with single-site processing and rate limiting.
         
         Args:
             website_id (str): The ID of the website to crawl.
@@ -184,7 +225,15 @@ class CrawlerModule:
         Returns:
             dict: Results of the crawl, including broken links and missing meta tags.
         """
-        self.logger.info(f"Starting crawl of website ID {website_id}: {url}")
+        # Get single-site processing configuration
+        single_site_config = self.config.get('single_site_processing', {})
+        request_delay = single_site_config.get('request_delay_seconds', 2)
+        check_delay = single_site_config.get('check_delay_seconds', 5)
+        retry_attempts = single_site_config.get('retry_attempts', 3)
+        retry_delay = single_site_config.get('retry_delay_seconds', 10)
+        
+        self.logger.info(f"🚀 Starting SINGLE-SITE crawl of website ID {website_id}: {url}")
+        self.logger.info(f"⚙️ Rate limiting: {request_delay}s between requests, {check_delay}s between checks")
         
         # Get appropriate configuration
         if check_config is None:
@@ -194,15 +243,12 @@ class CrawlerModule:
                     self.logger.error(f"Could not get automated check config for website {website_id}")
                     return {"website_id": website_id, "url": url, "timestamp": datetime.now().isoformat(), "error": "Website not found"}
             else:
-                # For manual checks, construct from legacy options to respect button purpose
-                # This ensures specific check buttons (visual-only, crawl-only, etc.) work correctly
-                check_config = {
-                    'crawl_enabled': not options.get('visual_check_only', False) and not options.get('blur_check_only', False) and not options.get('performance_check_only', False),
-                    'visual_enabled': not options.get('crawl_only', False) and not options.get('blur_check_only', False) and not options.get('performance_check_only', False),
-                    'blur_enabled': options.get('blur_check_only', False),
-                    'performance_enabled': options.get('performance_check_only', False)
-                }
-                self.logger.info(f"Using manual check configuration derived from options for website {website_id}: {check_config}")
+                # For manual checks, use the proper manual check configuration
+                check_config = self.website_manager.get_manual_check_config(website_id, options.get('check_type', 'full'))
+                if not check_config:
+                    self.logger.error(f"Could not get manual check config for website {website_id}")
+                    return {"website_id": website_id, "url": url, "timestamp": datetime.now().isoformat(), "error": "Website not found"}
+                self.logger.info(f"Using manual check configuration for website {website_id}: {check_config}")
         
         # Store the original options to pass down to check methods
         original_options = dict(options)
@@ -431,6 +477,11 @@ class CrawlerModule:
             blur_enabled = check_config.get('blur_enabled', False)
             self.logger.info(f"Blur check evaluation - blur_check_only: {blur_check_only}, blur_enabled: {blur_enabled}")
             
+            # Add delay between check types for single-site processing
+            if check_delay > 0:
+                self.logger.info(f"⏳ Waiting {check_delay}s before running blur detection...")
+                time.sleep(check_delay)
+            
             if blur_check_only:
                 # For blur-only checks, always run blur detection regardless of website settings
                 self.logger.info(f"Running blur-only check for website {website_id}")
@@ -441,6 +492,11 @@ class CrawlerModule:
                 self._run_blur_detection_if_enabled(results, website_id, original_options)
             else:
                 self.logger.debug(f"Blur detection disabled - blur_check_only: {blur_check_only}, blur_enabled: {blur_enabled}")
+            
+            # Add delay between check types for single-site processing
+            if check_delay > 0:
+                self.logger.info(f"⏳ Waiting {check_delay}s before running performance check...")
+                time.sleep(check_delay)
             
             # Run performance checks if enabled
             performance_enabled = check_config.get('performance_enabled', False)
@@ -458,6 +514,52 @@ class CrawlerModule:
             results["internal_urls"] = list(results["internal_urls"])
             results["external_urls"] = list(results["external_urls"])
             self.logger.info(f"Crawl of {url} completed. Found {len(results['broken_links'])} broken links.")
+            
+            # Add cleanup delay for single-site processing
+            cleanup_delay = single_site_config.get('cleanup_delay_seconds', 2)
+            if cleanup_delay > 0:
+                self.logger.info(f"🧹 Cleanup delay: {cleanup_delay}s before next site...")
+                time.sleep(cleanup_delay)
+            
+            # Send email notifications for all check types
+            # Get website configuration for email notifications
+            website = self.website_manager.get_website(website_id)
+            if website:
+                # Determine check type from the actual check configuration
+                check_type = options.get('check_type')
+                if not check_type:
+                    # Determine check type based on what was actually performed
+                    if check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('blur_enabled') and not check_config.get('performance_enabled'):
+                        check_type = 'crawl'
+                    elif check_config.get('visual_enabled') and not check_config.get('crawl_enabled') and not check_config.get('blur_enabled') and not check_config.get('performance_enabled'):
+                        check_type = 'visual'
+                    elif check_config.get('blur_enabled') and not check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('performance_enabled'):
+                        check_type = 'blur'
+                    elif check_config.get('performance_enabled') and not check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('blur_enabled'):
+                        check_type = 'performance'
+                    else:
+                        check_type = 'full'  # Multiple checks or unknown configuration
+                
+                # Send appropriate email based on check type
+                if check_type == 'visual':
+                    self._send_single_check_email_notification(website, results, 'visual')
+                elif check_type == 'crawl':
+                    self._send_single_check_email_notification(website, results, 'crawl')
+                elif check_type == 'blur':
+                    self._send_single_check_email_notification(website, results, 'blur')
+                elif check_type == 'performance':
+                    self._send_single_check_email_notification(website, results, 'performance')
+                elif check_type == 'baseline':
+                    self._send_single_check_email_notification(website, results, 'baseline')
+                elif check_type == 'full':
+                    # For full checks, send combined email with all results
+                    self._send_single_check_email_notification(website, results, 'full')
+                else:
+                    # Fallback to full check email
+                    self._send_single_check_email_notification(website, results, 'full')
+            else:
+                self.logger.warning(f"Website {website_id} not found for email notification")
+            
             return results
                 
         except Exception as e:
@@ -524,11 +626,14 @@ class CrawlerModule:
         log_action = "baseline" if is_baseline else "latest"
         self.logger.info(f"Starting to capture {log_action} snapshots for website ID: {results['website_id']}")
 
-        # --- FIX: Filter out direct links to images ---
+        # --- FIX: Filter out direct links to images and excluded pages ---
         image_ext_pattern = re.compile(r'\.(png|jpg|jpeg|gif|webp|svg|bmp)$', re.IGNORECASE)
         pages_to_snapshot = [
             p for p in results.get('all_pages', []) 
-            if p.get('is_internal') and p.get('status_code') == 200 and not image_ext_pattern.search(p['url'])
+            if (p.get('is_internal') and 
+                p.get('status_code') == 200 and 
+                not image_ext_pattern.search(p['url']) and
+                not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
         ]
         
         if not pages_to_snapshot:
@@ -847,13 +952,8 @@ class CrawlerModule:
     def _send_blur_detection_notification(self, website, total_images, blurry_images):
         """Send email notification about blurry images detected."""
         try:
-            # Try to import email sender - make it optional
-            try:
-                from src.email_sender import EmailSender
-                email_sender = EmailSender()
-            except ImportError:
-                self.logger.warning("Email sender module not available. Skipping email notification.")
-                return
+            # Use the existing alerter module for email notifications
+            from src.alerter import send_email_alert
             
             from src.config_loader import get_config
             
@@ -893,16 +993,22 @@ class CrawlerModule:
             if not notification_emails:
                 notification_emails = [config.get('default_notification_email', 'admin@example.com')]
             
-            # Send email to each recipient
-            for email in notification_emails:
-                if email.strip():
-                    email_sender.send_email(
-                        to_email=email.strip(),
-                        subject=subject,
-                        body=body
-                    )
-            
-            self.logger.info(f"Blur detection notification sent to {len(notification_emails)} recipients")
+            # Send email using existing alerter module
+            if notification_emails:
+                # Convert plain text body to HTML for better formatting
+                body_html = f"<html><body><pre>{body}</pre></body></html>"
+                
+                success = send_email_alert(
+                    subject=subject,
+                    body_html=body_html,
+                    recipient_emails=notification_emails
+                )
+                if success:
+                    self.logger.info(f"Blur detection notification sent to {len(notification_emails)} recipients")
+                else:
+                    self.logger.warning("Failed to send blur detection notification")
+            else:
+                self.logger.warning("No notification emails configured for blur detection")
             
         except Exception as e:
             self.logger.error(f"Error sending blur detection notification: {e}", exc_info=True)
@@ -971,6 +1077,11 @@ class CrawlerModule:
             # Only process images from internal pages (same logic as visual checks)
             if not page.get('is_internal', False):
                 self.logger.debug(f"Skipping blur detection for external page: {page_url}")
+                continue
+            
+            # Skip excluded pages to save resources
+            if self._should_exclude_url_for_checks(page_url, 'blur', website_id):
+                self.logger.debug(f"Skipping blur detection for excluded page: {page_url}")
                 continue
             
             if not page_images:
@@ -1131,6 +1242,11 @@ class CrawlerModule:
             # Only process images from internal pages (same logic as visual checks)
             if not page.get('is_internal', False):
                 self.logger.debug(f"Skipping blur detection for external page: {page_url}")
+                continue
+            
+            # Skip excluded pages to save resources
+            if self._should_exclude_url_for_checks(page_url, 'blur', website_id):
+                self.logger.debug(f"Skipping blur detection for excluded page: {page_url}")
                 continue
             
             if not page_images:
@@ -1330,6 +1446,8 @@ class CrawlerModule:
                 pages_analyzed = performance_results.get('performance_check_summary', {}).get('pages_analyzed', 0)
                 self.logger.info(f"Performance check completed for website {website_id}. "
                                f"Analyzed {pages_analyzed} pages.")
+                
+                # Performance email notification is handled by the main email logic above
             else:
                 self.logger.warning(f"Performance check returned no results for website {website_id}")
                 
@@ -1339,3 +1457,17 @@ class CrawlerModule:
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }
+    
+    def _send_single_check_email_notification(self, website, check_results, check_type):
+        """Send single check email notification using the existing alerter module."""
+        try:
+            from src.alerter import send_single_check_email
+            
+            # Send single check email using existing alerter module
+            success = send_single_check_email(website, check_results, check_type)
+            if success:
+                self.logger.info(f"{check_type.title()} email notification sent for website {website.get('name', 'Unknown')}")
+            else:
+                self.logger.warning(f"Failed to send {check_type} email notification for website {website.get('name', 'Unknown')}")
+        except Exception as e:
+            self.logger.error(f"Error sending {check_type} email notification: {e}", exc_info=True)

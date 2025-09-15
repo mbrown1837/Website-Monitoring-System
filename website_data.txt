@@ -1,0 +1,8 @@
+name=The Web Turtles
+url=https://thewebturtles.com
+check_interval_minutes=30
+visual_check=on
+crawl_check=on
+blur_check=on
+performance_check=on
+email_notifications=on

@@ -488,14 +488,15 @@ class WebsiteManager:
                 'performance_enabled': website.get('auto_performance_enabled', False)
             }
     
-    def get_manual_check_config(self, check_type):
+    def get_manual_check_config(self, website_id, check_type):
         """Get manual check configuration based on button pressed."""
         configs = {
             'full': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': True, 'performance_enabled': True},
             'visual': {'crawl_enabled': False, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False},
             'crawl': {'crawl_enabled': True, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': False},
             'blur': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': True, 'performance_enabled': False},
-            'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True}
+            'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True},
+            'baseline': {'crawl_enabled': False, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}  # Baseline is visual-only
         }
         return configs.get(check_type, configs['full'])
 

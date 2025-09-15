@@ -1,0 +1,3 @@
+name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,exclude_pages_keywords,description
+Test Site 1,https://example1.com,1440,true,true,true,true,2,products,blogs,Test site with custom exclude pages
+Test Site 2,https://example2.com,1440,true,true,true,true,2,,Test site using global exclude pages

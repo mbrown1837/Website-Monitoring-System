@@ -1,0 +1,492 @@
+{% extends "layout.html" %}
+
+{% block title %}Developer Queue - Website Monitor{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-list-ul"></i> Developer Queue Management</h1>
+                <div>
+                    <button id="reset-queue" class="btn btn-danger me-2">
+                        <i class="bi bi-arrow-clockwise"></i> Reset Queue
+                    </button>
+                    <button id="refresh-queue" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queue Status Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity"></i> Queue Status
+                    </h5>
+                    <div>
+                        <span id="websocket-status" class="badge bg-success">
+                            <i class="bi bi-wifi"></i> Connected
+                        </span>
+                        <span id="queue-processor-status" class="badge bg-info ms-2">
+                            <i class="bi bi-gear"></i> Running
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-3">
+                            <div class="text-center">
+                                <div class="h5 mb-0 text-warning" id="queue-pending-count">0</div>
+                                <small class="text-muted">Pending</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <div class="h5 mb-0 text-info" id="queue-processing-count">0</div>
+                                <small class="text-muted">Processing</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <div class="h5 mb-0 text-success" id="queue-completed-count">0</div>
+                                <small class="text-muted">Completed</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <div class="h5 mb-0 text-danger" id="queue-failed-count">0</div>
+                                <small class="text-muted">Failed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Queue Items List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-check"></i> Queue Items
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="queue-items-list">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-hourglass-split"></i> Loading queue items...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> System Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>WebSocket Connection</h6>
+                            <p class="text-muted">
+                                <span id="websocket-url">ws://localhost:8765</span>
+                                <br>
+                                <small>Status: <span id="websocket-connection-status">Connecting...</span></small>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Queue Processor</h6>
+                            <p class="text-muted">
+                                <span id="queue-processor-info">Processing manual checks in background</span>
+                                <br>
+                                <small>Last Update: <span id="last-update-time">-</span></small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Queue Item Modal -->
+<div class="modal fade" id="queueItemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Queue Item Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="queue-item-details">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Queue Management JavaScript
+class QueueManager {
+    constructor() {
+        this.websocket = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 3000;
+        this.updateInterval = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.connectWebSocket();
+        this.startPeriodicUpdate();
+        this.loadQueueStatus();
+    }
+    
+    setupEventListeners() {
+        // Refresh button
+        document.getElementById('refresh-queue').addEventListener('click', () => {
+            this.loadQueueStatus();
+        });
+        
+        // Reset queue button
+        document.getElementById('reset-queue').addEventListener('click', () => {
+            this.resetQueue();
+        });
+    }
+    
+    connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.hostname}:8765`;
+        
+        try {
+            this.websocket = new WebSocket(wsUrl);
+            
+            this.websocket.onopen = () => {
+                console.log('WebSocket connected');
+                this.updateWebSocketStatus('Connected', 'success');
+                this.reconnectAttempts = 0;
+            };
+            
+            this.websocket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Error parsing WebSocket message:', e);
+                }
+            };
+            
+            this.websocket.onclose = () => {
+                console.log('WebSocket disconnected');
+                this.updateWebSocketStatus('Disconnected', 'danger');
+                this.attemptReconnect();
+            };
+            
+            this.websocket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                this.updateWebSocketStatus('Error', 'danger');
+            };
+            
+        } catch (error) {
+            console.error('Failed to connect to WebSocket:', error);
+            this.updateWebSocketStatus('Failed', 'danger');
+        }
+    }
+    
+    attemptReconnect() {
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectAttempts++;
+            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+            this.updateWebSocketStatus(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
+            
+            setTimeout(() => {
+                this.connectWebSocket();
+            }, this.reconnectDelay);
+        } else {
+            console.error('Max reconnection attempts reached');
+            this.updateWebSocketStatus('Connection Failed', 'danger');
+        }
+    }
+    
+    handleWebSocketMessage(data) {
+        if (data.type === 'status_update') {
+            this.loadQueueStatus();
+        } else if (data.type === 'queue_update') {
+            this.loadQueueStatus();
+        }
+    }
+    
+    updateWebSocketStatus(status, type) {
+        const statusElement = document.getElementById('websocket-status');
+        const connectionStatusElement = document.getElementById('websocket-connection-status');
+        
+        statusElement.textContent = status;
+        statusElement.className = `badge bg-${type}`;
+        connectionStatusElement.textContent = status;
+    }
+    
+    async loadQueueStatus() {
+        try {
+            const response = await fetch('/api/queue/status');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.updateQueueCounts(data.queue);
+                this.updateQueueItemsList(data.queue);
+                this.updateLastUpdateTime();
+            } else {
+                console.error('Failed to load queue status:', data.message);
+            }
+        } catch (error) {
+            console.error('Error loading queue status:', error);
+        }
+    }
+    
+    updateQueueCounts(queueItems) {
+        const counts = {
+            pending: 0,
+            processing: 0,
+            completed: 0,
+            failed: 0
+        };
+        
+        queueItems.forEach(item => {
+            counts[item.status] = (counts[item.status] || 0) + 1;
+        });
+        
+        document.getElementById('queue-pending-count').textContent = counts.pending;
+        document.getElementById('queue-processing-count').textContent = counts.processing;
+        document.getElementById('queue-completed-count').textContent = counts.completed;
+        document.getElementById('queue-failed-count').textContent = counts.failed;
+    }
+    
+    updateQueueItemsList(queueItems) {
+        const container = document.getElementById('queue-items-list');
+        
+        if (queueItems.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted"><i class="bi bi-check-circle"></i> No items in queue</div>';
+            return;
+        }
+        
+        // Sort by created time (newest first)
+        queueItems.sort((a, b) => new Date(b.created_utc) - new Date(a.created_utc));
+        
+        const html = queueItems.map(item => {
+            const statusClass = this.getStatusClass(item.status);
+            const statusIcon = this.getStatusIcon(item.status);
+            const createdTime = new Date(item.created_utc).toLocaleString();
+            const startedTime = item.started_utc ? new Date(item.started_utc).toLocaleString() : '-';
+            const completedTime = item.completed_utc ? new Date(item.completed_utc).toLocaleString() : '-';
+            
+            return `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h6 class="mb-1">${item.website_name || 'Unknown Website'}</h6>
+                                <small class="text-muted">${item.check_type.toUpperCase()} Check</small>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge ${statusClass}">
+                                    <i class="bi ${statusIcon}"></i> ${item.status.toUpperCase()}
+                                </span>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Created:</small><br>
+                                <small>${createdTime}</small>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Started:</small><br>
+                                <small>${startedTime}</small>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">Completed:</small><br>
+                                <small>${completedTime}</small>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-sm btn-outline-primary" onclick="queueManager.showItemDetails('${item.id}')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        ${item.error_message ? `<div class="mt-2"><small class="text-danger">Error: ${item.error_message}</small></div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+    
+    getStatusClass(status) {
+        const classes = {
+            'pending': 'bg-warning',
+            'processing': 'bg-info',
+            'completed': 'bg-success',
+            'failed': 'bg-danger'
+        };
+        return classes[status] || 'bg-secondary';
+    }
+    
+    getStatusIcon(status) {
+        const icons = {
+            'pending': 'bi-hourglass-split',
+            'processing': 'bi-gear-fill',
+            'completed': 'bi-check-circle-fill',
+            'failed': 'bi-x-circle-fill'
+        };
+        return icons[status] || 'bi-question-circle';
+    }
+    
+    async showItemDetails(queueId) {
+        try {
+            const response = await fetch(`/api/queue/status/${queueId}`);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                this.displayItemDetails(data.item);
+            } else {
+                console.error('Failed to load item details:', data.message);
+            }
+        } catch (error) {
+            console.error('Error loading item details:', error);
+        }
+    }
+    
+    displayItemDetails(item) {
+        const detailsContainer = document.getElementById('queue-item-details');
+        
+        const html = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Basic Information</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>ID:</strong></td><td>${item.id}</td></tr>
+                        <tr><td><strong>Website:</strong></td><td>${item.website_name || 'Unknown'}</td></tr>
+                        <tr><td><strong>Check Type:</strong></td><td>${item.check_type}</td></tr>
+                        <tr><td><strong>Status:</strong></td><td><span class="badge ${this.getStatusClass(item.status)}">${item.status}</span></td></tr>
+                        <tr><td><strong>Priority:</strong></td><td>${item.priority}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Timing</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Created:</strong></td><td>${new Date(item.created_utc).toLocaleString()}</td></tr>
+                        <tr><td><strong>Started:</strong></td><td>${item.started_utc ? new Date(item.started_utc).toLocaleString() : 'Not started'}</td></tr>
+                        <tr><td><strong>Completed:</strong></td><td>${item.completed_utc ? new Date(item.completed_utc).toLocaleString() : 'Not completed'}</td></tr>
+                    </table>
+                </div>
+            </div>
+            ${item.error_message ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Error Details</h6>
+                        <div class="alert alert-danger">
+                            <pre>${item.error_message}</pre>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            ${item.result_data ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Result Data</h6>
+                        <pre class="bg-light p-3"><code>${JSON.stringify(JSON.parse(item.result_data), null, 2)}</code></pre>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+        
+        detailsContainer.innerHTML = html;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('queueItemModal'));
+        modal.show();
+    }
+    
+    async resetQueue() {
+        if (!confirm('Are you sure you want to reset the queue? This will clear all pending and processing items.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/queue/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                alert('Queue reset successfully!');
+                this.loadQueueStatus();
+            } else {
+                alert('Failed to reset queue: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error resetting queue:', error);
+            alert('Error resetting queue: ' + error.message);
+        }
+    }
+    
+    startPeriodicUpdate() {
+        // Update every 5 seconds
+        this.updateInterval = setInterval(() => {
+            this.loadQueueStatus();
+        }, 5000);
+    }
+    
+    updateLastUpdateTime() {
+        document.getElementById('last-update-time').textContent = new Date().toLocaleString();
+    }
+    
+    destroy() {
+        if (this.websocket) {
+            this.websocket.close();
+        }
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+    }
+}
+
+// Initialize queue manager when page loads
+let queueManager;
+document.addEventListener('DOMContentLoaded', () => {
+    queueManager = new QueueManager();
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', () => {
+    if (queueManager) {
+        queueManager.destroy();
+    }
+});
+</script>
+{% endblock %}

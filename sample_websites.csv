@@ -1,4 +1,5 @@
 name,url,monitoring_interval,enable_crawl,enable_visual,enable_blur_detection,enable_performance,max_depth,description
-Example Site,https://example.com,300,true,true,false,false,2,Example website for testing
-Test Blog,https://blog.example.com,600,true,true,true,true,3,Blog with performance monitoring
-Demo Store,https://store.example.com,900,true,true,false,true,2,E-commerce site monitoring
+treeofknowledgechristianschool.org,https://treeofknowledgechristianschool.org,1440,true,true,true,true,2,
+digitalclicsva.com,https://digitalclicsva.com,1440,true,true,true,true,2,
+studio7event.com,https://studio7event.com,1440,true,true,true,true,2,
+highlightbodyandpaint.com,https://highlightbodyandpaint.com,1440,true,true,true,true,2,

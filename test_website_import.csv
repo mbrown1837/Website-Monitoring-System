@@ -1,0 +1,2 @@
+name,url,check_interval_minutes,visual_check,crawl_check,blur_check,performance_check,email_notifications
+The Web Turtles,https://thewebturtles.com,30,true,true,true,true,true

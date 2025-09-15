@@ -175,24 +175,24 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <button class="btn btn-primary" id="checkNowBtn">
+                    <button class="btn btn-primary" id="checkNowBtn" data-check-type="full" data-website-id="{{ website.id }}">
                         <i class="bi bi-play-circle"></i> Run Full Check Now
                     </button>
                     
                     <div class="btn-group">
-                        <button class="btn btn-outline-secondary" id="visualCheckBtn">
+                        <button class="btn btn-outline-secondary" id="visualCheckBtn" data-check-type="visual" data-website-id="{{ website.id }}">
                             <i class="bi bi-eye"></i> Visual Check Only
                         </button>
-                        <button class="btn btn-outline-secondary" id="crawlCheckBtn">
+                        <button class="btn btn-outline-secondary" id="crawlCheckBtn" data-check-type="crawl" data-website-id="{{ website.id }}">
                             <i class="bi bi-search"></i> Crawl Check Only
                         </button>
-                        <button class="btn btn-outline-secondary" id="blurCheckBtn">
+                        <button class="btn btn-outline-secondary" id="blurCheckBtn" data-check-type="blur" data-website-id="{{ website.id }}">
                             <i class="bi bi-image"></i> Blur Check Only
                         </button>
-                        <button class="btn btn-outline-secondary" id="performanceCheckBtn">
+                        <button class="btn btn-outline-secondary" id="performanceCheckBtn" data-check-type="performance" data-website-id="{{ website.id }}">
                             <i class="bi bi-speedometer2"></i> Performance Check
                         </button>
-                        <button class="btn btn-outline-success" id="createBaselineBtn">
+                        <button class="btn btn-outline-success" id="createBaselineBtn" data-check-type="baseline" data-website-id="{{ website.id }}">
                             <i class="bi bi-camera"></i> Create/Update Baseline
                         </button>
                     </div>
@@ -457,12 +457,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const checkNowBtn = document.getElementById('checkNowBtn');
-    const visualCheckBtn = document.getElementById('visualCheckBtn');
-    const crawlCheckBtn = document.getElementById('crawlCheckBtn');
-    const blurCheckBtn = document.getElementById('blurCheckBtn');
-    const performanceCheckBtn = document.getElementById('performanceCheckBtn');
-    const createBaselineBtn = document.getElementById('createBaselineBtn');
+    // Manual check buttons now use the queue system via data attributes
+    // The queue-manager.js handles all the click events and WebSocket updates
+    // Old JavaScript below is deprecated and will be overridden by the new system
     
     if (checkNowBtn) {
         checkNowBtn.addEventListener('click', function() {
@@ -630,9 +627,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 console.log('Performance check response:', data);
-                if (data.status === 'initiated') {
+                if (data.status === 'success') {
                     // Show success message
-                    alert('Performance check initiated. This may take a few moments.');
+                    alert('Performance check queued successfully. This may take a few moments.');
                     
                     // Reset button after 3 seconds
                     setTimeout(() => {

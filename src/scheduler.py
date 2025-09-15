@@ -33,9 +33,11 @@ _history_manager = None
 _crawler_module = None
 _scheduler_config = None
 
-# Global concurrency control for site-level checks
-_max_concurrent_site_checks = config.get('max_concurrent_site_checks', 3)
+# Global concurrency control for site-level checks - STRICT SINGLE-SITE PROCESSING
+_max_concurrent_site_checks = 1  # Force single-site processing for reliability
 _site_check_semaphore = threading.Semaphore(_max_concurrent_site_checks)
+_processing_lock = threading.Lock()  # Additional lock to ensure only one site processes at a time
+_current_processing_site = None  # Track which site is currently being processed
 
 def get_scheduler_managers(config_path=None, website_manager=None, history_manager=None, crawler_module=None):
     """Get or create scheduler managers with proper configuration."""
@@ -59,7 +61,8 @@ def get_scheduler_managers(config_path=None, website_manager=None, history_manag
     
     # Initialize managers with proper configuration
     if _website_manager is None:
-        _website_manager = WebsiteManager(config_path=config_path)
+        from src.website_manager_sqlite import WebsiteManagerSQLite
+        _website_manager = WebsiteManagerSQLite(config_path=config_path)
         logger.info("SCHEDULER: Initialized website manager")
     
     if _history_manager is None:
@@ -249,7 +252,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         # During tests, the managers might be pre-configured mocks.
         # If not, we initialize them as usual.
         if website_manager is None:
-            website_manager = WebsiteManager(config_path=config_path)
+            from src.website_manager_sqlite import WebsiteManagerSQLite
+            website_manager = WebsiteManagerSQLite(config_path=config_path)
         if history_manager is None:
             history_manager = HistoryManager(config_path=config_path)
         if crawler_module is None:
@@ -305,6 +309,18 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         "status": "pending", "url": website.get('url'), "significant_change_detected": False,
     }
 
+    # STRICT SINGLE-SITE PROCESSING: Ensure only one site processes at a time
+    global _current_processing_site
+    site_name = website.get('name', 'Unknown')
+    
+    with _processing_lock:
+        if _current_processing_site is not None:
+            logger.info(f"⏳ Waiting for {_current_processing_site} to finish before processing {site_name}")
+            while _current_processing_site is not None:
+                time.sleep(1)  # Wait 1 second before checking again
+        _current_processing_site = site_name
+        logger.info(f"🚀 Starting single-site processing for: {site_name}")
+    
     # Concurrency gate: limit number of concurrent site checks
     logger.debug(f"Awaiting site check slot (max {_max_concurrent_site_checks} concurrent)...")
     _site_check_semaphore.acquire()
@@ -358,6 +374,10 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         return serializable_result
     finally:
         _site_check_semaphore.release()
+        # Clear the current processing site to allow next site to start
+        with _processing_lock:
+            _current_processing_site = None
+        logger.info(f"✅ Completed single-site processing for: {site_name}")
 
 def schedule_website_monitoring_tasks(config_path=None):
     """Loads websites and schedules monitoring tasks for active ones."""

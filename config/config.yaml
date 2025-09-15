@@ -12,6 +12,7 @@ playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
 notification_email_from: websitecheckapp@digitalclics.com
 notification_email_to: websitecheckapp@digitalclics.com
+dashboard_url: http://localhost:5001
 content_change_threshold: 1.0
 image_diff_threshold: 1000
 structure_change_threshold: 1.0
@@ -102,3 +103,37 @@ google_pagespeed_api_key: AIzaSyBalq6kgTjMTDlulVWnJ69Pu8mT3sZ_kZU
 scheduler_enabled: true
 scheduler_startup_delay_seconds: 10
 scheduler_check_interval_seconds: 60
+# Exclude pages configuration - pages containing these keywords will be skipped for visual, blur, and baseline checks
+exclude_pages_keywords:
+- "products"
+- "blogs"
+- "blog"
+- "product"
+- "shop"
+- "store"
+- "cart"
+- "checkout"
+- "account"
+- "login"
+- "register"
+- "search"
+- "category"
+- "tag"
+- "archive"
+# Maximum concurrent site checks (reduced for better performance)
+max_concurrent_site_checks: 1
+
+# SINGLE-SITE PROCESSING CONFIGURATION
+single_site_processing:
+  enabled: true
+  request_delay_seconds: 2  # Delay between requests to same site
+  check_delay_seconds: 5    # Delay between different check types
+  retry_attempts: 3         # Number of retry attempts on failure
+  retry_delay_seconds: 10   # Delay between retries
+  cleanup_delay_seconds: 2  # Delay for cleanup between sites
+
+# WEBSOCKET CONFIGURATION
+websocket:
+  host: localhost
+  port: 8765
+  enabled: true

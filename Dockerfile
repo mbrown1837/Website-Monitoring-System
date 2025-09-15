@@ -1,44 +1,29 @@
-# Website Monitoring System Dockerfile for Coolify
+# Use Python 3.11 slim image
 FROM python:3.11-slim
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV FLASK_ENV=production
-ENV ENVIRONMENT=production
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    gnupg \
-    ca-certificates \
-    procps \
-    libx11-xcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxi6 \
-    libxtst6 \
-    libnss3 \
-    libcups2 \
-    libxss1 \
-    libxrandr2 \
-    libasound2 \
-    libpangocairo-1.0-0 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libdrm2 \
-    libxkbcommon0 \
-    libgbm1 \
-    libgl1 \
-    fonts-liberation \
-    fonts-dejavu-core \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libffi-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libwebp-dev \
+    libopenjp2-7-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libxcb1-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
@@ -49,18 +34,24 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Install Playwright browsers
-RUN playwright install chromium
+# Create necessary directories
+RUN mkdir -p data logs screenshots
 
-# Create necessary directories and set permissions
-RUN mkdir -p data/snapshots data/logs && chmod -R 755 data/
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV FLASK_APP=src/app.py
+ENV FLASK_ENV=production
 
 # Expose port
 EXPOSE 5001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5001/health/ready || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1
 
-# Run the web application
-CMD ["python", "src/app.py"]
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Start the application
+CMD ["/app/start.sh"]

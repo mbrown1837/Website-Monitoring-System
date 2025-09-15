@@ -1,0 +1,57 @@
+# Coolify Deployment Configuration
+version: '3.8'
+
+services:
+  website-monitor:
+    image: ${DOCKER_IMAGE}
+    container_name: website-monitor
+    restart: unless-stopped
+    
+    ports:
+      - "${PORT:-5001}:5001"
+    
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///data/website_monitor.db
+      - WEBSOCKET_HOST=0.0.0.0
+      - WEBSOCKET_PORT=8765
+      - DASHBOARD_URL=${DASHBOARD_URL:-https://your-domain.com}
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - SECRET_KEY=${SECRET_KEY}
+      - SCHEDULER_ENABLED=true
+      - LOG_LEVEL=INFO
+    
+    volumes:
+      - website-monitor-data:/app/data
+      - website-monitor-logs:/app/logs
+      - website-monitor-screenshots:/app/screenshots
+      - website-monitor-config:/app/config
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - website-monitor-network
+
+volumes:
+  website-monitor-data:
+    driver: local
+  website-monitor-logs:
+    driver: local
+  website-monitor-screenshots:
+    driver: local
+  website-monitor-config:
+    driver: local
+
+networks:
+  website-monitor-network:
+    driver: bridge

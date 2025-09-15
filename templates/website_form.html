@@ -44,8 +44,23 @@
 
     <div class="mb-3">
         <label for="notification_emails" class="form-label">Notification Emails (comma-separated)</label>
-        <input type="text" class="form-control" id="notification_emails" name="notification_emails" value="{{ ', '.join(website.notification_emails) if website and website.notification_emails else '' }}">
-        <div class="form-text">Optional comma-separated email addresses to notify on changes.</div>
+        <input type="text" class="form-control" id="notification_emails" name="notification_emails" value="{{ ', '.join(website.notification_emails) if website and website.notification_emails else '' }}" placeholder="admin@example.com, alerts@company.com">
+        <div class="form-text">
+            <strong>Format:</strong> Separate multiple emails with commas<br>
+            <strong>Example:</strong> admin@example.com, alerts@company.com<br>
+            <strong>Default:</strong> If left empty, uses the system default email
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="exclude_pages_keywords" class="form-label">Exclude Pages Keywords (comma-separated)</label>
+        <input type="text" class="form-control" id="exclude_pages_keywords" name="exclude_pages_keywords" value="{{ ', '.join(website.exclude_pages_keywords) if website and website.exclude_pages_keywords else '' }}" placeholder="products, blogs, shop, cart">
+        <div class="form-text">
+            <strong>Format:</strong> Separate multiple keywords with commas<br>
+            <strong>Example:</strong> products, blogs, shop, cart, checkout<br>
+            <strong>Purpose:</strong> Pages containing these keywords will be skipped for visual, blur, and baseline checks<br>
+            <strong>Default:</strong> If left empty, uses global settings (products, blogs)
+        </div>
     </div>
 
     <div class="form-check mb-3">

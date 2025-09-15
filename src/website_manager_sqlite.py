@@ -93,6 +93,12 @@ class WebsiteManagerSQLite:
                         cursor.execute("UPDATE websites SET check_interval_minutes = interval * 60")
                         conn.commit()
                 
+                # Add exclude_pages_keywords field for per-site exclude pages configuration
+                if 'exclude_pages_keywords' not in columns:
+                    self.logger.info("Adding 'exclude_pages_keywords' column to websites table.")
+                    cursor.execute("ALTER TABLE websites ADD COLUMN exclude_pages_keywords TEXT DEFAULT NULL")
+                    conn.commit()
+                
                 conn.commit()
         except Exception as e:
             self.logger.error(f"An error occurred during schema migration: {e}", exc_info=True)
@@ -102,6 +108,8 @@ class WebsiteManagerSQLite:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
+                
+                # Create websites table
                 
                 cursor.execute("""
                     CREATE TABLE IF NOT EXISTS websites (
@@ -129,7 +137,8 @@ class WebsiteManagerSQLite:
                         auto_blur_enabled BOOLEAN DEFAULT 1,
                         auto_performance_enabled BOOLEAN DEFAULT 1,
                         auto_full_check_enabled BOOLEAN DEFAULT 1,
-                        baseline_visual_path_web TEXT
+                        baseline_visual_path_web TEXT,
+                        exclude_pages_keywords TEXT  -- JSON string for per-site exclude pages
                     )
                 """)
                 
@@ -138,11 +147,34 @@ class WebsiteManagerSQLite:
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_websites_active ON websites(is_active)")
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_websites_created ON websites(created_utc)")
                 
+                # Create manual check queue table
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS manual_check_queue (
+                        id TEXT PRIMARY KEY,
+                        website_id TEXT NOT NULL,
+                        check_type TEXT NOT NULL,  -- 'crawl', 'visual', 'blur', 'performance', 'full'
+                        status TEXT NOT NULL DEFAULT 'pending',  -- 'pending', 'processing', 'completed', 'failed'
+                        priority INTEGER DEFAULT 1,  -- 1 = high (manual), 0 = normal (scheduled)
+                        created_utc TEXT NOT NULL,
+                        started_utc TEXT,
+                        completed_utc TEXT,
+                        error_message TEXT,
+                        result_data TEXT,  -- JSON string for results
+                        user_id TEXT,  -- Optional user identifier
+                        FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE
+                    )
+                """)
+                
+                # Create indexes for queue performance
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_queue_status ON manual_check_queue(status)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_queue_priority ON manual_check_queue(priority DESC, created_utc ASC)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_queue_website ON manual_check_queue(website_id)")
+                
                 conn.commit()
-                self.logger.info("Websites table created successfully")
+                self.logger.info("Websites and queue tables created successfully")
                 
         except Exception as e:
-            self.logger.error(f"Error creating websites table: {e}")
+            self.logger.error(f"Error creating tables: {e}")
             raise
 
     def _load_websites(self, force_reload=False):
@@ -182,6 +214,14 @@ class WebsiteManagerSQLite:
                             website['all_baselines'] = json.loads(website['all_baselines'])
                         except json.JSONDecodeError:
                             website['all_baselines'] = {}
+                    
+                    if website.get('exclude_pages_keywords'):
+                        try:
+                            website['exclude_pages_keywords'] = json.loads(website['exclude_pages_keywords'])
+                        except json.JSONDecodeError:
+                            website['exclude_pages_keywords'] = []
+                    else:
+                        website['exclude_pages_keywords'] = []
                     
                     # Convert boolean fields
                     website['is_active'] = bool(website['is_active'])
@@ -242,7 +282,8 @@ class WebsiteManagerSQLite:
                     1 if website.get('auto_blur_enabled', True) else 0,
                     1 if website.get('auto_performance_enabled', True) else 0,
                     1 if website.get('auto_full_check_enabled', True) else 0,
-                    website.get('baseline_visual_path_web')
+                    website.get('baseline_visual_path_web'),
+                    json.dumps(website.get('exclude_pages_keywords', []))
                 )
                 
                 # Use UPSERT (INSERT OR REPLACE) for simplicity
@@ -254,8 +295,8 @@ class WebsiteManagerSQLite:
                         has_subpage_baselines, baseline_visual_path, enable_blur_detection,
                         blur_detection_scheduled, blur_detection_manual, auto_crawl_enabled,
                         auto_visual_enabled, auto_blur_enabled, auto_performance_enabled,
-                        auto_full_check_enabled, baseline_visual_path_web
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        auto_full_check_enabled, baseline_visual_path_web, exclude_pages_keywords
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, data)
                 
                 conn.commit()
@@ -272,7 +313,12 @@ class WebsiteManagerSQLite:
 
     def get_website(self, website_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific website by ID."""
-        websites = self._load_websites()
+        # First try to get from cache without reloading
+        if self._websites_loaded and website_id in self._websites_cache:
+            return self._websites_cache.get(website_id)
+        
+        # If not in cache, force reload and try again
+        websites = self._load_websites(force_reload=True)
         return websites.get(website_id)
 
     def add_website(self, website_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -469,16 +515,221 @@ class WebsiteManagerSQLite:
                 'performance_enabled': website.get('auto_performance_enabled', False)
             }
     
-    def get_manual_check_config(self, check_type):
-        """Get manual check configuration based on button pressed."""
-        configs = {
+    def get_manual_check_config(self, website_id, check_type):
+        """Get manual check configuration based on button pressed and website settings."""
+        # Get website configuration to check if specific checks are enabled
+        website = self.get_website(website_id)
+        if not website:
+            self.logger.warning(f"Website {website_id} not found for manual check config")
+            # Return default config if website not found
+            return {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': True, 'performance_enabled': True}
+        
+        # Base configurations for each check type
+        base_configs = {
             'full': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': True, 'performance_enabled': True},
             'visual': {'crawl_enabled': False, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False},
             'crawl': {'crawl_enabled': True, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': False},
             'blur': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': True, 'performance_enabled': False},
-            'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True}
+            'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True},
+            'baseline': {'crawl_enabled': False, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}  # Baseline is visual-only
         }
-        return configs.get(check_type, configs['full'])
+        
+        # Get base config for the check type
+        config = base_configs.get(check_type, base_configs['full']).copy()
+        
+        # For manual checks, respect website-specific settings
+        # If a specific check is disabled for the website, disable it in the config
+        if not website.get('auto_crawl_enabled', True):
+            config['crawl_enabled'] = False
+        if not website.get('auto_visual_enabled', True):
+            config['visual_enabled'] = False
+        if not website.get('auto_blur_enabled', False):
+            config['blur_enabled'] = False
+        if not website.get('auto_performance_enabled', False):
+            config['performance_enabled'] = False
+        
+        self.logger.debug(f"Manual check config for website {website_id}, type {check_type}: {config}")
+        return config
+    
+    # ==================== QUEUE MANAGEMENT METHODS ====================
+    
+    def add_to_queue(self, website_id, check_type, user_id=None):
+        """Add a manual check to the queue with high priority and duplicate prevention."""
+        try:
+            # Check for existing pending/processing items for the same website and check type
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id FROM manual_check_queue 
+                    WHERE website_id = ? AND check_type = ? AND status IN ('pending', 'processing')
+                    ORDER BY created_utc DESC
+                    LIMIT 1
+                """, (website_id, check_type))
+                
+                existing_item = cursor.fetchone()
+                if existing_item:
+                    existing_id = existing_item[0]
+                    self.logger.warning(f"Duplicate check prevented: {check_type} check for website {website_id} already exists (ID: {existing_id})")
+                    return existing_id  # Return existing ID instead of creating duplicate
+            
+            # No duplicate found, create new queue item
+            queue_id = str(uuid.uuid4())
+            created_utc = datetime.now(timezone.utc).isoformat()
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO manual_check_queue 
+                    (id, website_id, check_type, status, priority, created_utc, user_id)
+                    VALUES (?, ?, ?, 'pending', 1, ?, ?)
+                """, (queue_id, website_id, check_type, created_utc, user_id))
+                conn.commit()
+                
+            self.logger.info(f"Added {check_type} check for website {website_id} to queue (ID: {queue_id})")
+            return queue_id
+            
+        except Exception as e:
+            self.logger.error(f"Error adding check to queue: {e}")
+            raise
+    
+    def get_queue_status(self, queue_id=None, website_id=None):
+        """Get queue status for a specific check or all pending checks."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                if queue_id:
+                    cursor.execute("""
+                        SELECT q.*, w.name as website_name, w.url as website_url
+                        FROM manual_check_queue q
+                        JOIN websites w ON q.website_id = w.id
+                        WHERE q.id = ?
+                    """, (queue_id,))
+                elif website_id:
+                    cursor.execute("""
+                        SELECT q.*, w.name as website_name, w.url as website_url
+                        FROM manual_check_queue q
+                        JOIN websites w ON q.website_id = w.id
+                        WHERE q.website_id = ? AND q.status IN ('pending', 'processing')
+                        ORDER BY q.priority DESC, q.created_utc ASC
+                    """, (website_id,))
+                else:
+                    cursor.execute("""
+                        SELECT q.*, w.name as website_name, w.url as website_url
+                        FROM manual_check_queue q
+                        JOIN websites w ON q.website_id = w.id
+                        WHERE q.status IN ('pending', 'processing')
+                        ORDER BY q.priority DESC, q.created_utc ASC
+                    """)
+                
+                rows = cursor.fetchall()
+                columns = [description[0] for description in cursor.description]
+                
+                return [dict(zip(columns, row)) for row in rows]
+                
+        except Exception as e:
+            self.logger.error(f"Error getting queue status: {e}")
+            return []
+    
+    def update_queue_status(self, queue_id, status, error_message=None, result_data=None):
+        """Update the status of a queued check."""
+        try:
+            now = datetime.now(timezone.utc).isoformat()
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                if status == 'processing':
+                    cursor.execute("""
+                        UPDATE manual_check_queue 
+                        SET status = ?, started_utc = ?
+                        WHERE id = ?
+                    """, (status, now, queue_id))
+                elif status in ['completed', 'failed']:
+                    cursor.execute("""
+                        UPDATE manual_check_queue 
+                        SET status = ?, completed_utc = ?, error_message = ?, result_data = ?
+                        WHERE id = ?
+                    """, (status, now, error_message, json.dumps(result_data) if result_data else None, queue_id))
+                else:
+                    cursor.execute("""
+                        UPDATE manual_check_queue 
+                        SET status = ?
+                        WHERE id = ?
+                    """, (status, queue_id))
+                
+                conn.commit()
+                self.logger.info(f"Updated queue item {queue_id} status to {status}")
+                
+        except Exception as e:
+            self.logger.error(f"Error updating queue status: {e}")
+            raise
+    
+    def get_next_queue_item(self):
+        """Get the next item from the queue (highest priority, oldest first)."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT q.*, w.name as website_name, w.url as website_url
+                    FROM manual_check_queue q
+                    JOIN websites w ON q.website_id = w.id
+                    WHERE q.status = 'pending'
+                    ORDER BY q.priority DESC, q.created_utc ASC
+                    LIMIT 1
+                """)
+                
+                row = cursor.fetchone()
+                if row:
+                    columns = [description[0] for description in cursor.description]
+                    return dict(zip(columns, row))
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Error getting next queue item: {e}")
+            return None
+    
+    def clear_old_queue_items(self, days_old=7):
+        """Clear old completed/failed queue items to keep database clean."""
+        try:
+            cutoff_date = datetime.now(timezone.utc).replace(day=datetime.now().day - days_old).isoformat()
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    DELETE FROM manual_check_queue 
+                    WHERE status IN ('completed', 'failed') 
+                    AND completed_utc < ?
+                """, (cutoff_date,))
+                
+                deleted_count = cursor.rowcount
+                conn.commit()
+                
+                if deleted_count > 0:
+                    self.logger.info(f"Cleared {deleted_count} old queue items")
+                    
+        except Exception as e:
+            self.logger.error(f"Error clearing old queue items: {e}")
+    
+    def clear_pending_queue_items(self):
+        """Clear all pending and processing items from the queue."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    DELETE FROM manual_check_queue 
+                    WHERE status IN ('pending', 'processing')
+                """)
+                
+                deleted_count = cursor.rowcount
+                conn.commit()
+                
+                self.logger.info(f"Cleared {deleted_count} pending/processing queue items")
+                return deleted_count
+                
+        except Exception as e:
+            self.logger.error(f"Error clearing pending queue items: {e}")
+            raise
 
 # For backward compatibility, provide the same interface
 WebsiteManager = WebsiteManagerSQLite

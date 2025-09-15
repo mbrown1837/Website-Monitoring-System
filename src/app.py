@@ -47,7 +47,9 @@ except ImportError:
 from src.crawler_module import CrawlerModule # Import the crawler module
 # from src.alerter import send_email_alert # For testing alerts
 
-app = Flask(__name__, template_folder=os.path.join(project_root, 'templates'))
+app = Flask(__name__, 
+           template_folder=os.path.join(project_root, 'templates'),
+           static_folder=os.path.join(project_root, 'static'))
 app.secret_key = os.urandom(24) # For flash messages
 
 logger = setup_logging(config_path='config/config.yaml') # Explicitly point to config for app
@@ -285,6 +287,8 @@ def add_website():
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
             notification_emails_str = request.form.get('notification_emails', '')
             notification_emails = [email.strip() for email in notification_emails_str.split(',') if email.strip()]
+            exclude_pages_keywords_str = request.form.get('exclude_pages_keywords', '')
+            exclude_pages_keywords = [keyword.strip() for keyword in exclude_pages_keywords_str.split(',') if keyword.strip()]
             
             # Advanced settings
             render_delay = int(request.form.get('render_delay', 6))
@@ -326,6 +330,7 @@ def add_website():
                     "is_active": True,
                     "tags": tags,
                     "notification_emails": notification_emails,
+                    "exclude_pages_keywords": exclude_pages_keywords,
                         'render_delay': render_delay,
                         'max_crawl_depth': max_crawl_depth,
                         'visual_diff_threshold': visual_diff_threshold,
@@ -449,6 +454,7 @@ def edit_website(site_id):
         try:
             # Parse basic fields
             notification_emails = [email.strip() for email in request.form.get('notification_emails', '').split(',') if email.strip()]
+            exclude_pages_keywords = [keyword.strip() for keyword in request.form.get('exclude_pages_keywords', '').split(',') if keyword.strip()]
             
             # Parse advanced settings
             render_delay = int(request.form.get('render_delay', 6))
@@ -481,6 +487,7 @@ def edit_website(site_id):
                 'check_interval_minutes': int(request.form.get('check_interval_minutes', website.get('check_interval_minutes'))),
                 'tags': [tag.strip() for tag in request.form.get('tags', '').split(',') if tag.strip()],
                 'notification_emails': notification_emails,
+                'exclude_pages_keywords': exclude_pages_keywords,
                 'is_active': request.form.get('is_active') == 'on',
                 'render_delay': render_delay,
                 'max_crawl_depth': max_crawl_depth,
@@ -610,9 +617,11 @@ def website_history(site_id):
 @app.route('/website/<site_id>/manual_check', methods=['POST'])
 def manual_check_website(site_id):
     """
-    Manually trigger a check for a specific website.
-    This endpoint now always runs the check in the background and returns a task ID.
+    Manually trigger a check for a specific website using the queue system.
+    Returns queue ID and status for real-time updates.
     """
+    from src.queue_processor import get_queue_processor
+    
     website = website_manager.get_website(site_id)
     if not website:
         return jsonify({'status': 'error', 'message': f'Website with ID "{site_id}" not found.'}), 404
@@ -620,98 +629,49 @@ def manual_check_website(site_id):
     if not website.get('is_active', True):
         return jsonify({'status': 'error', 'message': f'Cannot check inactive website: {website.get("name")}. Please activate it first.'}), 400
         
-    # Get check type and options from form
-    check_type = request.form.get('check_type', 'full')
-    create_baseline = request.form.get('create_baseline') == 'true'
-    capture_subpages = request.form.get('capture_subpages') == 'true'
-    
-    # Special handling for baseline creation
-    if create_baseline:
-        # For baseline creation, we ONLY need visual snapshots and crawl data for internal page discovery
-        # No blur detection, no performance checks - just baseline creation
-        # ALWAYS capture subpages for baseline creation (we want baselines for all internal pages)
-        crawler_options = {
-            'create_baseline': True,
-            'capture_subpages': True,  # Force True for baseline creation - we always want all internal pages
-            'crawl_only': False,
-            'visual_check_only': False,  # We need crawl data to find internal pages
-            'blur_check_only': False,
-            'performance_check_only': False
-        }
-        
-        # Baseline creation configuration - minimal checks needed for baseline creation
-        check_config = {
-            'crawl_enabled': True,     # Need to crawl to find internal pages
-            'visual_enabled': True,    # Need to capture visual baselines
-            'blur_enabled': False,     # No blur detection for baseline creation
-            'performance_enabled': False  # No performance checks for baseline creation
-        }
-        
-        logger.info(f"Using Baseline Creation configuration for website {site_id}: {check_config}")
-        description = f"Baseline creation for {website.get('name')}"
-        
+    # Get check type from form or JSON
+    if request.is_json:
+        data = request.get_json()
+        check_type = data.get('check_type', 'full')
+        create_baseline = data.get('create_baseline', False)
     else:
-        # Regular manual check configuration
-        crawler_options = {
-            'create_baseline': False,
-        'capture_subpages': capture_subpages,
-        'crawl_only': check_type == 'crawl',
-        'visual_check_only': check_type == 'visual',
-        'blur_check_only': check_type == 'blur',
-        'performance_check_only': check_type == 'performance'
-    }
+        check_type = request.form.get('check_type', 'full')
+        create_baseline = request.form.get('create_baseline') == 'true'
     
-        # Get check configuration based on check type
-        if check_type == 'full':
-            # For "Run Full Check", use the website's automated configuration
-            # This respects what the user has enabled for automated monitoring
-            check_config = website_manager.get_automated_check_config(site_id)
-            if not check_config:
-                # Fallback to all enabled if no automation config exists
-                check_config = {
-                    'crawl_enabled': True,
-                    'visual_enabled': True,
-                    'blur_enabled': True,
-                    'performance_enabled': True
-                }
-            logger.info(f"Using automated check configuration for manual Full Check (website {site_id}): {check_config}")
-        else:
-            # For specific check types, ALWAYS use targeted config (ignore automation settings)
-            # This ensures "Visual Check Only" does ONLY visual, regardless of what's enabled in automation
-            check_config = website_manager.get_manual_check_config(check_type)
-            logger.info(f"Using targeted manual check configuration for '{check_type}' button (website {site_id}): {check_config}")
+    # For baseline creation, use special check type
+    if create_baseline:
+        check_type = 'baseline'
+    
+    try:
+        # Add check to queue
+        queue_processor = get_queue_processor()
+        queue_id = queue_processor.add_manual_check(site_id, check_type)
         
-        description = f"Manual '{check_type}' check for {website.get('name')}"
-    
-    # Add check configuration to crawler options
-    crawler_options['check_config'] = check_config
-    crawler_options['is_scheduled'] = False  # This is a manual check
-    
-    # Create a task for the background job
-    task_id = str(uuid.uuid4())
-
-    tasks[task_id] = {
-        'status': 'pending',
-        'description': description
-    }
-
-    # Start the check in a background thread
-    # Pass manager instances to fix database consistency
-    thread = threading.Thread(
-        target=run_background_task,
-        args=(task_id, perform_website_check, site_id, crawler_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
-    )
-    thread.daemon = True
-    thread.start()
-    
-    logger.info(f"Initiated background task {task_id} for site {site_id} with options: {crawler_options}")
-    
-    # Return immediate response with task ID
-    return jsonify({
-        'status': 'initiated',
-        'message': f'{description} initiated in the background.',
-        'task_id': task_id
-    })
+        # Get queue status
+        queue_status = queue_processor.get_queue_status(queue_id=queue_id)
+        
+        if queue_status:
+            status_info = queue_status[0]
+            return jsonify({
+                'status': 'success',
+                'message': f'{check_type.title()} check queued for {website.get("name")}',
+                'queue_id': queue_id,
+                'queue_status': status_info['status'],
+                'position': len(queue_processor.get_queue_status()) - 1,
+                'estimated_time': 'Calculating...'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to add check to queue'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Error adding manual check to queue: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to queue check: {str(e)}'
+        }), 500
 
 def perform_website_check_background(site_id, crawler_options):
     """DEPRECATED: This function is replaced by the new task management system."""
@@ -1365,9 +1325,9 @@ def api_scheduler_status():
 @app.route('/api/scheduler/reload', methods=['POST'])
 def api_scheduler_reload():
     """Reload scheduler configuration."""
-    from .scheduler_integration import reload_scheduler_config
+    from src.scheduler_integration import reload_scheduler_config
     
-    config_path = request.json.get('config_path', 'config/config.yaml')
+    config_path = request.json.get('config_path', 'config/config.yaml') if request.is_json else 'config/config.yaml'
     success = reload_scheduler_config(config_path)
     
     if success:
@@ -1378,7 +1338,7 @@ def api_scheduler_reload():
 @app.route('/api/scheduler/logs', methods=['GET'])
 def api_scheduler_logs():
     """Get recent scheduler logs."""
-    from .scheduler_db import get_scheduler_db_manager
+    from src.scheduler_db import get_scheduler_db_manager
     
     limit = request.args.get('limit', default=100, type=int)
     db_manager = get_scheduler_db_manager()
@@ -1641,7 +1601,8 @@ def run_manual_check_from_ui(site_id):
 
     except Exception as e:
         logger.error(f"Error during manual check route for {site_id} from UI: {e}", exc_info=True)
-        flash(f'Error triggering manual check for "{site.get("name")}": {str(e)}', 'danger')
+        site_name = site.get("name", "Unknown") if site else "Unknown"
+        flash(f'Unable to start manual check for "{site_name}". Please try again or contact support if the issue persists.', 'danger')
     
     return redirect(url_for('site_details', site_id=site_id))
 
@@ -1679,6 +1640,71 @@ def api_sites():
     """API endpoint for sites - consolidated from dashboard_app.py"""
     sites = website_manager.list_websites()
     return jsonify(sites)
+
+@app.route('/api/queue/status')
+def api_queue_status():
+    """API endpoint for queue status."""
+    from src.queue_processor import get_queue_processor
+    try:
+        queue_processor = get_queue_processor()
+        queue_data = queue_processor.get_queue_status()
+        return jsonify({
+            'status': 'success',
+            'queue': queue_data,
+            'total_items': len(queue_data)
+        })
+    except Exception as e:
+        logger.error(f"Error getting queue status: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Unable to retrieve queue status. Please try again or contact support if the issue persists.'
+        }), 500
+
+@app.route('/api/queue/status/<queue_id>')
+def api_queue_item_status(queue_id):
+    """API endpoint for specific queue item status."""
+    from src.queue_processor import get_queue_processor
+    try:
+        queue_processor = get_queue_processor()
+        queue_data = queue_processor.get_queue_status(queue_id=queue_id)
+        if queue_data:
+            return jsonify({
+                'status': 'success',
+                'item': queue_data[0]
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'The requested queue item was not found. It may have been completed or removed.'
+            }), 404
+    except Exception as e:
+        logger.error(f"Error getting queue item status: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Unable to retrieve queue item status. Please try again or contact support if the issue persists.'
+        }), 500
+
+@app.route('/queue')
+def queue_page():
+    """Developer queue management page."""
+    return render_template('queue.html')
+
+@app.route('/api/queue/reset', methods=['POST'])
+def api_queue_reset():
+    """API endpoint to reset the queue."""
+    from src.queue_processor import get_queue_processor
+    try:
+        queue_processor = get_queue_processor()
+        # Clear all pending and processing items
+        cleared_count = queue_processor.clear_all_pending_items()
+        return jsonify({
+            'status': 'success',
+            'message': f'Queue reset successfully. Cleared {cleared_count} items.',
+            'cleared_count': cleared_count
+        })
+    except Exception as e:
+        logger.error(f"Error resetting queue: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/site/<site_id>/history')
 def api_site_history(site_id):
@@ -1968,10 +1994,14 @@ def bulk_import():
                                 errors.append(f"Row missing name or URL: {row}")
                                 continue
 
+                            # Parse exclude pages keywords from CSV
+                            exclude_pages_keywords_str = row.get('exclude_pages_keywords', '').strip()
+                            exclude_pages_keywords = [keyword.strip() for keyword in exclude_pages_keywords_str.split(',') if keyword.strip()] if exclude_pages_keywords_str else []
+
                             website_record = {
                                 'name': name,
                                 'url': url,
-                                'check_interval_minutes': int(row.get('monitoring_interval', 60)),
+                                'check_interval_minutes': int(row.get('monitoring_interval', 1440)),  # Default to 24 hours
                                 'max_crawl_depth': int(row.get('max_depth', 2)),
                                 'is_active': True,
                                 'capture_subpages': True,
@@ -1981,7 +2011,13 @@ def bulk_import():
                                 'enable_blur_detection': (row.get('enable_blur_detection', 'true').lower() == 'true'),
                                 'auto_performance_enabled': (row.get('enable_performance', 'true').lower() == 'true'),
                                 'auto_full_check_enabled': True,
-                                'render_delay': 6
+                                'render_delay': 6,
+                                'visual_diff_threshold': 5,
+                                'blur_detection_scheduled': False,
+                                'blur_detection_manual': True,
+                                'exclude_pages_keywords': exclude_pages_keywords,
+                                'tags': [],
+                                'notification_emails': []
                             }
 
                             # Add website using dict signature
@@ -2177,6 +2213,16 @@ if __name__ == '__main__':
     config_path = 'config/config.yaml'
     start_scheduler(config_path=config_path)
     
+    # Start queue processor for manual checks
+    from src.queue_processor import start_queue_processor
+    from src.websocket_server import start_websocket_server
+    
+    logger.info("🚀 Starting queue processor...")
+    start_queue_processor(config_path=config_path)
+    
+    logger.info("🚀 Starting WebSocket server...")
+    start_websocket_server(config_path=config_path)
+    
     # Explicitly load app's config for its run parameters
     app_specific_config = get_config(config_path='config/config.yaml') 
     
@@ -2188,4 +2234,5 @@ if __name__ == '__main__':
     app_debug = app_specific_config.get('dashboard_debug_mode', True) 
     
     logger.info(f"Starting Flask web server on http://{app_host}:{app_port}, Debug: {app_debug}")
+    logger.info(f"WebSocket server running on ws://{app_host}:8765")
     app.run(host=app_host, port=app_port, debug=app_debug) 
