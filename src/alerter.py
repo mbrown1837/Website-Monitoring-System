@@ -257,6 +257,7 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
     (Now with attachment support)
     """
     config = get_config_dynamic()
+    logger.info(f"Email config loaded - from: {config.get('notification_email_from')}, to: {config.get('notification_email_to')}, smtp_server: {config.get('smtp_server')}")
     smtp_sender = config.get('notification_email_from')
     default_recipients_str = config.get('notification_email_to', config.get('default_notification_email'))
     

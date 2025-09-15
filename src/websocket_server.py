@@ -22,8 +22,8 @@ class WebSocketServer:
         # WebSocket connections
         self.connections: Set[websockets.WebSocketServerProtocol] = set()
         
-        # Server configuration
-        self.host = self.config.get('websocket', {}).get('host', 'localhost')
+        # Server configuration - force IPv4 to avoid port conflicts
+        self.host = '0.0.0.0'  # Bind to all interfaces to avoid IPv6 conflicts
         self.port = self.config.get('websocket', {}).get('port', 8765)
         
         self.logger.info(f"WebSocket server configured for {self.host}:{self.port}")

@@ -384,7 +384,12 @@ def schedule_website_monitoring_tasks(config_path=None):
     logger.info("SCHEDULER: Loading websites and setting up monitoring schedules...")
     schedule.clear() # Clear any existing schedules before setting new ones
 
-    # Get properly configured managers
+    # Get properly configured managers with production config
+    if config_path is None:
+        from src.config_loader import get_config_path_for_environment
+        config_path = get_config_path_for_environment()
+        logger.info(f"SCHEDULER: Using config path: {config_path}")
+    
     website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
 
     try:
