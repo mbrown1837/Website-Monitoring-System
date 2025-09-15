@@ -26,12 +26,12 @@ import sys
 sys.path.append('/app')
 from src.website_manager_sqlite import WebsiteManager
 from src.history_manager import HistoryManager
-from src.scheduler_db import SchedulerDB
+from src.scheduler_db import get_scheduler_db_manager
 
 # Initialize database
 wm = WebsiteManager()
 hm = HistoryManager()
-sdb = SchedulerDB()
+sdb = get_scheduler_db_manager()
 print('Database initialized successfully')
 "
 fi
