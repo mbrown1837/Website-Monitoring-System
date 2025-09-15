@@ -19,6 +19,7 @@ Flask-WTF
 WTForms
 humanize
 email-validator
+websockets
 
 # schedule==1.2.0
 # beautifulsoup4==4.11.1
