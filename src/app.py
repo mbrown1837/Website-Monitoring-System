@@ -2234,13 +2234,9 @@ if __name__ == '__main__':
     
     # Start queue processor for manual checks
     from src.queue_processor import start_queue_processor
-    from src.websocket_server import start_websocket_server
     
     logger.info("🚀 Starting queue processor...")
     start_queue_processor(config_path=config_path)
-    
-    logger.info("🚀 Starting WebSocket server...")
-    start_websocket_server(config_path=config_path)
     
     # Explicitly load app's config for its run parameters
     app_specific_config = get_config(config_path='config/config.yaml') 
@@ -2253,5 +2249,5 @@ if __name__ == '__main__':
     app_debug = app_specific_config.get('dashboard_debug_mode', True) 
     
     logger.info(f"Starting Flask web server on http://{app_host}:{app_port}, Debug: {app_debug}")
-    logger.info(f"WebSocket server running on ws://{app_host}:8765")
+    # WebSocket server removed - not needed for core functionality
     app.run(host=app_host, port=app_port, debug=app_debug) 

@@ -12,7 +12,12 @@ logger = setup_logging()
 
 def get_config_dynamic():
     """Get config dynamically to ensure environment variables are loaded."""
-    return get_config()
+    from src.config_loader import get_config_path_for_environment
+    config_path = get_config_path_for_environment()
+    logger.info(f"Loading config from: {config_path}")
+    config = get_config(config_path=config_path)
+    logger.info(f"Config loaded - keys: {list(config.keys()) if config else 'None'}")
+    return config
 
 def send_report(website: dict, check_results: dict):
     """

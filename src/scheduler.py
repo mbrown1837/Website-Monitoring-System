@@ -391,6 +391,10 @@ def schedule_website_monitoring_tasks(config_path=None):
         logger.info(f"SCHEDULER: Using config path: {config_path}")
     
     website_manager, history_manager, crawler_module, config = get_scheduler_managers(config_path)
+    
+    # Force reload websites from database
+    logger.info("SCHEDULER: Forcing website reload from database...")
+    website_manager._load_websites(force_reload=True)
 
     try:
         all_websites_map = website_manager.list_websites()
