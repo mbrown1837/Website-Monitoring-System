@@ -660,7 +660,7 @@ def manual_check_website(site_id):
                 'position': len(queue_processor.get_queue_status()) - 1,
                 'estimated_time': 'Calculating...'
             })
-    else:
+        else:
             return jsonify({
                 'status': 'error',
                 'message': 'Failed to add check to queue'
