@@ -29,8 +29,8 @@
                         <i class="bi bi-activity"></i> Queue Status
                     </h5>
                     <div>
-                        <span id="websocket-status" class="badge bg-success">
-                            <i class="bi bi-wifi"></i> Connected
+                        <span id="update-status" class="badge bg-success">
+                            <i class="bi bi-arrow-clockwise"></i> Active
                         </span>
                         <span id="queue-processor-status" class="badge bg-info ms-2">
                             <i class="bi bi-gear"></i> Running
@@ -101,11 +101,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>WebSocket Connection</h6>
+                            <h6>Real-time Updates</h6>
                             <p class="text-muted">
-                                <span id="websocket-url">ws://localhost:8765</span>
+                                <span>Polling-based updates</span>
                                 <br>
-                                <small>Status: <span id="websocket-connection-status">Connecting...</span></small>
+                                <small>Status: <span id="update-status">Active</span></small>
                             </p>
                         </div>
                         <div class="col-md-6">
@@ -150,10 +150,6 @@
 // Queue Management JavaScript
 class QueueManager {
     constructor() {
-        this.websocket = null;
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 3000;
         this.updateInterval = null;
         
         this.init();
@@ -161,7 +157,6 @@ class QueueManager {
     
     init() {
         this.setupEventListeners();
-        this.connectWebSocket();
         this.startPeriodicUpdate();
         this.loadQueueStatus();
     }
@@ -178,76 +173,7 @@ class QueueManager {
         });
     }
     
-    connectWebSocket() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.hostname}:8765`;
-        
-        try {
-            this.websocket = new WebSocket(wsUrl);
-            
-            this.websocket.onopen = () => {
-                console.log('WebSocket connected');
-                this.updateWebSocketStatus('Connected', 'success');
-                this.reconnectAttempts = 0;
-            };
-            
-            this.websocket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    this.handleWebSocketMessage(data);
-                } catch (e) {
-                    console.error('Error parsing WebSocket message:', e);
-                }
-            };
-            
-            this.websocket.onclose = () => {
-                console.log('WebSocket disconnected');
-                this.updateWebSocketStatus('Disconnected', 'danger');
-                this.attemptReconnect();
-            };
-            
-            this.websocket.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                this.updateWebSocketStatus('Error', 'danger');
-            };
-            
-        } catch (error) {
-            console.error('Failed to connect to WebSocket:', error);
-            this.updateWebSocketStatus('Failed', 'danger');
-        }
-    }
-    
-    attemptReconnect() {
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.reconnectAttempts++;
-            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-            this.updateWebSocketStatus(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'warning');
-            
-            setTimeout(() => {
-                this.connectWebSocket();
-            }, this.reconnectDelay);
-        } else {
-            console.error('Max reconnection attempts reached');
-            this.updateWebSocketStatus('Connection Failed', 'danger');
-        }
-    }
-    
-    handleWebSocketMessage(data) {
-        if (data.type === 'status_update') {
-            this.loadQueueStatus();
-        } else if (data.type === 'queue_update') {
-            this.loadQueueStatus();
-        }
-    }
-    
-    updateWebSocketStatus(status, type) {
-        const statusElement = document.getElementById('websocket-status');
-        const connectionStatusElement = document.getElementById('websocket-connection-status');
-        
-        statusElement.textContent = status;
-        statusElement.className = `badge bg-${type}`;
-        connectionStatusElement.textContent = status;
-    }
+    // WebSocket functionality removed - using polling-based updates instead
     
     async loadQueueStatus() {
         try {
@@ -467,9 +393,6 @@ class QueueManager {
     }
     
     destroy() {
-        if (this.websocket) {
-            this.websocket.close();
-        }
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
         }

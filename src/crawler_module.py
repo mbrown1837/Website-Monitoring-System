@@ -991,7 +991,7 @@ class CrawlerModule:
             # Get notification emails
             notification_emails = website.get('notification_emails', [])
             if not notification_emails:
-                notification_emails = [config.get('default_notification_email', 'admin@example.com')]
+                notification_emails = [config.get('default_notification_email', config.get('notification_email_to', 'admin@example.com'))]
             
             # Send email using existing alerter module
             if notification_emails:
