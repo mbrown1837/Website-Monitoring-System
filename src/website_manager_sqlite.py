@@ -531,7 +531,7 @@ class WebsiteManagerSQLite:
             'crawl': {'crawl_enabled': True, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': False},
             'blur': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': True, 'performance_enabled': False},
             'performance': {'crawl_enabled': False, 'visual_enabled': False, 'blur_enabled': False, 'performance_enabled': True},
-            'baseline': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': True, 'performance_enabled': True}  # Baseline should be full check
+            'baseline': {'crawl_enabled': True, 'visual_enabled': True, 'blur_enabled': False, 'performance_enabled': False}  # Baseline respects user settings
         }
         
         # Get base config for the check type

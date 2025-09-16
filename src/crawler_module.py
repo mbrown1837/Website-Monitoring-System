@@ -1410,11 +1410,12 @@ class CrawlerModule:
             
             for page in all_pages:
                 page_url = page.get('url')
-                # Skip if same as main URL, not internal, or direct image link
+                # Skip if same as main URL, not internal, direct image link, or excluded by keywords
                 if (page_url and 
                     page_url != website_url and 
                     page.get('is_internal', False) and 
-                    not image_ext_pattern.search(page_url)):
+                    not image_ext_pattern.search(page_url) and
+                    not self._should_exclude_url_for_checks(page_url, 'performance', website_id)):
                     pages_to_check.append({
                         'url': page_url,
                         'title': page.get('title', 'Unknown Page')
@@ -1422,7 +1423,8 @@ class CrawlerModule:
                     self.logger.debug(f"Added page for performance check: {page_url}")
                 else:
                     if page_url:
-                        self.logger.debug(f"Skipped page: {page_url} (same_as_main: {page_url == website_url}, internal: {page.get('is_internal', False)}, is_image: {image_ext_pattern.search(page_url) is not None})")
+                        excluded = self._should_exclude_url_for_checks(page_url, 'performance', website_id)
+                        self.logger.debug(f"Skipped page: {page_url} (same_as_main: {page_url == website_url}, internal: {page.get('is_internal', False)}, is_image: {image_ext_pattern.search(page_url) is not None}, excluded: {excluded})")
             
             self.logger.info(f"Total pages to check for performance: {len(pages_to_check)}")
             
