@@ -369,10 +369,10 @@ def add_website():
                         # Get the automated check configuration for this website
                         automated_check_config = website_manager.get_automated_check_config(website['id'])
                         
-                        # For baseline creation, always enable crawl and visual, then add enabled automated checks
+                        # For baseline creation, respect user's individual settings
                         baseline_check_config = {
-                            'crawl_enabled': True,  # Always needed for baseline
-                            'visual_enabled': True,  # Always needed for visual baseline
+                            'crawl_enabled': automated_check_config.get('crawl_enabled', True),
+                            'visual_enabled': automated_check_config.get('visual_enabled', True),
                             'blur_enabled': automated_check_config.get('blur_enabled', False),
                             'performance_enabled': automated_check_config.get('performance_enabled', False)
                         }
@@ -2042,8 +2042,8 @@ def bulk_import():
                                 from src.queue_processor import get_queue_processor
                                 queue_processor = get_queue_processor()
                                 
-                                # Add to queue for baseline creation
-                                queue_id = queue_processor.add_manual_check(website['id'], 'baseline')
+                                # Add to queue for full check (respects user settings)
+                                queue_id = queue_processor.add_manual_check(website['id'], 'full')
                                 logger.info(f"Added baseline check to queue for {website['name']} (Queue ID: {queue_id})")
                                 
                             except Exception as e:
