@@ -342,24 +342,26 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
-            # Don't return here - let the finally block execute to release the lock
-
-        significant_changes = determine_significance(check_result, website)
-        if significant_changes:
-            check_result.update({
-                'significant_change_detected': True, 
-                'status': 'Change Detected',
-                'reasons': significant_changes
-            })
-            logger.info(f"Significant changes detected for {website.get('name')}, preparing to send alert.")
-            
-            alerter.send_report(website, check_result)
+            # Skip the rest of the processing since this is baseline creation
+            # Let the finally block execute to release the lock
         else:
-            check_result['status'] = 'No significant change'
-            logger.info(f"No significant changes detected for {website.get('name')}.")
+            # Only run significance checks and additional processing for non-baseline checks
+            significant_changes = determine_significance(check_result, website)
+            if significant_changes:
+                check_result.update({
+                    'significant_change_detected': True, 
+                    'status': 'Change Detected',
+                    'reasons': significant_changes
+                })
+                logger.info(f"Significant changes detected for {website.get('name')}, preparing to send alert.")
+                
+                alerter.send_report(website, check_result)
+            else:
+                check_result['status'] = 'No significant change'
+                logger.info(f"No significant changes detected for {website.get('name')}.")
 
-        serializable_result = make_json_serializable(check_result)
-        history_manager.add_check_record(**serializable_result)
+            serializable_result = make_json_serializable(check_result)
+            history_manager.add_check_record(**serializable_result)
 
         logger.info(f"Check for '{website.get('name')}' completed. Status: {check_result['status']}")
         db_manager.log_scheduler_event("INFO", f"Check completed: {check_result['status']}", site_id, check_result.get('check_id'))
