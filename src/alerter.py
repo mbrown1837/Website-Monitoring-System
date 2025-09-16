@@ -393,7 +393,7 @@ def send_report(website: dict, check_results: dict):
     html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
     html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
     html_body_parts.append("</div>")
-        html_body_parts.append("</div>")
+    html_body_parts.append("</div>")
     
     # --- Footer ---
     html_body_parts.append("<div class='footer'>")
@@ -408,7 +408,7 @@ def send_report(website: dict, check_results: dict):
 
     # Use the existing send_email_alert function to handle SMTP logic
     try:
-    return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
+        return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
     except Exception as e:
         logger.error(f"Failed to send email report for {site_name}: {e}")
         # Don't raise the exception - let the monitoring continue even if email fails
@@ -491,9 +491,9 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             try:
                 logger.info(f"Attempting SSL connection to {email_config['smtp_server']}:{email_config['smtp_port']}")
                 with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port'], timeout=15) as server:
-                if email_config['smtp_username'] and email_config['smtp_password']:
-                    server.login(email_config['smtp_username'], email_config['smtp_password'])
-                server.sendmail(email_config['from'], target_recipients, msg.as_string())
+                    if email_config['smtp_username'] and email_config['smtp_password']:
+                        server.login(email_config['smtp_username'], email_config['smtp_password'])
+                    server.sendmail(email_config['from'], target_recipients, msg.as_string())
                 connection_successful = True
                 logger.info("SSL connection successful")
             except Exception as ssl_error:
@@ -504,11 +504,11 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             try:
                 logger.info(f"Attempting TLS connection to {email_config['smtp_server']}:{email_config['smtp_port']}")
                 with smtplib.SMTP(email_config['smtp_server'], email_config['smtp_port'], timeout=15) as server:
-                if email_config.get('use_tls', True):
-                    server.starttls()
-                if email_config['smtp_username'] and email_config['smtp_password']:
-                    server.login(email_config['smtp_username'], email_config['smtp_password'])
-                server.sendmail(email_config['from'], target_recipients, msg.as_string())
+                    if email_config.get('use_tls', True):
+                        server.starttls()
+                    if email_config['smtp_username'] and email_config['smtp_password']:
+                        server.login(email_config['smtp_username'], email_config['smtp_password'])
+                    server.sendmail(email_config['from'], target_recipients, msg.as_string())
                 connection_successful = True
                 logger.info("TLS connection successful")
             except Exception as tls_error:
@@ -1591,61 +1591,62 @@ def send_performance_email(website: dict, performance_data: dict):
             html_body_parts.append("<table class='summary-table'>")
             html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
         
-        mobile_avg = performance_summary.get('mobile_average', {})
-        desktop_avg = performance_summary.get('desktop_average', {})
-        
+            mobile_avg = performance_summary.get('mobile_average', {})
+            desktop_avg = performance_summary.get('desktop_average', {})
+            
             # Validate mobile and desktop data
             if not mobile_avg or not desktop_avg:
                 html_body_parts.append("<tr><td colspan='4'><em>Mobile/Desktop data not available</em></td></tr>")
             else:
-        metrics = [
-            ('Performance Score', 'performance_score', 'performance_score'),
-            ('First Contentful Paint (s)', 'fcp_score', 'fcp_score'),
-            ('Largest Contentful Paint (s)', 'lcp_score', 'lcp_score'),
-            ('Cumulative Layout Shift', 'cls_score', 'cls_score'),
-            ('Speed Index (s)', 'speed_index', 'speed_index'),
-            ('Total Blocking Time (ms)', 'tbt_score', 'tbt_score')
-        ]
-        
-        for metric_name, mobile_key, desktop_key in metrics:
-            mobile_val = mobile_avg.get(mobile_key, 0)
-            desktop_val = desktop_avg.get(desktop_key, 0)
+                metrics = [
+                    ('Performance Score', 'performance_score', 'performance_score'),
+                    ('First Contentful Paint (s)', 'fcp_score', 'fcp_score'),
+                    ('Largest Contentful Paint (s)', 'lcp_score', 'lcp_score'),
+                    ('Cumulative Layout Shift', 'cls_score', 'cls_score'),
+                    ('Speed Index (s)', 'speed_index', 'speed_index'),
+                    ('Total Blocking Time (ms)', 'tbt_score', 'tbt_score')
+                ]
+                
+                for metric_name, mobile_key, desktop_key in metrics:
+                    mobile_val = mobile_avg.get(mobile_key, 0)
+                    desktop_val = desktop_avg.get(desktop_key, 0)
+                    
+                    # Determine status
+                    if metric_name == 'Performance Score':
+                        mobile_status = "🟢 Good" if mobile_val >= 70 else "🔴 Poor" if mobile_val < 50 else "🟡 Fair"
+                        desktop_status = "🟢 Good" if desktop_val >= 70 else "🔴 Poor" if desktop_val < 50 else "🟡 Fair"
+                    elif metric_name in ['First Contentful Paint (s)', 'Largest Contentful Paint (s)', 'Speed Index (s)', 'Total Blocking Time (ms)']:
+                        mobile_status = "🟢 Good" if mobile_val <= 2.5 else "🔴 Poor" if mobile_val > 4 else "🟡 Fair"
+                        desktop_status = "🟢 Good" if desktop_val <= 2.5 else "🔴 Poor" if desktop_val > 4 else "🟡 Fair"
+                    else:  # CLS
+                        mobile_status = "🟢 Good" if mobile_val <= 0.1 else "🔴 Poor" if mobile_val > 0.25 else "🟡 Fair"
+                        desktop_status = "🟢 Good" if desktop_val <= 0.1 else "🔴 Poor" if desktop_val > 0.25 else "🟡 Fair"
+                    
+                    html_body_parts.append(f"<tr>")
+                    html_body_parts.append(f"<td><strong>{metric_name}</strong></td>")
+                    html_body_parts.append(f"<td>{mobile_val:.2f}</td>")
+                    html_body_parts.append(f"<td>{desktop_val:.2f}</td>")
+                    html_body_parts.append(f"<td>{mobile_status} / {desktop_status}</td>")
+                    html_body_parts.append(f"</tr>")
             
-            # Determine status
-            if metric_name == 'Performance Score':
-                mobile_status = "🟢 Good" if mobile_val >= 70 else "🔴 Poor" if mobile_val < 50 else "🟡 Fair"
-                desktop_status = "🟢 Good" if desktop_val >= 70 else "🔴 Poor" if desktop_val < 50 else "🟡 Fair"
-            elif metric_name in ['First Contentful Paint (s)', 'Largest Contentful Paint (s)', 'Speed Index (s)', 'Total Blocking Time (ms)']:
-                mobile_status = "🟢 Good" if mobile_val <= 2.5 else "🔴 Poor" if mobile_val > 4 else "🟡 Fair"
-                desktop_status = "🟢 Good" if desktop_val <= 2.5 else "🔴 Poor" if desktop_val > 4 else "🟡 Fair"
-            else:  # CLS
-                mobile_status = "🟢 Good" if mobile_val <= 0.1 else "🔴 Poor" if mobile_val > 0.25 else "🟡 Fair"
-                desktop_status = "🟢 Good" if desktop_val <= 0.1 else "🔴 Poor" if desktop_val > 0.25 else "🟡 Fair"
-            
-            html_body_parts.append(f"<tr>")
-            html_body_parts.append(f"<td><strong>{metric_name}</strong></td>")
-            html_body_parts.append(f"<td>{mobile_val:.2f}</td>")
-            html_body_parts.append(f"<td>{desktop_val:.2f}</td>")
-            html_body_parts.append(f"<td>{mobile_status} / {desktop_status}</td>")
-            html_body_parts.append(f"</tr>")
-        
-        html_body_parts.append("</table>")
-        html_body_parts.append("</div>")
-        
-        # Performance recommendations
-        if avg_score < 70:
-            html_body_parts.append("<div class='content-section'><h3>Performance Recommendations</h3>")
-            html_body_parts.append("<ul>")
-            if mobile_avg.get('fcp_score', 0) > 2.5:
-                html_body_parts.append("<li><strong>Optimize First Contentful Paint:</strong> Reduce server response time and eliminate render-blocking resources</li>")
-            if mobile_avg.get('lcp_score', 0) > 2.5:
-                html_body_parts.append("<li><strong>Improve Largest Contentful Paint:</strong> Optimize images and reduce resource load times</li>")
-            if mobile_avg.get('cls_score', 0) > 0.1:
-                html_body_parts.append("<li><strong>Reduce Cumulative Layout Shift:</strong> Ensure images and ads have size attributes</li>")
-            if mobile_avg.get('tbt_score', 0) > 200:
-                html_body_parts.append("<li><strong>Minimize Total Blocking Time:</strong> Reduce JavaScript execution time and implement code splitting</li>")
-            html_body_parts.append("</ul>")
+            html_body_parts.append("</table>")
             html_body_parts.append("</div>")
+            
+            # Performance recommendations
+            if avg_score < 70:
+                html_body_parts.append("<div class='recommendations'>")
+                html_body_parts.append("<h4>💡 Performance Recommendations</h4>")
+                html_body_parts.append("<ul>")
+                if mobile_avg.get('fcp_score', 0) > 2.5:
+                    html_body_parts.append("<li><strong>Optimize First Contentful Paint:</strong> Reduce server response time and eliminate render-blocking resources</li>")
+                if mobile_avg.get('lcp_score', 0) > 2.5:
+                    html_body_parts.append("<li><strong>Improve Largest Contentful Paint:</strong> Optimize images and reduce resource load times</li>")
+                if mobile_avg.get('cls_score', 0) > 0.1:
+                    html_body_parts.append("<li><strong>Reduce Cumulative Layout Shift:</strong> Ensure images and ads have size attributes</li>")
+                if mobile_avg.get('tbt_score', 0) > 200:
+                    html_body_parts.append("<li><strong>Minimize Total Blocking Time:</strong> Reduce JavaScript execution time and implement code splitting</li>")
+                html_body_parts.append("</ul>")
+                html_body_parts.append("</div>")
     else:
         html_body_parts.append("<div class='content-section'><h3>Performance Analysis</h3>")
         html_body_parts.append("<p class='status-error'><strong>❌ Performance data not available</strong></p>")
