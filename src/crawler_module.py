@@ -468,6 +468,9 @@ class CrawlerModule:
                     self._capture_latest_snapshots(results)
             else:
                 self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
+            
+            # IMPORTANT: For baseline creation, we still need to run other checks (crawl, blur, performance)
+            # even though we created visual baselines above. This ensures comprehensive baseline data.
 
             # Save crawl results first to get crawl_id
             crawl_id = self._save_crawl_results(results)

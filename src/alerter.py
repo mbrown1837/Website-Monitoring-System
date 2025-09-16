@@ -33,9 +33,16 @@ def send_report(website: dict, check_results: dict):
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
     
+    # Debug logging to see what data we're working with
+    logger.info(f"EMAIL DEBUG - Site: {site_name}")
+    logger.info(f"EMAIL DEBUG - Check results keys: {list(check_results.keys())}")
+    logger.info(f"EMAIL DEBUG - Crawl stats: {check_results.get('crawl_stats', {})}")
+    logger.info(f"EMAIL DEBUG - Broken links count: {len(check_results.get('broken_links', []))}")
+    logger.info(f"EMAIL DEBUG - Missing meta tags count: {len(check_results.get('missing_meta_tags', []))}")
+    
     # Determine if this is a change report
     is_change_report = check_results.get('significant_change_detected', False)
-    
+
     # Create subject
     subject = f"Monitoring Report for {site_name}"
     if is_change_report:
@@ -47,6 +54,11 @@ def send_report(website: dict, check_results: dict):
            
            # Log the dashboard URL being used for debugging
            logger.info(f"Using dashboard URL: {dashboard_url}")
+           
+           # If no DASHBOARD_URL is set, use the provided Coolify domain
+           if not os.environ.get('DASHBOARD_URL') and dashboard_url == 'http://localhost:5001':
+               dashboard_url = 'http://y0sos0scg00g0swwg8o4wk8k.167.86.123.94.sslip.io'
+               logger.info(f"Using fallback Coolify domain: {dashboard_url}")
     
     # Create simple HTML email body without CSS
     html_body = f"""
@@ -79,15 +91,15 @@ def send_report(website: dict, check_results: dict):
                        <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">📈 Key Metrics</h2>
                        <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
                            <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('crawler_results', {}).get('total_pages_crawled', 0)}</div>
+                               <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('crawl_stats', {}).get('pages_crawled', 0)}</div>
                                <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Crawled</div>
                            </div>
                            <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{len(check_results.get('crawler_results', {}).get('broken_links', []))}</div>
+                               <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{len(check_results.get('broken_links', []))}</div>
                                <div style="font-size: 14px; color: #666; text-transform: uppercase;">Broken Links</div>
                            </div>
                            <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{len(check_results.get('crawler_results', {}).get('missing_meta_tags', []))}</div>
+                               <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{len(check_results.get('missing_meta_tags', []))}</div>
                                <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
                            </div>
                        </div>
@@ -144,7 +156,7 @@ Visit Dashboard: {dashboard_url}
         if default_email:
             target_recipients = [default_email]
             logger.info(f"Using default email {default_email} for {site_name}")
-        else:
+            else:
             logger.warning(f"No recipient emails configured for {site_name} and no default email set")
             return False
 
@@ -175,8 +187,8 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         # Validate required configuration
         if not all([smtp_server, smtp_username, smtp_password, from_email]):
             logger.error("Email configuration missing required fields")
-            return False
-        
+        return False
+
         # Use default recipient if none provided
         if not recipient_emails:
             default_email = config.get('default_notification_email')
@@ -185,11 +197,11 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
                 logger.info(f"Using default email {default_email}")
             else:
                 logger.warning("No recipient emails provided and no default email set")
-                return False
-        
+        return False
+
         # Create message
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
+    msg['Subject'] = subject
         msg['From'] = from_email
         msg['To'] = ', '.join(recipient_emails)
         
@@ -203,17 +215,17 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         msg.attach(html_part)
         
         # Add attachments if any
-        if attachments:
-            for attachment in attachments:
-                msg.attach(attachment)
-        
+    if attachments:
+        for attachment in attachments:
+            msg.attach(attachment)
+
         # Send email
         if use_ssl:
             server = smtplib.SMTP_SSL(smtp_server, smtp_port)
         else:
             server = smtplib.SMTP(smtp_server, smtp_port)
             if use_tls:
-                server.starttls()
+                    server.starttls()
         
         server.login(smtp_username, smtp_password)
         server.send_message(msg)
