@@ -342,7 +342,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
-            return serializable_result
+            # Don't return here - let the finally block execute to release the lock
 
         significant_changes = determine_significance(check_result, website)
         if significant_changes:
