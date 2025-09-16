@@ -2037,30 +2037,17 @@ def bulk_import():
                             # Automatically run full check with baseline creation for new website
                             try:
                                 logger.info(f"Auto-running full check with baseline for {website['name']} (ID: {website['id']})")
-                                full_check_options = {
-                                    'create_baseline': True,
-                                    'capture_subpages': True,
-                                    'crawl_only': False,
-                                    'visual_check_only': False,
-                                    'blur_check_only': False,
-                                    'check_config': {
-                                        'crawl_enabled': True,     # Full crawl check
-                                        'visual_enabled': True,    # Visual baseline + change detection
-                                        'blur_enabled': True,      # Blur detection
-                                        'performance_enabled': True  # Performance check
-                                    },
-                                    'is_scheduled': False
-                                }
                                 
-                                # Run full check with baseline creation in background
-                                threading.Thread(
-                                    target=perform_website_check,
-                                    args=(website['id'], full_check_options, 'config/config.yaml', website_manager, history_manager, crawler_module),
-                                    daemon=True
-                                ).start()
+                                # Use the queue system for proper sequential processing
+                                from src.queue_processor import get_queue_processor
+                                queue_processor = get_queue_processor()
+                                
+                                # Add to queue for baseline creation
+                                queue_id = queue_processor.add_manual_check(website['id'], 'baseline')
+                                logger.info(f"Added baseline check to queue for {website['name']} (Queue ID: {queue_id})")
                                 
                             except Exception as e:
-                                logger.error(f"Failed to run full check for {website['name']}: {e}")
+                                logger.error(f"Failed to add baseline check to queue for {website['name']}: {e}")
                             
                             # Small delay to respect concurrency limits (like improved script)
                             time.sleep(0.5)

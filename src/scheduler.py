@@ -342,8 +342,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
-            # Skip the rest of the processing since this is baseline creation
-            # Let the finally block execute to release the lock
+            # Don't return early - let the finally block execute to release the lock
         else:
             # Only run significance checks and additional processing for non-baseline checks
             significant_changes = determine_significance(check_result, website)
