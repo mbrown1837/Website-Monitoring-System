@@ -41,9 +41,12 @@ def send_report(website: dict, check_results: dict):
     if is_change_report:
         subject = f"Change Detected on {site_name}"
 
-    # Get dashboard URL
-    config = get_config_dynamic()
-    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
+           # Get dashboard URL - prioritize environment variable for Coolify
+           config = get_config_dynamic()
+           dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
+           
+           # Log the dashboard URL being used for debugging
+           logger.info(f"Using dashboard URL: {dashboard_url}")
     
     # Create simple HTML email body without CSS
     html_body = f"""
@@ -72,22 +75,22 @@ def send_report(website: dict, check_results: dict):
                 <p><strong>Check Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
                 <p><strong>Status:</strong> {check_results.get('status', 'Completed')}</p>
                 
-                <!-- Key Metrics -->
-                <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">📈 Key Metrics</h2>
-                <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
-                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('pages_crawled', 0)}</div>
-                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Crawled</div>
-                    </div>
-                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{check_results.get('broken_links_count', 0)}</div>
-                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Broken Links</div>
-                    </div>
-                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{check_results.get('missing_meta_tags_count', 0)}</div>
-                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
-                    </div>
-                </div>
+                       <!-- Key Metrics -->
+                       <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">📈 Key Metrics</h2>
+                       <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
+                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                               <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('crawler_results', {}).get('total_pages_crawled', 0)}</div>
+                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Crawled</div>
+                           </div>
+                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                               <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{len(check_results.get('crawler_results', {}).get('broken_links', []))}</div>
+                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Broken Links</div>
+                           </div>
+                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                               <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{len(check_results.get('crawler_results', {}).get('missing_meta_tags', []))}</div>
+                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
+                           </div>
+                       </div>
 
                 <!-- Quick Actions -->
                 <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">🔗 Quick Actions</h2>
