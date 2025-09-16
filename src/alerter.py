@@ -48,17 +48,17 @@ def send_report(website: dict, check_results: dict):
     if is_change_report:
         subject = f"Change Detected on {site_name}"
 
-           # Get dashboard URL - prioritize environment variable for Coolify
-           config = get_config_dynamic()
-           dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
-           
-           # Log the dashboard URL being used for debugging
-           logger.info(f"Using dashboard URL: {dashboard_url}")
-           
-           # If no DASHBOARD_URL is set, use the provided Coolify domain
-           if not os.environ.get('DASHBOARD_URL') and dashboard_url == 'http://localhost:5001':
-               dashboard_url = 'http://y0sos0scg00g0swwg8o4wk8k.167.86.123.94.sslip.io'
-               logger.info(f"Using fallback Coolify domain: {dashboard_url}")
+    # Get dashboard URL - prioritize environment variable for Coolify
+    config = get_config_dynamic()
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
+    
+    # Log the dashboard URL being used for debugging
+    logger.info(f"Using dashboard URL: {dashboard_url}")
+    
+    # If no DASHBOARD_URL is set, use the provided Coolify domain
+    if not os.environ.get('DASHBOARD_URL') and dashboard_url == 'http://localhost:5001':
+        dashboard_url = 'http://y0sos0scg00g0swwg8o4wk8k.167.86.123.94.sslip.io'
+        logger.info(f"Using fallback Coolify domain: {dashboard_url}")
     
     # Create simple HTML email body without CSS
     html_body = f"""
