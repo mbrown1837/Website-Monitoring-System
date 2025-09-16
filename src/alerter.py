@@ -64,7 +64,7 @@ def send_report(website: dict, check_results: dict):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -75,7 +75,7 @@ def send_report(website: dict, check_results: dict):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -138,7 +138,7 @@ def send_report(website: dict, check_results: dict):
             background: #fff3cd; border: 1px solid #ffeaa7; 
             padding: 20px; border-radius: 8px; margin: 20px 0;
         }
-        .recommendations h4 { color: #856404; margin-top: 0; }
+        .recommendations h4 { color: #000000; margin-top: 0; }
         @media (max-width: 600px) {
             .email-container { margin: 10px; border-radius: 8px; }
             .content { padding: 20px; }
@@ -873,7 +873,7 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -884,7 +884,7 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -1041,7 +1041,7 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -1052,7 +1052,7 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -1252,7 +1252,7 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -1263,7 +1263,7 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -1453,7 +1453,7 @@ def send_performance_email(website: dict, performance_data: dict):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -1464,7 +1464,7 @@ def send_performance_email(website: dict, performance_data: dict):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -1521,7 +1521,7 @@ def send_performance_email(website: dict, performance_data: dict):
             background: #fff3cd; border: 1px solid #ffeaa7; 
             padding: 20px; border-radius: 8px; margin: 20px 0;
         }
-        .recommendations h4 { color: #856404; margin-top: 0; }
+        .recommendations h4 { color: #000000; margin-top: 0; }
         @media (max-width: 600px) {
             .email-container { margin: 10px; border-radius: 8px; }
             .content { padding: 20px; }
@@ -1713,7 +1713,7 @@ def _send_baseline_check_email(website: dict, check_results: dict, subject: str)
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -1724,7 +1724,7 @@ def _send_baseline_check_email(website: dict, check_results: dict, subject: str)
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
@@ -1874,7 +1874,7 @@ def _send_full_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             padding: 30px 20px; color: white; text-align: center;
         }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; color: #000000; }
         .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
         .content { padding: 30px; }
         .content-section { 
@@ -1885,7 +1885,7 @@ def _send_full_check_email(website: dict, check_results: dict, subject: str):
             border-left: 4px solid #667eea;
         }
         .content-section h3 { 
-            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            margin: 0 0 15px 0; color: #000000; font-size: 20px; 
             border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
         }
         .summary-table { 
