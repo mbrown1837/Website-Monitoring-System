@@ -1309,32 +1309,44 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
     blur_stats = blur_data.get('blur_stats', {})
     
     html_body_parts = [
-        f"<html><head>{html_style}</head><body>",
-        f"<div class='container'>",
-        f"<div class='header'><h2>Blur Detection Report</h2></div>",
+        f"<html><head>{html_style}</head><body><div class='email-container'>",
+        f"<div class='header'>",
+        f"<h1>🔍 Blur Detection Report</h1>",
+        f"<div class='subtitle'>{html.escape(site_name)}</div>",
+        f"</div>",
+        f"<div class='content'>",
         f"<div class='content-section'>",
-        f"<h3>Website Information</h3>",
-        f"<p><strong>Website:</strong> {site_name}</p>",
-        f"<p><strong>URL:</strong> <a href='{site_url}'>{site_url}</a></p>",
+        f"<h3>📊 Check Summary</h3>",
+        f"<p><strong>Website:</strong> {html.escape(site_name)}</p>",
+        f"<p><strong>URL:</strong> <a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></p>",
         f"<p><strong>Check Time:</strong> {check_results.get('timestamp', 'Unknown')}</p>",
         f"</div>"
     ]
     
     # Blur detection summary
     if blur_stats:
-        html_body_parts.append("<div class='content-section'><h3>Blur Detection Summary</h3>")
-        html_body_parts.append("<table class='summary-table'>")
-        html_body_parts.append("<tr><th>Metric</th><th>Value</th></tr>")
-        html_body_parts.append(f"<tr><td>Pages Checked</td><td>{blur_stats.get('pages_checked', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Images Analyzed</td><td>{blur_stats.get('images_analyzed', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Blurred Images Found</td><td class='status-warning'>{blur_stats.get('blurred_images', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Average Blur Score</td><td>{blur_stats.get('average_blur_score', 0):.2f}</td></tr>")
-        html_body_parts.append("</table>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🔍 Blur Detection Summary</h3>")
+        
+        # Blur metrics cards
+        pages_checked = blur_stats.get('pages_checked', 0)
+        images_analyzed = blur_stats.get('images_analyzed', 0)
+        blurred_images = blur_stats.get('blurred_images', 0)
+        avg_blur_score = blur_stats.get('average_blur_score', 0)
+        
+        html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{pages_checked}</div><div class='metric-label'>Pages Checked</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{images_analyzed}</div><div class='metric-label'>Images Analyzed</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{blurred_images}</div><div class='metric-label'>Blurred Images</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{avg_blur_score:.2f}</div><div class='metric-label'>Avg Blur Score</div></div>")
+        html_body_parts.append("</div>")
         html_body_parts.append("</div>")
     
     # Blurred images details
     if blur_results:
-        html_body_parts.append("<div class='content-section'><h3>Blurred Images Found</h3>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🖼️ Blurred Images Found</h3>")
+        html_body_parts.append(f"<div class='status-badge status-warning'>⚠️ {len(blur_results)} blurred images detected</div>")
         html_body_parts.append("<table class='summary-table'>")
         html_body_parts.append("<tr><th>Page</th><th>Image</th><th>Blur Score</th><th>Status</th></tr>")
         
@@ -1344,14 +1356,14 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
             blur_score = result.get('blur_score', 0)
             is_blurred = result.get('is_blurred', False)
             
-            status_class = "status-error" if is_blurred else "status-good"
+            status_class = "status-error" if is_blurred else "status-success"
             status_text = "Blurred" if is_blurred else "Clear"
             
             html_body_parts.append(f"<tr>")
-            html_body_parts.append(f"<td><a href='{page_url}'>{page_url}</a></td>")
-            html_body_parts.append(f"<td><a href='{image_url}'>{image_url}</a></td>")
+            html_body_parts.append(f"<td><a href='{html.escape(page_url)}'>{html.escape(page_url)}</a></td>")
+            html_body_parts.append(f"<td><a href='{html.escape(image_url)}'>{html.escape(image_url)}</a></td>")
             html_body_parts.append(f"<td>{blur_score:.2f}</td>")
-            html_body_parts.append(f"<td class='{status_class}'>{status_text}</td>")
+            html_body_parts.append(f"<td><span class='status-badge {status_class}'>{status_text}</span></td>")
             html_body_parts.append(f"</tr>")
         
         if len(blur_results) > 10:
@@ -1360,10 +1372,32 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
         html_body_parts.append("</table>")
         html_body_parts.append("</div>")
     else:
-        html_body_parts.append("<div class='content-section'><h3>Blur Detection Results</h3><p class='status-good'>No blurred images found!</p></div>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🖼️ Blur Detection Results</h3>")
+        html_body_parts.append("<div class='status-badge status-success'>✅ No blurred images found!</div>")
+        html_body_parts.append("</div>")
+    
+    # Dashboard Links and Actions
+    config = get_config_dynamic()
+    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    website_id = website.get('id', '')
+    
+    html_body_parts.append("<div class='content-section'>")
+    html_body_parts.append("<h3>🔗 Quick Actions</h3>")
+    html_body_parts.append("<div style='text-align: center; margin: 20px 0;'>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/{website_id}' class='action-button' target='_blank'>View Website Details</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
+    html_body_parts.append("</div>")
+    html_body_parts.append("</div>")
     
     # Footer
-    html_body_parts.append(f"<div class='footer'><p>This is an automated blur detection report from the Website Monitoring System.</p></div>")
+    html_body_parts.append("<div class='footer'>")
+    html_body_parts.append("<p><strong>🔍 Blur Detection Report</strong></p>")
+    html_body_parts.append(f"<p>This is an automated blur detection report for <strong>{html.escape(site_name)}</strong></p>")
+    html_body_parts.append(f"<p>Report generated on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S UTC')}</p>")
+    html_body_parts.append(f"<p><a href='{dashboard_url}'>Visit Dashboard</a> | <a href='{dashboard_url}/settings'>Manage Settings</a></p>")
+    html_body_parts.append("</div>")
     html_body_parts.append("</div></body></html>")
     
     final_html = "".join(html_body_parts)
@@ -1391,33 +1425,114 @@ def send_performance_email(website: dict, performance_data: dict):
     
     subject = f"Performance Report for {site_name}"
     
-    # Build HTML body for performance report
+    # Use the same enhanced styling as the main report
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .performance-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-        .excellent { background-color: #d4edda; color: #155724; }
-        .good { background-color: #fff3cd; color: #856404; }
-        .poor { background-color: #f8d7da; color: #721c24; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .performance-badge { 
+            display: inline-block; padding: 8px 16px; border-radius: 20px; 
+            font-size: 14px; font-weight: 600; text-transform: uppercase;
+        }
+        .excellent { background: #d4edda; color: #155724; }
+        .good { background: #fff3cd; color: #856404; }
+        .poor { background: #f8d7da; color: #721c24; }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        .highlight-box { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 20px; border-radius: 8px; margin: 20px 0;
+        }
+        .recommendations { 
+            background: #fff3cd; border: 1px solid #ffeaa7; 
+            padding: 20px; border-radius: 8px; margin: 20px 0;
+        }
+        .recommendations h4 { color: #856404; margin-top: 0; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
     </style>
     """
     
     performance_summary = performance_data.get('performance_check_summary', {})
     
     html_body_parts = [
-        f"<html><head>{html_style}</head><body><div class='container'>",
-        f"<div class='header'><h2>Performance Report: {html.escape(site_name)}</h2></div>",
-        f"<div class='content-section'><p>Performance analysis completed for <strong><a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></strong></p></div>"
+        f"<html><head>{html_style}</head><body><div class='email-container'>",
+        f"<div class='header'>",
+        f"<h1>⚡ Performance Report</h1>",
+        f"<div class='subtitle'>{html.escape(site_name)}</div>",
+        f"</div>",
+        f"<div class='content'>",
+        f"<div class='content-section'>",
+        f"<h3>📊 Performance Analysis</h3>",
+        f"<p>Performance analysis completed for <strong><a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></strong></p>",
+        f"<p><strong>Analysis Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>",
+        f"</div>"
     ]
     
     if performance_summary:
@@ -1426,8 +1541,9 @@ def send_performance_email(website: dict, performance_data: dict):
         
         # Validate performance data
         if pages_analyzed == 0 or avg_score == 0:
-            html_body_parts.append("<div class='content-section'><h3>Performance Analysis</h3>")
-            html_body_parts.append("<p class='status-warning'><strong>⚠️ Performance data incomplete</strong></p>")
+            html_body_parts.append("<div class='content-section'>")
+            html_body_parts.append("<h3>⚡ Performance Analysis</h3>")
+            html_body_parts.append("<div class='status-badge status-warning'>⚠️ Performance data incomplete</div>")
             html_body_parts.append("<p><em>This could be due to:</em></p>")
             html_body_parts.append("<ul>")
             html_body_parts.append("<li>No pages were successfully analyzed</li>")
@@ -1436,31 +1552,44 @@ def send_performance_email(website: dict, performance_data: dict):
             html_body_parts.append("</ul>")
             html_body_parts.append("</div>")
         else:
-        html_body_parts.append("<div class='content-section'><h3>Performance Overview</h3>")
-        html_body_parts.append(f"<p><strong>Pages Analyzed:</strong> {pages_analyzed}</p>")
-        html_body_parts.append(f"<p><strong>Average Performance Score:</strong> {avg_score:.1f}/100</p>")
+            html_body_parts.append("<div class='content-section'>")
+            html_body_parts.append("<h3>⚡ Performance Overview</h3>")
+            
+            # Performance metrics cards
+            html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+            html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{pages_analyzed}</div><div class='metric-label'>Pages Analyzed</div></div>")
+            html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{avg_score:.1f}</div><div class='metric-label'>Avg Score</div></div>")
+            html_body_parts.append("</div>")
+            
+            # Performance grade with badge
+            if avg_score >= 90:
+                grade_class = "excellent"
+                grade_text = "Excellent"
+                grade_emoji = "🟢"
+            elif avg_score >= 70:
+                grade_class = "good"
+                grade_text = "Good"
+                grade_emoji = "🟡"
+            elif avg_score >= 50:
+                grade_class = "poor"
+                grade_text = "Needs Improvement"
+                grade_emoji = "🟠"
+            else:
+                grade_class = "poor"
+                grade_text = "Poor"
+                grade_emoji = "🔴"
+            
+            html_body_parts.append(f"<div class='highlight-box'>")
+            html_body_parts.append(f"<h4>{grade_emoji} Overall Performance Grade: {grade_text}</h4>")
+            html_body_parts.append(f"<p>Average Score: <strong>{avg_score:.1f}/100</strong></p>")
+            html_body_parts.append("</div>")
+            html_body_parts.append("</div>")
         
-        # Performance grade with badge
-        if avg_score >= 90:
-            grade_class = "excellent"
-            grade_text = "Excellent"
-        elif avg_score >= 70:
-            grade_class = "good"
-            grade_text = "Good"
-        elif avg_score >= 50:
-            grade_class = "poor"
-            grade_text = "Needs Improvement"
-        else:
-            grade_class = "poor"
-            grade_text = "Poor"
-        
-        html_body_parts.append(f"<p><strong>Overall Grade:</strong> <span class='performance-badge {grade_class}'>{grade_text}</span></p>")
-        html_body_parts.append("</div>")
-        
-        # Detailed metrics
-        html_body_parts.append("<div class='content-section'><h3>Detailed Performance Metrics</h3>")
-        html_body_parts.append("<table class='summary-table'>")
-        html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
+            # Detailed metrics
+            html_body_parts.append("<div class='content-section'>")
+            html_body_parts.append("<h3>📊 Detailed Performance Metrics</h3>")
+            html_body_parts.append("<table class='summary-table'>")
+            html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
         
         mobile_avg = performance_summary.get('mobile_average', {})
         desktop_avg = performance_summary.get('desktop_average', {})
