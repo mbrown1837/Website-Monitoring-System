@@ -1844,22 +1844,81 @@ def _send_full_check_email(website: dict, check_results: dict, subject: str):
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
     
+    # Use the same enhanced styling as the main report
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .status-good { color: #28a745; font-weight: bold; }
-        .status-warning { color: #ffc107; font-weight: bold; }
-        .status-error { color: #dc3545; font-weight: bold; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
     </style>
     """
     
