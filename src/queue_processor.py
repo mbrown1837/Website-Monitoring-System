@@ -40,6 +40,10 @@ class QueueProcessor:
         self._processing_thread = None
         self._stop_event = threading.Event()
         
+        # Concurrency control - ensure only one item processes at a time
+        self._processing_lock = threading.Lock()
+        self._currently_processing = None
+        
         # WebSocket connections for real-time updates
         self._websocket_connections = set()
         
@@ -76,12 +80,27 @@ class QueueProcessor:
         
         while self._running and not self._stop_event.is_set():
             try:
+                # Check if we're already processing something
+                with self._processing_lock:
+                    if self._currently_processing is not None:
+                        self.logger.info(f"⏳ Waiting for {self._currently_processing} to finish before processing next item")
+                        time.sleep(2)
+                        continue
+                
                 # Get next item from queue
                 queue_item = self.website_manager.get_next_queue_item()
                 
                 if queue_item:
+                    # Set processing lock
+                    with self._processing_lock:
+                        self._currently_processing = queue_item['id']
+                    
                     self.logger.info(f"🔄 Processing queue item {queue_item['id']}: {queue_item['check_type']} check for {queue_item['website_name']}")
                     self._process_queue_item(queue_item)
+                    
+                    # Clear processing lock
+                    with self._processing_lock:
+                        self._currently_processing = None
                     
                     # Add delay between items to prevent overwhelming the system
                     time.sleep(1)
@@ -91,6 +110,9 @@ class QueueProcessor:
                     
             except Exception as e:
                 self.logger.error(f"Error in queue processing loop: {e}", exc_info=True)
+                # Clear processing lock on error
+                with self._processing_lock:
+                    self._currently_processing = None
                 time.sleep(5)  # Wait before retrying
         
         self.logger.info("🔄 Queue processing loop ended")
@@ -208,6 +230,13 @@ class QueueProcessor:
             )
             
             self._broadcast_status_update(queue_id, 'failed', f"Failed {check_type} check for {website_name}: {user_friendly_error}")
+        
+        finally:
+            # Ensure processing lock is always released
+            with self._processing_lock:
+                if self._currently_processing == queue_id:
+                    self._currently_processing = None
+                    self.logger.info(f"🔓 Released processing lock for {queue_id}")
     
     def add_manual_check(self, website_id, check_type, user_id=None):
         """Add a manual check to the queue."""
