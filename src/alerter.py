@@ -590,7 +590,7 @@ def format_alert_message(site_url: str, site_name: str, check_record: dict) -> t
         # Add a link to view detailed crawler results
         config = get_config_dynamic()
         # Use environment variable for Coolify, fallback to config, then localhost
-    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
+        dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
         html_body_parts.append(f"<p><a href=\"{dashboard_url}/website/{check_record.get('site_id')}/crawler\">View Detailed Crawler Results</a></p>")
         text_body_parts.append(f"\nView Detailed Crawler Results: {dashboard_url}/website/{check_record.get('site_id')}/crawler")
     
