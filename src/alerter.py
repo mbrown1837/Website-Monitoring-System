@@ -90,7 +90,7 @@ def send_report(website: dict, check_results: dict):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -383,7 +383,8 @@ def send_report(website: dict, check_results: dict):
     
     # --- Dashboard Links and Actions ---
     config = get_config_dynamic()
-    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     
     html_body_parts.append("<div class='content-section'>")
@@ -411,6 +412,12 @@ def send_report(website: dict, check_results: dict):
         return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
     except Exception as e:
         logger.error(f"Failed to send email report for {site_name}: {e}")
+        logger.error(f"Email delivery failed - this could be due to:")
+        logger.error(f"1. SMTP server authentication issues")
+        logger.error(f"2. Invalid recipient email addresses: {target_recipients}")
+        logger.error(f"3. Email content flagged as spam")
+        logger.error(f"4. Network connectivity problems")
+        logger.error(f"5. SMTP server configuration errors")
         # Don't raise the exception - let the monitoring continue even if email fails
         return False
 
@@ -582,7 +589,8 @@ def format_alert_message(site_url: str, site_name: str, check_record: dict) -> t
             
         # Add a link to view detailed crawler results
         config = get_config_dynamic()
-        dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+        # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
         html_body_parts.append(f"<p><a href=\"{dashboard_url}/website/{check_record.get('site_id')}/crawler\">View Detailed Crawler Results</a></p>")
         text_body_parts.append(f"\nView Detailed Crawler Results: {dashboard_url}/website/{check_record.get('site_id')}/crawler")
     
@@ -891,7 +899,7 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -985,7 +993,8 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
     
     # Dashboard Links and Actions
     config = get_config_dynamic()
-    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     
     html_body_parts.append("<div class='content-section'>")
@@ -1058,7 +1067,7 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -1195,7 +1204,8 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
     
     # Dashboard Links and Actions
     config = get_config_dynamic()
-    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     
     html_body_parts.append("<div class='content-section'>")
@@ -1268,7 +1278,7 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -1379,7 +1389,8 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
     
     # Dashboard Links and Actions
     config = get_config_dynamic()
-    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     
     html_body_parts.append("<div class='content-section'>")
@@ -1468,7 +1479,7 @@ def send_performance_email(website: dict, performance_data: dict):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -1661,7 +1672,8 @@ def send_performance_email(website: dict, performance_data: dict):
     
     # Add dashboard link
     config = get_config_dynamic()
-    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    # Use environment variable for Coolify, fallback to config, then localhost
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     website_id = website.get('id', '')
     
     html_body_parts.append("<div class='content-section'><h3>View Detailed Results</h3>")
@@ -1727,7 +1739,7 @@ def _send_baseline_check_email(website: dict, check_results: dict, subject: str)
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -1888,7 +1900,7 @@ def _send_full_check_email(website: dict, check_results: dict, subject: str):
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
             color: white; font-weight: 600; font-size: 14px;
         }
-        .summary-table tr:hover { background-color: #f8f9fa; }
+        .summary-table tr:hover { background-color: #e9ecef; }
         .status-badge { 
             display: inline-block; padding: 6px 12px; border-radius: 20px; 
             font-size: 12px; font-weight: 600; text-transform: uppercase;

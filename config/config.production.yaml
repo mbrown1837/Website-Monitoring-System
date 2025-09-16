@@ -12,7 +12,7 @@ playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
 notification_email_from: websitecheckapp@digitalclics.com
 notification_email_to: websitecheckapp@digitalclics.com
-dashboard_url: http://localhost:5001
+dashboard_url: https://your-coolify-domain.com
 content_change_threshold: 1.0
 image_diff_threshold: 1000
 structure_change_threshold: 1.0
