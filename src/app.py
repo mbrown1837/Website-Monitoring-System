@@ -2034,33 +2034,33 @@ def bulk_import():
                             website = website_manager.add_website(website_record)
                             imported_count += 1
                             
-                            # Automatically create baseline for new website
+                            # Automatically run full check with baseline creation for new website
                             try:
-                                logger.info(f"Auto-creating baseline for {website['name']} (ID: {website['id']})")
-                                baseline_options = {
+                                logger.info(f"Auto-running full check with baseline for {website['name']} (ID: {website['id']})")
+                                full_check_options = {
                                     'create_baseline': True,
                                     'capture_subpages': True,
                                     'crawl_only': False,
                                     'visual_check_only': False,
                                     'blur_check_only': False,
                                     'check_config': {
-                                        'crawl_enabled': True,     # Need to crawl to find internal pages
-                                        'visual_enabled': True,    # Need to capture visual baselines
-                                        'blur_enabled': False,     # No blur detection during baseline creation
-                                        'performance_enabled': False  # No performance checks during baseline creation
+                                        'crawl_enabled': True,     # Full crawl check
+                                        'visual_enabled': True,    # Visual baseline + change detection
+                                        'blur_enabled': True,      # Blur detection
+                                        'performance_enabled': True  # Performance check
                                     },
                                     'is_scheduled': False
                                 }
                                 
-                                # Run baseline creation in background
+                                # Run full check with baseline creation in background
                                 threading.Thread(
                                     target=perform_website_check,
-                                    args=(website['id'], baseline_options, 'config/config.yaml', website_manager, history_manager, crawler_module),
+                                    args=(website['id'], full_check_options, 'config/config.yaml', website_manager, history_manager, crawler_module),
                                     daemon=True
                                 ).start()
                                 
                             except Exception as e:
-                                logger.error(f"Failed to create baseline for {website['name']}: {e}")
+                                logger.error(f"Failed to run full check for {website['name']}: {e}")
                             
                             # Small delay to respect concurrency limits (like improved script)
                             time.sleep(0.5)
