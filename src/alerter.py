@@ -393,7 +393,7 @@ def send_report(website: dict, check_results: dict):
     html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
     html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
     html_body_parts.append("</div>")
-    html_body_parts.append("</div>")
+        html_body_parts.append("</div>")
     
     # --- Footer ---
     html_body_parts.append("<div class='footer'>")
@@ -408,7 +408,7 @@ def send_report(website: dict, check_results: dict):
 
     # Use the existing send_email_alert function to handle SMTP logic
     try:
-        return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
+    return send_email_alert(subject, final_html, attachments=attachments, recipient_emails=recipient_emails)
     except Exception as e:
         logger.error(f"Failed to send email report for {site_name}: {e}")
         # Don't raise the exception - let the monitoring continue even if email fails
@@ -491,9 +491,9 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             try:
                 logger.info(f"Attempting SSL connection to {email_config['smtp_server']}:{email_config['smtp_port']}")
                 with smtplib.SMTP_SSL(email_config['smtp_server'], email_config['smtp_port'], timeout=15) as server:
-                    if email_config['smtp_username'] and email_config['smtp_password']:
-                        server.login(email_config['smtp_username'], email_config['smtp_password'])
-                    server.sendmail(email_config['from'], target_recipients, msg.as_string())
+                if email_config['smtp_username'] and email_config['smtp_password']:
+                    server.login(email_config['smtp_username'], email_config['smtp_password'])
+                server.sendmail(email_config['from'], target_recipients, msg.as_string())
                 connection_successful = True
                 logger.info("SSL connection successful")
             except Exception as ssl_error:
@@ -504,11 +504,11 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             try:
                 logger.info(f"Attempting TLS connection to {email_config['smtp_server']}:{email_config['smtp_port']}")
                 with smtplib.SMTP(email_config['smtp_server'], email_config['smtp_port'], timeout=15) as server:
-                    if email_config.get('use_tls', True):
-                        server.starttls()
-                    if email_config['smtp_username'] and email_config['smtp_password']:
-                        server.login(email_config['smtp_username'], email_config['smtp_password'])
-                    server.sendmail(email_config['from'], target_recipients, msg.as_string())
+                if email_config.get('use_tls', True):
+                    server.starttls()
+                if email_config['smtp_username'] and email_config['smtp_password']:
+                    server.login(email_config['smtp_username'], email_config['smtp_password'])
+                server.sendmail(email_config['from'], target_recipients, msg.as_string())
                 connection_successful = True
                 logger.info("TLS connection successful")
             except Exception as tls_error:
@@ -817,7 +817,7 @@ def send_single_check_email(website: dict, check_results: dict, check_type: str)
             logger.info(f"Using default email {default_email} for {site_name}")
         else:
             logger.warning(f"No recipient emails configured for {site_name} and no default email set")
-            return False
+        return False
     
     # Create check-specific subject and content
     if check_type == 'visual':
@@ -1015,22 +1015,81 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
     
+    # Use the same enhanced styling as the main report
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .status-good { color: #28a745; font-weight: bold; }
-        .status-warning { color: #ffc107; font-weight: bold; }
-        .status-error { color: #dc3545; font-weight: bold; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
     </style>
     """
     
@@ -1041,33 +1100,44 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
     crawl_stats = crawl_data.get('crawl_stats', {})
     
     html_body_parts = [
-        f"<html><head>{html_style}</head><body>",
-        f"<div class='container'>",
-        f"<div class='header'><h2>Crawl Check Report</h2></div>",
+        f"<html><head>{html_style}</head><body><div class='email-container'>",
+        f"<div class='header'>",
+        f"<h1>🕷️ Crawl Check Report</h1>",
+        f"<div class='subtitle'>{html.escape(site_name)}</div>",
+        f"</div>",
+        f"<div class='content'>",
         f"<div class='content-section'>",
-        f"<h3>Website Information</h3>",
-        f"<p><strong>Website:</strong> {site_name}</p>",
-        f"<p><strong>URL:</strong> <a href='{site_url}'>{site_url}</a></p>",
+        f"<h3>📊 Check Summary</h3>",
+        f"<p><strong>Website:</strong> {html.escape(site_name)}</p>",
+        f"<p><strong>URL:</strong> <a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></p>",
         f"<p><strong>Check Time:</strong> {check_results.get('timestamp', 'Unknown')}</p>",
         f"</div>"
     ]
     
     # Crawl statistics
     if crawl_stats:
-        html_body_parts.append("<div class='content-section'><h3>Crawl Statistics</h3>")
-        html_body_parts.append("<table class='summary-table'>")
-        html_body_parts.append("<tr><th>Metric</th><th>Value</th></tr>")
-        html_body_parts.append(f"<tr><td>Pages Crawled</td><td>{crawl_stats.get('pages_crawled', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Total Links Found</td><td>{crawl_stats.get('total_links', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Total Images Found</td><td>{crawl_stats.get('total_images', 0)}</td></tr>")
-        html_body_parts.append(f"<tr><td>Sitemap Found</td><td>{'Yes' if crawl_stats.get('sitemap_found', False) else 'No'}</td></tr>")
-        html_body_parts.append("</table>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>📈 Crawl Statistics</h3>")
+        
+        # Crawl metrics cards
+        pages_crawled = crawl_stats.get('pages_crawled', 0)
+        total_links = crawl_stats.get('total_links', 0)
+        total_images = crawl_stats.get('total_images', 0)
+        sitemap_found = crawl_stats.get('sitemap_found', False)
+        
+        html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{pages_crawled}</div><div class='metric-label'>Pages Crawled</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{total_links}</div><div class='metric-label'>Links Found</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{total_images}</div><div class='metric-label'>Images Found</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{'✅' if sitemap_found else '❌'}</div><div class='metric-label'>Sitemap</div></div>")
+        html_body_parts.append("</div>")
         html_body_parts.append("</div>")
     
     # Broken links section
     if broken_links:
-        html_body_parts.append("<div class='content-section'><h3>Broken Links Found</h3>")
-        html_body_parts.append(f"<p class='status-error'><strong>{len(broken_links)} broken links detected</strong></p>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🔗 Broken Links Found</h3>")
+        html_body_parts.append(f"<div class='status-badge status-error'>❌ {len(broken_links)} broken links detected</div>")
         html_body_parts.append("<table class='summary-table'>")
         html_body_parts.append("<tr><th>Page</th><th>Broken Link</th><th>Status Code</th></tr>")
         
@@ -1077,9 +1147,9 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
             status_code = link.get('status_code', 'Unknown')
             
             html_body_parts.append(f"<tr>")
-            html_body_parts.append(f"<td><a href='{page_url}'>{page_url}</a></td>")
-            html_body_parts.append(f"<td><a href='{broken_url}'>{broken_url}</a></td>")
-            html_body_parts.append(f"<td class='status-error'>{status_code}</td>")
+            html_body_parts.append(f"<td><a href='{html.escape(page_url)}'>{html.escape(page_url)}</a></td>")
+            html_body_parts.append(f"<td><a href='{html.escape(broken_url)}'>{html.escape(broken_url)}</a></td>")
+            html_body_parts.append(f"<td><span class='status-badge status-error'>{status_code}</span></td>")
             html_body_parts.append(f"</tr>")
         
         if len(broken_links) > 10:
@@ -1088,12 +1158,16 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
         html_body_parts.append("</table>")
         html_body_parts.append("</div>")
     else:
-        html_body_parts.append("<div class='content-section'><h3>Broken Links</h3><p class='status-good'>No broken links found!</p></div>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🔗 Broken Links</h3>")
+        html_body_parts.append("<div class='status-badge status-success'>✅ No broken links found!</div>")
+        html_body_parts.append("</div>")
     
     # Missing meta tags section
     if missing_meta_tags:
-        html_body_parts.append("<div class='content-section'><h3>Missing Meta Tags</h3>")
-        html_body_parts.append(f"<p class='status-warning'><strong>{len(missing_meta_tags)} pages with missing meta tags</strong></p>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🏷️ Missing Meta Tags</h3>")
+        html_body_parts.append(f"<div class='status-badge status-warning'>⚠️ {len(missing_meta_tags)} pages with missing meta tags</div>")
         html_body_parts.append("<table class='summary-table'>")
         html_body_parts.append("<tr><th>Page</th><th>Missing Tag</th><th>Tag Type</th></tr>")
         
@@ -1103,9 +1177,9 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
             tag_type = tag.get('tag_type', 'Unknown')
             
             html_body_parts.append(f"<tr>")
-            html_body_parts.append(f"<td><a href='{page_url}'>{page_url}</a></td>")
-            html_body_parts.append(f"<td>{tag_name}</td>")
-            html_body_parts.append(f"<td>{tag_type}</td>")
+            html_body_parts.append(f"<td><a href='{html.escape(page_url)}'>{html.escape(page_url)}</a></td>")
+            html_body_parts.append(f"<td>{html.escape(tag_name)}</td>")
+            html_body_parts.append(f"<td>{html.escape(tag_type)}</td>")
             html_body_parts.append(f"</tr>")
         
         if len(missing_meta_tags) > 10:
@@ -1114,10 +1188,32 @@ def _send_crawl_check_email(website: dict, check_results: dict, subject: str):
         html_body_parts.append("</table>")
         html_body_parts.append("</div>")
     else:
-        html_body_parts.append("<div class='content-section'><h3>Missing Meta Tags</h3><p class='status-good'>No missing meta tags found!</p></div>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🏷️ Missing Meta Tags</h3>")
+        html_body_parts.append("<div class='status-badge status-success'>✅ No missing meta tags found!</div>")
+        html_body_parts.append("</div>")
+    
+    # Dashboard Links and Actions
+    config = get_config_dynamic()
+    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    website_id = website.get('id', '')
+    
+    html_body_parts.append("<div class='content-section'>")
+    html_body_parts.append("<h3>🔗 Quick Actions</h3>")
+    html_body_parts.append("<div style='text-align: center; margin: 20px 0;'>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/{website_id}' class='action-button' target='_blank'>View Website Details</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
+    html_body_parts.append("</div>")
+    html_body_parts.append("</div>")
     
     # Footer
-    html_body_parts.append(f"<div class='footer'><p>This is an automated crawl check report from the Website Monitoring System.</p></div>")
+    html_body_parts.append("<div class='footer'>")
+    html_body_parts.append("<p><strong>🕷️ Crawl Check Report</strong></p>")
+    html_body_parts.append(f"<p>This is an automated crawl check report for <strong>{html.escape(site_name)}</strong></p>")
+    html_body_parts.append(f"<p>Report generated on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S UTC')}</p>")
+    html_body_parts.append(f"<p><a href='{dashboard_url}'>Visit Dashboard</a> | <a href='{dashboard_url}/settings'>Manage Settings</a></p>")
+    html_body_parts.append("</div>")
     html_body_parts.append("</div></body></html>")
     
     final_html = "".join(html_body_parts)
@@ -1129,22 +1225,81 @@ def _send_blur_check_email(website: dict, check_results: dict, subject: str):
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
     
+    # Use the same enhanced styling as the main report
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .status-good { color: #28a745; font-weight: bold; }
-        .status-warning { color: #ffc107; font-weight: bold; }
-        .status-error { color: #dc3545; font-weight: bold; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
     </style>
     """
     
@@ -1281,87 +1436,87 @@ def send_performance_email(website: dict, performance_data: dict):
             html_body_parts.append("</ul>")
             html_body_parts.append("</div>")
         else:
-            html_body_parts.append("<div class='content-section'><h3>Performance Overview</h3>")
-            html_body_parts.append(f"<p><strong>Pages Analyzed:</strong> {pages_analyzed}</p>")
-            html_body_parts.append(f"<p><strong>Average Performance Score:</strong> {avg_score:.1f}/100</p>")
-            
-            # Performance grade with badge
-            if avg_score >= 90:
-                grade_class = "excellent"
-                grade_text = "Excellent"
-            elif avg_score >= 70:
-                grade_class = "good"
-                grade_text = "Good"
-            elif avg_score >= 50:
-                grade_class = "poor"
-                grade_text = "Needs Improvement"
-            else:
-                grade_class = "poor"
-                grade_text = "Poor"
-            
-            html_body_parts.append(f"<p><strong>Overall Grade:</strong> <span class='performance-badge {grade_class}'>{grade_text}</span></p>")
-            html_body_parts.append("</div>")
-            
-            # Detailed metrics
-            html_body_parts.append("<div class='content-section'><h3>Detailed Performance Metrics</h3>")
-            html_body_parts.append("<table class='summary-table'>")
-            html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
-            
-            mobile_avg = performance_summary.get('mobile_average', {})
-            desktop_avg = performance_summary.get('desktop_average', {})
-            
+        html_body_parts.append("<div class='content-section'><h3>Performance Overview</h3>")
+        html_body_parts.append(f"<p><strong>Pages Analyzed:</strong> {pages_analyzed}</p>")
+        html_body_parts.append(f"<p><strong>Average Performance Score:</strong> {avg_score:.1f}/100</p>")
+        
+        # Performance grade with badge
+        if avg_score >= 90:
+            grade_class = "excellent"
+            grade_text = "Excellent"
+        elif avg_score >= 70:
+            grade_class = "good"
+            grade_text = "Good"
+        elif avg_score >= 50:
+            grade_class = "poor"
+            grade_text = "Needs Improvement"
+        else:
+            grade_class = "poor"
+            grade_text = "Poor"
+        
+        html_body_parts.append(f"<p><strong>Overall Grade:</strong> <span class='performance-badge {grade_class}'>{grade_text}</span></p>")
+        html_body_parts.append("</div>")
+        
+        # Detailed metrics
+        html_body_parts.append("<div class='content-section'><h3>Detailed Performance Metrics</h3>")
+        html_body_parts.append("<table class='summary-table'>")
+        html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
+        
+        mobile_avg = performance_summary.get('mobile_average', {})
+        desktop_avg = performance_summary.get('desktop_average', {})
+        
             # Validate mobile and desktop data
             if not mobile_avg or not desktop_avg:
                 html_body_parts.append("<tr><td colspan='4'><em>Mobile/Desktop data not available</em></td></tr>")
             else:
-                metrics = [
-                    ('Performance Score', 'performance_score', 'performance_score'),
-                    ('First Contentful Paint (s)', 'fcp_score', 'fcp_score'),
-                    ('Largest Contentful Paint (s)', 'lcp_score', 'lcp_score'),
-                    ('Cumulative Layout Shift', 'cls_score', 'cls_score'),
-                    ('Speed Index (s)', 'speed_index', 'speed_index'),
-                    ('Total Blocking Time (ms)', 'tbt_score', 'tbt_score')
-                ]
-                
-                for metric_name, mobile_key, desktop_key in metrics:
-                    mobile_val = mobile_avg.get(mobile_key, 0)
-                    desktop_val = desktop_avg.get(desktop_key, 0)
-                    
-                    # Determine status
-                    if metric_name == 'Performance Score':
-                        mobile_status = "🟢 Good" if mobile_val >= 70 else "🔴 Poor" if mobile_val < 50 else "🟡 Fair"
-                        desktop_status = "🟢 Good" if desktop_val >= 70 else "🔴 Poor" if desktop_val < 50 else "🟡 Fair"
-                    elif metric_name in ['First Contentful Paint (s)', 'Largest Contentful Paint (s)', 'Speed Index (s)', 'Total Blocking Time (ms)']:
-                        mobile_status = "🟢 Good" if mobile_val <= 2.5 else "🔴 Poor" if mobile_val > 4 else "🟡 Fair"
-                        desktop_status = "🟢 Good" if desktop_val <= 2.5 else "🔴 Poor" if desktop_val > 4 else "🟡 Fair"
-                    else:  # CLS
-                        mobile_status = "🟢 Good" if mobile_val <= 0.1 else "🔴 Poor" if mobile_val > 0.25 else "🟡 Fair"
-                        desktop_status = "🟢 Good" if desktop_val <= 0.1 else "🔴 Poor" if desktop_val > 0.25 else "🟡 Fair"
-                    
-                    html_body_parts.append(f"<tr>")
-                    html_body_parts.append(f"<td><strong>{metric_name}</strong></td>")
-                    html_body_parts.append(f"<td>{mobile_val:.2f}</td>")
-                    html_body_parts.append(f"<td>{desktop_val:.2f}</td>")
-                    html_body_parts.append(f"<td>{mobile_status} / {desktop_status}</td>")
-                    html_body_parts.append(f"</tr>")
+        metrics = [
+            ('Performance Score', 'performance_score', 'performance_score'),
+            ('First Contentful Paint (s)', 'fcp_score', 'fcp_score'),
+            ('Largest Contentful Paint (s)', 'lcp_score', 'lcp_score'),
+            ('Cumulative Layout Shift', 'cls_score', 'cls_score'),
+            ('Speed Index (s)', 'speed_index', 'speed_index'),
+            ('Total Blocking Time (ms)', 'tbt_score', 'tbt_score')
+        ]
+        
+        for metric_name, mobile_key, desktop_key in metrics:
+            mobile_val = mobile_avg.get(mobile_key, 0)
+            desktop_val = desktop_avg.get(desktop_key, 0)
             
-            html_body_parts.append("</table>")
+            # Determine status
+            if metric_name == 'Performance Score':
+                mobile_status = "🟢 Good" if mobile_val >= 70 else "🔴 Poor" if mobile_val < 50 else "🟡 Fair"
+                desktop_status = "🟢 Good" if desktop_val >= 70 else "🔴 Poor" if desktop_val < 50 else "🟡 Fair"
+            elif metric_name in ['First Contentful Paint (s)', 'Largest Contentful Paint (s)', 'Speed Index (s)', 'Total Blocking Time (ms)']:
+                mobile_status = "🟢 Good" if mobile_val <= 2.5 else "🔴 Poor" if mobile_val > 4 else "🟡 Fair"
+                desktop_status = "🟢 Good" if desktop_val <= 2.5 else "🔴 Poor" if desktop_val > 4 else "🟡 Fair"
+            else:  # CLS
+                mobile_status = "🟢 Good" if mobile_val <= 0.1 else "🔴 Poor" if mobile_val > 0.25 else "🟡 Fair"
+                desktop_status = "🟢 Good" if desktop_val <= 0.1 else "🔴 Poor" if desktop_val > 0.25 else "🟡 Fair"
+            
+            html_body_parts.append(f"<tr>")
+            html_body_parts.append(f"<td><strong>{metric_name}</strong></td>")
+            html_body_parts.append(f"<td>{mobile_val:.2f}</td>")
+            html_body_parts.append(f"<td>{desktop_val:.2f}</td>")
+            html_body_parts.append(f"<td>{mobile_status} / {desktop_status}</td>")
+            html_body_parts.append(f"</tr>")
+        
+        html_body_parts.append("</table>")
+        html_body_parts.append("</div>")
+        
+        # Performance recommendations
+        if avg_score < 70:
+            html_body_parts.append("<div class='content-section'><h3>Performance Recommendations</h3>")
+            html_body_parts.append("<ul>")
+            if mobile_avg.get('fcp_score', 0) > 2.5:
+                html_body_parts.append("<li><strong>Optimize First Contentful Paint:</strong> Reduce server response time and eliminate render-blocking resources</li>")
+            if mobile_avg.get('lcp_score', 0) > 2.5:
+                html_body_parts.append("<li><strong>Improve Largest Contentful Paint:</strong> Optimize images and reduce resource load times</li>")
+            if mobile_avg.get('cls_score', 0) > 0.1:
+                html_body_parts.append("<li><strong>Reduce Cumulative Layout Shift:</strong> Ensure images and ads have size attributes</li>")
+            if mobile_avg.get('tbt_score', 0) > 200:
+                html_body_parts.append("<li><strong>Minimize Total Blocking Time:</strong> Reduce JavaScript execution time and implement code splitting</li>")
+            html_body_parts.append("</ul>")
             html_body_parts.append("</div>")
-            
-            # Performance recommendations
-            if avg_score < 70:
-                html_body_parts.append("<div class='content-section'><h3>Performance Recommendations</h3>")
-                html_body_parts.append("<ul>")
-                if mobile_avg.get('fcp_score', 0) > 2.5:
-                    html_body_parts.append("<li><strong>Optimize First Contentful Paint:</strong> Reduce server response time and eliminate render-blocking resources</li>")
-                if mobile_avg.get('lcp_score', 0) > 2.5:
-                    html_body_parts.append("<li><strong>Improve Largest Contentful Paint:</strong> Optimize images and reduce resource load times</li>")
-                if mobile_avg.get('cls_score', 0) > 0.1:
-                    html_body_parts.append("<li><strong>Reduce Cumulative Layout Shift:</strong> Ensure images and ads have size attributes</li>")
-                if mobile_avg.get('tbt_score', 0) > 200:
-                    html_body_parts.append("<li><strong>Minimize Total Blocking Time:</strong> Reduce JavaScript execution time and implement code splitting</li>")
-                html_body_parts.append("</ul>")
-                html_body_parts.append("</div>")
     else:
         html_body_parts.append("<div class='content-section'><h3>Performance Analysis</h3>")
         html_body_parts.append("<p class='status-error'><strong>❌ Performance data not available</strong></p>")
