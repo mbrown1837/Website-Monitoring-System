@@ -87,22 +87,22 @@ def send_report(website: dict, check_results: dict):
                 <p><strong>Check Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
                 <p><strong>Status:</strong> {check_results.get('status', 'Completed')}</p>
                 
-                       <!-- Key Metrics -->
-                       <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">📈 Key Metrics</h2>
-                       <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
-                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('crawl_stats', {}).get('pages_crawled', 0)}</div>
-                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Crawled</div>
-                           </div>
-                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{len(check_results.get('broken_links', []))}</div>
-                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Broken Links</div>
-                           </div>
-                           <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                               <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{len(check_results.get('missing_meta_tags', []))}</div>
-                               <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
-                           </div>
-                       </div>
+                <!-- Key Metrics -->
+                <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">📈 Key Metrics</h2>
+                <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
+                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                        <div style="font-size: 32px; font-weight: bold; color: #4a90e2;">{check_results.get('crawl_stats', {}).get('pages_crawled', 0)}</div>
+                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Crawled</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                        <div style="font-size: 32px; font-weight: bold; color: #dc3545;">{len(check_results.get('broken_links', []))}</div>
+                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Broken Links</div>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
+                        <div style="font-size: 32px; font-weight: bold; color: #ffc107;">{len(check_results.get('missing_meta_tags', []))}</div>
+                        <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
+                    </div>
+                </div>
 
                 <!-- Quick Actions -->
                 <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">🔗 Quick Actions</h2>
@@ -156,7 +156,7 @@ Visit Dashboard: {dashboard_url}
         if default_email:
             target_recipients = [default_email]
             logger.info(f"Using default email {default_email} for {site_name}")
-            else:
+        else:
             logger.warning(f"No recipient emails configured for {site_name} and no default email set")
             return False
 
@@ -187,7 +187,7 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         # Validate required configuration
         if not all([smtp_server, smtp_username, smtp_password, from_email]):
             logger.error("Email configuration missing required fields")
-        return False
+            return False
 
         # Use default recipient if none provided
         if not recipient_emails:
@@ -197,11 +197,11 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
                 logger.info(f"Using default email {default_email}")
             else:
                 logger.warning("No recipient emails provided and no default email set")
-        return False
+                return False
 
         # Create message
         msg = MIMEMultipart('alternative')
-    msg['Subject'] = subject
+        msg['Subject'] = subject
         msg['From'] = from_email
         msg['To'] = ', '.join(recipient_emails)
         
@@ -215,9 +215,9 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         msg.attach(html_part)
         
         # Add attachments if any
-    if attachments:
-        for attachment in attachments:
-            msg.attach(attachment)
+        if attachments:
+            for attachment in attachments:
+                msg.attach(attachment)
 
         # Send email
         if use_ssl:
@@ -225,7 +225,7 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         else:
             server = smtplib.SMTP(smtp_server, smtp_port)
             if use_tls:
-                    server.starttls()
+                server.starttls()
         
         server.login(smtp_username, smtp_password)
         server.send_message(msg)
