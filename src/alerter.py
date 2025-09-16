@@ -47,29 +47,119 @@ def send_report(website: dict, check_results: dict):
         subject = f"Performance Report for {site_name}"
 
     # --- Build HTML Body ---
-    # Basic styling for the email
+    # Enhanced modern styling for the email
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .image-container { text-align: center; margin-top: 15px; }
-        .image-container img { max-width: 100%; border: 1px solid #ccc; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .image-container { 
+            text-align: center; margin: 20px 0; 
+            background: white; padding: 20px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .image-container img { 
+            max-width: 100%; border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s;
+        }
+        .action-button:hover { transform: translateY(-2px); }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .divider { height: 1px; background: #e9ecef; margin: 20px 0; }
+        .highlight-box { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 20px; border-radius: 8px; margin: 20px 0;
+        }
+        .recommendations { 
+            background: #fff3cd; border: 1px solid #ffeaa7; 
+            padding: 20px; border-radius: 8px; margin: 20px 0;
+        }
+        .recommendations h4 { color: #856404; margin-top: 0; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+            .metric-card { min-width: 100px; margin: 3px; }
+        }
     </style>
     """
     
     html_body_parts = [
-        f"<html><head>{html_style}</head><body><div class='container'>",
-        f"<div class='header'><h2>Monitoring Report: {html.escape(site_name)}</h2></div>",
-        f"<div class='content-section'><p>A check on <strong><a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></strong> has completed.</p></div>"
+        f"<html><head>{html_style}</head><body><div class='email-container'>",
+        f"<div class='header'>",
+        f"<h1>🌐 Website Monitoring Report</h1>",
+        f"<div class='subtitle'>{html.escape(site_name)}</div>",
+        f"</div>",
+        f"<div class='content'>",
+        f"<div class='content-section'>",
+        f"<h3>📊 Check Summary</h3>",
+        f"<p>A comprehensive check has been completed for <strong><a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></strong></p>",
+        f"<p><strong>Check Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>",
+        f"</div>"
     ]
     
     attachments = []
@@ -77,22 +167,29 @@ def send_report(website: dict, check_results: dict):
     # If it's a change report, add the reasons.
     if is_change_report:
         reasons = check_results.get('reasons', [])
-        html_body_parts.append("<div class='content-section'><h3>Summary of Changes Detected</h3><ul>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🚨 Changes Detected</h3>")
+        html_body_parts.append("<div class='highlight-box'>")
+        html_body_parts.append(f"<h4>⚠️ {len(reasons)} significant change(s) detected</h4>")
+        html_body_parts.append("<ul>")
         for reason in reasons:
             html_body_parts.append(f"<li>{html.escape(reason)}</li>")
-        html_body_parts.append("</ul></div>")
+        html_body_parts.append("</ul>")
+        html_body_parts.append("</div>")
+        html_body_parts.append("</div>")
 
     # --- Section 1: Visual Change Report ---
     if has_visual_change and monitoring_mode in ['full', 'visual']:
         diff_image_path = check_results.get('visual_diff_image_path')
         page_url = check_results.get('url', site_url) # URL of the specific page with changes
         
-        html_body_parts.append("<div class='content-section'><h3>Visual Comparison</h3>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>👁️ Visual Comparison</h3>")
         
         if diff_image_path and os.path.exists(diff_image_path):
             html_body_parts.append(f"<p>A visual change was detected on the page: <a href='{html.escape(page_url)}'>{html.escape(page_url)}</a></p>")
             html_body_parts.append("<div class='image-container'>")
-            html_body_parts.append("<p><strong>Comparison: Before vs. After</strong></p>")
+            html_body_parts.append("<h4>📸 Before vs. After Comparison</h4>")
             html_body_parts.append("<img src='cid:visual_diff_image' alt='Visual Difference Comparison'>")
             html_body_parts.append("</div>")
             
@@ -105,9 +202,9 @@ def send_report(website: dict, check_results: dict):
                     attachments.append(img)
             except Exception as e:
                 logger.error(f"Failed to read or attach diff image at {diff_image_path}: {e}")
-                html_body_parts.append("<p><em>(Error attaching the visual difference image.)</em></p>")
+                html_body_parts.append("<div class='status-badge status-error'>Error loading visual comparison image</div>")
         else:
-             html_body_parts.append("<p><em>(The visual difference image was not found at the expected path.)</em></p>")
+             html_body_parts.append("<div class='status-badge status-warning'>Visual difference image not available</div>")
         html_body_parts.append("</div>")
 
     # --- Section 2: Crawler Health Report ---
@@ -117,27 +214,57 @@ def send_report(website: dict, check_results: dict):
         
         crawler_results = check_results.get('crawler_results', {})
         broken_links = crawler_results.get('broken_links', [])
+        missing_meta_tags = crawler_results.get('missing_meta_tags', [])
         
-        html_body_parts.append("<div class='content-section'><h3>Crawler Health Report</h3>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>🕷️ Crawler Health Report</h3>")
+        
+        # Crawl metrics cards
+        total_pages = crawler_results.get('total_pages_crawled', 0)
+        total_links = crawler_results.get('total_links', 0)
+        total_images = crawler_results.get('total_images', 0)
+        
+        html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{total_pages}</div><div class='metric-label'>Pages Crawled</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{total_links}</div><div class='metric-label'>Links Found</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{total_images}</div><div class='metric-label'>Images Found</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{len(broken_links)}</div><div class='metric-label'>Broken Links</div></div>")
+        html_body_parts.append("</div>")
+        
         if not broken_links:
-            html_body_parts.append("<p style='color: green;'><strong>No broken links found.</strong></p>")
+            html_body_parts.append("<div class='status-badge status-success'>✅ No broken links found</div>")
         else:
             subject = f"Action Required: Broken Links Found on {site_name}"
-            html_body_parts.append(f"<p style='color: red;'><strong>Found {len(broken_links)} broken link(s):</strong></p>")
-            html_body_parts.append("<table class='summary-table'><tr><th>Broken URL</th><th>Status</th><th>Found On</th></tr>")
-            for link in broken_links[:15]: # Limit for email brevity
+            html_body_parts.append(f"<div class='status-badge status-error'>❌ Found {len(broken_links)} broken link(s)</div>")
+            html_body_parts.append("<table class='summary-table'>")
+            html_body_parts.append("<tr><th>Broken URL</th><th>Status Code</th><th>Found On Page</th></tr>")
+            for link in broken_links[:10]: # Limit for email brevity
                 link_url = html.escape(link.get('url', 'N/A'))
                 status = html.escape(str(link.get('status_code', 'N/A')))
                 source = html.escape(link.get('source_page', 'N/A'))
-                html_body_parts.append(f"<tr><td><a href='{link_url}'>{link_url}</a></td><td>{status}</td><td><a href='{source}'>{source}</a></td></tr>")
+                status_class = "status-error" if str(status).startswith(('4', '5')) else "status-warning"
+                html_body_parts.append(f"<tr><td><a href='{link_url}'>{link_url}</a></td><td class='{status_class}'>{status}</td><td><a href='{source}'>{source}</a></td></tr>")
             html_body_parts.append("</table>")
-            if len(broken_links) > 15:
-                html_body_parts.append("<p><em>...and more. Please check the dashboard for a full list.</em></p>")
+            if len(broken_links) > 10:
+                html_body_parts.append(f"<p><em>...and {len(broken_links) - 10} more broken links. Check the dashboard for complete details.</em></p>")
         
-        # Add summary stats
-        total_pages = crawler_results.get('total_pages_crawled', 'N/A')
-        html_body_parts.append("<h4>Crawl Summary</h4>")
-        html_body_parts.append(f"<p>Total pages crawled: <strong>{total_pages}</strong></p>")
+        # Missing meta tags section
+        if missing_meta_tags:
+            html_body_parts.append(f"<div class='status-badge status-warning'>⚠️ {len(missing_meta_tags)} pages with missing meta tags</div>")
+            html_body_parts.append("<h4>Missing Meta Tags</h4>")
+            html_body_parts.append("<table class='summary-table'>")
+            html_body_parts.append("<tr><th>Page</th><th>Missing Tag</th><th>Tag Type</th></tr>")
+            for tag in missing_meta_tags[:5]:  # Show first 5
+                page_url = html.escape(tag.get('url', 'N/A'))
+                tag_name = html.escape(tag.get('tag_name', 'N/A'))
+                tag_type = html.escape(tag.get('tag_type', 'N/A'))
+                html_body_parts.append(f"<tr><td><a href='{page_url}'>{page_url}</a></td><td>{tag_name}</td><td>{tag_type}</td></tr>")
+            html_body_parts.append("</table>")
+            if len(missing_meta_tags) > 5:
+                html_body_parts.append(f"<p><em>...and {len(missing_meta_tags) - 5} more missing meta tags.</em></p>")
+        else:
+            html_body_parts.append("<div class='status-badge status-success'>✅ No missing meta tags found</div>")
+        
         html_body_parts.append("</div>")
 
     # If no specific issues were flagged, but it was a crawl check, send a success report
@@ -156,33 +283,44 @@ def send_report(website: dict, check_results: dict):
         performance_data = check_results.get('performance_check', {})
         performance_summary = performance_data.get('performance_check_summary', {})
         
-        html_body_parts.append("<div class='content-section'><h3>Performance Analysis</h3>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>⚡ Performance Analysis</h3>")
         
         if performance_summary:
             pages_analyzed = performance_summary.get('pages_analyzed', 0)
             avg_score = performance_summary.get('average_performance_score', 0)
             
-            html_body_parts.append(f"<p><strong>Pages Analyzed:</strong> {pages_analyzed}</p>")
-            html_body_parts.append(f"<p><strong>Average Performance Score:</strong> {avg_score:.1f}/100</p>")
+            # Performance overview cards
+            html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+            html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{pages_analyzed}</div><div class='metric-label'>Pages Analyzed</div></div>")
+            html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{avg_score:.1f}</div><div class='metric-label'>Avg Score</div></div>")
+            html_body_parts.append("</div>")
             
-            # Performance grade
+            # Performance grade with badge
             if avg_score >= 90:
-                grade_color = "green"
+                grade_class = "status-success"
                 grade_text = "Excellent"
+                grade_emoji = "🟢"
             elif avg_score >= 70:
-                grade_color = "orange"
+                grade_class = "status-warning"
                 grade_text = "Good"
+                grade_emoji = "🟡"
             elif avg_score >= 50:
-                grade_color = "red"
+                grade_class = "status-error"
                 grade_text = "Needs Improvement"
+                grade_emoji = "🟠"
             else:
-                grade_color = "darkred"
+                grade_class = "status-error"
                 grade_text = "Poor"
+                grade_emoji = "🔴"
             
-            html_body_parts.append(f"<p><strong>Overall Grade:</strong> <span style='color: {grade_color}; font-weight: bold;'>{grade_text}</span></p>")
+            html_body_parts.append(f"<div class='highlight-box'>")
+            html_body_parts.append(f"<h4>{grade_emoji} Overall Performance Grade: {grade_text}</h4>")
+            html_body_parts.append(f"<p>Average Score: <strong>{avg_score:.1f}/100</strong></p>")
+            html_body_parts.append("</div>")
             
             # Detailed metrics table
-            html_body_parts.append("<h4>Performance Metrics</h4>")
+            html_body_parts.append("<h4>📊 Detailed Performance Metrics</h4>")
             html_body_parts.append("<table class='summary-table'>")
             html_body_parts.append("<tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Status</th></tr>")
             
@@ -192,26 +330,25 @@ def send_report(website: dict, check_results: dict):
             
             metrics = [
                 ('Performance Score', 'performance_score', 'performance_score'),
-                ('First Contentful Paint', 'fcp_score', 'fcp_score'),
-                ('Largest Contentful Paint', 'lcp_score', 'lcp_score'),
+                ('First Contentful Paint (s)', 'fcp_score', 'fcp_score'),
+                ('Largest Contentful Paint (s)', 'lcp_score', 'lcp_score'),
                 ('Cumulative Layout Shift', 'cls_score', 'cls_score'),
-                ('Speed Index', 'speed_index', 'speed_index'),
-                ('Total Blocking Time', 'tbt_score', 'tbt_score')
+                ('Speed Index (s)', 'speed_index', 'speed_index'),
+                ('Total Blocking Time (ms)', 'tbt_score', 'tbt_score')
             ]
             
             for metric_name, mobile_key, desktop_key in metrics:
                 mobile_val = mobile_avg.get(mobile_key, 0)
                 desktop_val = desktop_avg.get(desktop_key, 0)
                 
-                # Determine status color
+                # Determine status
                 if metric_name == 'Performance Score':
                     mobile_status = "🟢 Good" if mobile_val >= 70 else "🔴 Poor" if mobile_val < 50 else "🟡 Fair"
                     desktop_status = "🟢 Good" if desktop_val >= 70 else "🔴 Poor" if desktop_val < 50 else "🟡 Fair"
-                elif metric_name in ['First Contentful Paint', 'Largest Contentful Paint', 'Speed Index', 'Total Blocking Time']:
-                    # Lower is better for these metrics
+                elif metric_name in ['First Contentful Paint (s)', 'Largest Contentful Paint (s)', 'Speed Index (s)', 'Total Blocking Time (ms)']:
                     mobile_status = "🟢 Good" if mobile_val <= 2.5 else "🔴 Poor" if mobile_val > 4 else "🟡 Fair"
                     desktop_status = "🟢 Good" if desktop_val <= 2.5 else "🔴 Poor" if desktop_val > 4 else "🟡 Fair"
-                else:  # CLS - lower is better
+                else:  # CLS
                     mobile_status = "🟢 Good" if mobile_val <= 0.1 else "🔴 Poor" if mobile_val > 0.25 else "🟡 Fair"
                     desktop_status = "🟢 Good" if desktop_val <= 0.1 else "🔴 Poor" if desktop_val > 0.25 else "🟡 Fair"
                 
@@ -226,24 +363,45 @@ def send_report(website: dict, check_results: dict):
             
             # Performance recommendations
             if avg_score < 70:
-                html_body_parts.append("<h4>Performance Recommendations</h4>")
+                html_body_parts.append("<div class='recommendations'>")
+                html_body_parts.append("<h4>💡 Performance Recommendations</h4>")
                 html_body_parts.append("<ul>")
                 if mobile_avg.get('fcp_score', 0) > 2.5:
-                    html_body_parts.append("<li>Optimize First Contentful Paint - consider reducing server response time and eliminating render-blocking resources</li>")
+                    html_body_parts.append("<li><strong>Optimize First Contentful Paint:</strong> Reduce server response time and eliminate render-blocking resources</li>")
                 if mobile_avg.get('lcp_score', 0) > 2.5:
-                    html_body_parts.append("<li>Improve Largest Contentful Paint - optimize images and reduce resource load times</li>")
+                    html_body_parts.append("<li><strong>Improve Largest Contentful Paint:</strong> Optimize images and reduce resource load times</li>")
                 if mobile_avg.get('cls_score', 0) > 0.1:
-                    html_body_parts.append("<li>Reduce Cumulative Layout Shift - ensure images and ads have size attributes</li>")
+                    html_body_parts.append("<li><strong>Reduce Cumulative Layout Shift:</strong> Ensure images and ads have size attributes</li>")
                 if mobile_avg.get('tbt_score', 0) > 200:
-                    html_body_parts.append("<li>Minimize Total Blocking Time - reduce JavaScript execution time and code splitting</li>")
+                    html_body_parts.append("<li><strong>Minimize Total Blocking Time:</strong> Reduce JavaScript execution time and implement code splitting</li>")
                 html_body_parts.append("</ul>")
+                html_body_parts.append("</div>")
         else:
-            html_body_parts.append("<p><em>Performance data is not available for this check.</em></p>")
+            html_body_parts.append("<div class='status-badge status-warning'>⚠️ Performance data not available</div>")
         
         html_body_parts.append("</div>")
     
+    # --- Dashboard Links and Actions ---
+    config = get_config_dynamic()
+    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    website_id = website.get('id', '')
+    
+    html_body_parts.append("<div class='content-section'>")
+    html_body_parts.append("<h3>🔗 Quick Actions</h3>")
+    html_body_parts.append("<div style='text-align: center; margin: 20px 0;'>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/{website_id}' class='action-button' target='_blank'>View Website Details</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
+    html_body_parts.append("</div>")
+    html_body_parts.append("</div>")
+    
     # --- Footer ---
-    html_body_parts.append(f"<div class='footer'><p>This is an automated alert from the Website Monitoring System.</p></div>")
+    html_body_parts.append("<div class='footer'>")
+    html_body_parts.append("<p><strong>🌐 Website Monitoring System</strong></p>")
+    html_body_parts.append(f"<p>This is an automated monitoring report for <strong>{html.escape(site_name)}</strong></p>")
+    html_body_parts.append(f"<p>Report generated on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S UTC')}</p>")
+    html_body_parts.append(f"<p><a href='{dashboard_url}'>Visit Dashboard</a> | <a href='{dashboard_url}/settings'>Manage Settings</a></p>")
+    html_body_parts.append("</div>")
     html_body_parts.append("</div></body></html>")
     
     final_html = "".join(html_body_parts)
@@ -690,22 +848,81 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
     
+    # Use the same enhanced styling as the main report
     html_style = """
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        .header { background-color: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #ddd; }
-        .header h2 { margin: 0; color: #0056b3; }
-        .content-section { margin-top: 20px; }
-        .content-section h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; color: #333; }
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table th, .summary-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .summary-table th { background-color: #f2f2f2; }
-        .status-good { color: #28a745; font-weight: bold; }
-        .status-warning { color: #ffc107; font-weight: bold; }
-        .status-error { color: #dc3545; font-weight: bold; }
-        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
-        a { color: #0056b3; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            margin: 0; padding: 0; color: #2c3e50; background-color: #f8f9fa; 
+            line-height: 1.6;
+        }
+        .email-container { 
+            max-width: 800px; margin: 20px auto; background: white; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            padding: 30px 20px; color: white; text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header .subtitle { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .content-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+        }
+        .content-section h3 { 
+            margin: 0 0 15px 0; color: #2c3e50; font-size: 20px; 
+            border-bottom: 2px solid #e9ecef; padding-bottom: 10px;
+        }
+        .summary-table { 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-table th, .summary-table td { 
+            padding: 12px 15px; text-align: left; border-bottom: 1px solid #e9ecef;
+        }
+        .summary-table th { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; font-weight: 600; font-size: 14px;
+        }
+        .summary-table tr:hover { background-color: #f8f9fa; }
+        .status-badge { 
+            display: inline-block; padding: 6px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+        .metric-card { 
+            display: inline-block; background: white; padding: 15px; 
+            margin: 5px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center; min-width: 120px;
+        }
+        .metric-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .metric-label { font-size: 12px; color: #6c757d; text-transform: uppercase; }
+        .action-button { 
+            display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; padding: 12px 24px; text-decoration: none; 
+            border-radius: 6px; font-weight: 600; margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .footer { 
+            background: #2c3e50; color: #ecf0f1; padding: 30px; 
+            text-align: center; font-size: 14px;
+        }
+        .footer a { color: #3498db; text-decoration: none; }
+        @media (max-width: 600px) {
+            .email-container { margin: 10px; border-radius: 8px; }
+            .content { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
     </style>
     """
     
@@ -715,25 +932,34 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
     baselines = visual_data.get('baselines', [])
     
     html_body_parts = [
-        f"<html><head>{html_style}</head><body>",
-        f"<div class='container'>",
-        f"<div class='header'><h2>Visual Check Report</h2></div>",
+        f"<html><head>{html_style}</head><body><div class='email-container'>",
+        f"<div class='header'>",
+        f"<h1>👁️ Visual Check Report</h1>",
+        f"<div class='subtitle'>{html.escape(site_name)}</div>",
+        f"</div>",
+        f"<div class='content'>",
         f"<div class='content-section'>",
-        f"<h3>Website Information</h3>",
-        f"<p><strong>Website:</strong> {site_name}</p>",
-        f"<p><strong>URL:</strong> <a href='{site_url}'>{site_url}</a></p>",
+        f"<h3>📊 Check Summary</h3>",
+        f"<p><strong>Website:</strong> {html.escape(site_name)}</p>",
+        f"<p><strong>URL:</strong> <a href='{html.escape(site_url)}'>{html.escape(site_url)}</a></p>",
         f"<p><strong>Check Time:</strong> {check_results.get('timestamp', 'Unknown')}</p>",
         f"</div>"
     ]
     
     # Visual check summary
     if snapshots:
-        html_body_parts.append("<div class='content-section'><h3>Visual Check Summary</h3>")
-        html_body_parts.append(f"<p><strong>Pages Screenshot:</strong> {len(snapshots)} pages</p>")
-        html_body_parts.append(f"<p><strong>Baselines Available:</strong> {len(baselines)} pages</p>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<h3>👁️ Visual Check Summary</h3>")
+        
+        # Visual metrics cards
+        html_body_parts.append("<div style='display: flex; flex-wrap: wrap; margin: 20px 0;'>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{len(snapshots)}</div><div class='metric-label'>Pages Screenshot</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{len(baselines)}</div><div class='metric-label'>Baselines Created</div></div>")
+        html_body_parts.append(f"<div class='metric-card'><div class='metric-value'>{len([s for s in snapshots if any(b.get('url') == s.get('url') for b in baselines)])}</div><div class='metric-label'>Pages with Baselines</div></div>")
+        html_body_parts.append("</div>")
         
         # Show pages that were checked
-        html_body_parts.append("<h4>Pages Checked</h4>")
+        html_body_parts.append("<h4>📄 Pages Checked</h4>")
         html_body_parts.append("<table class='summary-table'>")
         html_body_parts.append("<tr><th>Page</th><th>Status</th><th>Baseline Available</th></tr>")
         
@@ -742,21 +968,42 @@ def _send_visual_check_email(website: dict, check_results: dict, subject: str):
             page_title = snapshot.get('title', 'Unknown')
             has_baseline = any(b.get('url') == page_url for b in baselines)
             status = "Baseline Created" if has_baseline else "Screenshot Captured"
-            status_class = "status-good" if has_baseline else "status-warning"
+            status_class = "status-success" if has_baseline else "status-warning"
             
             html_body_parts.append(f"<tr>")
-            html_body_parts.append(f"<td><a href='{page_url}'>{page_title}</a></td>")
-            html_body_parts.append(f"<td class='{status_class}'>{status}</td>")
-            html_body_parts.append(f"<td>{'Yes' if has_baseline else 'No'}</td>")
+            html_body_parts.append(f"<td><a href='{html.escape(page_url)}'>{html.escape(page_title)}</a></td>")
+            html_body_parts.append(f"<td><span class='status-badge {status_class}'>{status}</span></td>")
+            html_body_parts.append(f"<td>{'✅ Yes' if has_baseline else '❌ No'}</td>")
             html_body_parts.append(f"</tr>")
         
         html_body_parts.append("</table>")
         html_body_parts.append("</div>")
     else:
-        html_body_parts.append("<div class='content-section'><p><em>No visual data available for this check.</em></p></div>")
+        html_body_parts.append("<div class='content-section'>")
+        html_body_parts.append("<div class='status-badge status-warning'>⚠️ No visual data available for this check</div>")
+        html_body_parts.append("</div>")
+    
+    # Dashboard Links and Actions
+    config = get_config_dynamic()
+    dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    website_id = website.get('id', '')
+    
+    html_body_parts.append("<div class='content-section'>")
+    html_body_parts.append("<h3>🔗 Quick Actions</h3>")
+    html_body_parts.append("<div style='text-align: center; margin: 20px 0;'>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/{website_id}' class='action-button' target='_blank'>View Website Details</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}/website/history/{website_id}' class='action-button' target='_blank'>View Full History</a>")
+    html_body_parts.append(f"<a href='{dashboard_url}' class='action-button' target='_blank'>Main Dashboard</a>")
+    html_body_parts.append("</div>")
+    html_body_parts.append("</div>")
     
     # Footer
-    html_body_parts.append(f"<div class='footer'><p>This is an automated visual check report from the Website Monitoring System.</p></div>")
+    html_body_parts.append("<div class='footer'>")
+    html_body_parts.append("<p><strong>👁️ Visual Check Report</strong></p>")
+    html_body_parts.append(f"<p>This is an automated visual check report for <strong>{html.escape(site_name)}</strong></p>")
+    html_body_parts.append(f"<p>Report generated on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S UTC')}</p>")
+    html_body_parts.append(f"<p><a href='{dashboard_url}'>Visit Dashboard</a> | <a href='{dashboard_url}/settings'>Manage Settings</a></p>")
+    html_body_parts.append("</div>")
     html_body_parts.append("</div></body></html>")
     
     final_html = "".join(html_body_parts)
