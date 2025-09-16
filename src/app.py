@@ -2034,6 +2034,34 @@ def bulk_import():
                             website = website_manager.add_website(website_record)
                             imported_count += 1
                             
+                            # Automatically create baseline for new website
+                            try:
+                                logger.info(f"Auto-creating baseline for {website['name']} (ID: {website['id']})")
+                                baseline_options = {
+                                    'create_baseline': True,
+                                    'capture_subpages': True,
+                                    'crawl_only': False,
+                                    'visual_check_only': False,
+                                    'blur_check_only': False,
+                                    'check_config': {
+                                        'crawl_enabled': True,     # Need to crawl to find internal pages
+                                        'visual_enabled': True,    # Need to capture visual baselines
+                                        'blur_enabled': False,     # No blur detection during baseline creation
+                                        'performance_enabled': False  # No performance checks during baseline creation
+                                    },
+                                    'is_scheduled': False
+                                }
+                                
+                                # Run baseline creation in background
+                                threading.Thread(
+                                    target=perform_website_check,
+                                    args=(website['id'], baseline_options, 'config/config.yaml', website_manager, history_manager, crawler_module),
+                                    daemon=True
+                                ).start()
+                                
+                            except Exception as e:
+                                logger.error(f"Failed to create baseline for {website['name']}: {e}")
+                            
                             # Small delay to respect concurrency limits (like improved script)
                             time.sleep(0.5)
                             
