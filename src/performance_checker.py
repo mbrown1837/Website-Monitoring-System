@@ -218,13 +218,14 @@ class PerformanceChecker:
         except Exception:
             return False
     
-    def _call_pagespeed_api(self, url, strategy='mobile'):
+    def _call_pagespeed_api(self, url, strategy='mobile', max_retries=3):
         """
-        Call Google PageSpeed Insights API.
+        Call Google PageSpeed Insights API with retry logic.
         
         Args:
             url (str): URL to analyze
             strategy (str): 'mobile' or 'desktop'
+            max_retries (int): Maximum number of retry attempts
             
         Returns:
             dict: API response data
@@ -237,18 +238,41 @@ class PerformanceChecker:
             'locale': 'en'
         }
         
-        try:
-            response = requests.get(self.api_url, params=params, timeout=30)
-            response.raise_for_status()
-            
-            return response.json()
-            
-        except requests.exceptions.RequestException as e:
-            self.logger.error(f"PageSpeed API request failed: {e}")
-            return None
-        except json.JSONDecodeError as e:
-            self.logger.error(f"Failed to parse PageSpeed API response: {e}")
-            return None
+        for attempt in range(max_retries):
+            try:
+                # Increase timeout and add exponential backoff
+                timeout = 60 + (attempt * 30)  # 60s, 90s, 120s
+                self.logger.debug(f"PageSpeed API attempt {attempt + 1}/{max_retries} for {url} ({strategy}) with {timeout}s timeout")
+                
+                response = requests.get(self.api_url, params=params, timeout=timeout)
+                response.raise_for_status()
+                
+                return response.json()
+                
+            except requests.exceptions.Timeout as e:
+                self.logger.warning(f"PageSpeed API timeout (attempt {attempt + 1}/{max_retries}) for {url}: {e}")
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5  # 5s, 10s, 15s
+                    self.logger.info(f"Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    self.logger.error(f"PageSpeed API failed after {max_retries} attempts for {url}")
+                    return None
+                    
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"PageSpeed API request failed for {url}: {e}")
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5
+                    self.logger.info(f"Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    return None
+                    
+            except json.JSONDecodeError as e:
+                self.logger.error(f"Failed to parse PageSpeed API response for {url}: {e}")
+                return None
+        
+        return None
     
     def _process_performance_data(self, api_data, device_type):
         """

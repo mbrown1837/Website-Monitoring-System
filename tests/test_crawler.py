@@ -1,59 +1,66 @@
-import sys
+#!/usr/bin/env python
+"""Test script for the Greenflare crawler integration."""
 import os
-# Add src to path to allow direct import of CrawlerModule
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '.', 'src')))
+import sys
+import json
 
-from crawler_module import CrawlerModule
-from logger_setup import setup_logging
-import logging
+# Ensure the src directory is in the Python path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, PROJECT_ROOT)
 
-# Setup basic logging to capture output for review
-# You might need to adjust logger setup if it's complex in the actual project
-# For simplicity, we'll try to use the project's logger if possible,
-# otherwise, a basic stdout logger.
-try:
-    # Assuming logger_setup.py is in src and callable
-    logger = setup_logging(log_level_console=logging.DEBUG, log_to_file=False)
-except Exception as e:
-    print(f"Could not set up project logging, using basic: {e}")
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger(__name__)
+from src.crawler_module import CrawlerModule
 
+def main():
+    """Run a test crawl and print the results."""
+    print("Testing Greenflare crawler integration...")
+    
+    # Initialize the crawler
+    crawler = CrawlerModule()
+    
+    # Test website to crawl (use a reliable site for testing)
+    test_url = "https://example.com"
+    website_id = "test-site"
+    
+    # Run the crawl
+    print(f"Crawling {test_url}...")
+    results = crawler.crawl_website(
+        website_id=website_id,
+        url=test_url,
+        max_depth=1,  # Keep depth small for testing
+        respect_robots=False,
+        check_external_links=True
+    )
+    
+    # Print summary of results
+    print("\nCrawl Results Summary:")
+    print(f"Total pages crawled: {len(results['all_pages'])}")
+    print(f"Broken links found: {len(results['broken_links'])}")
+    print(f"Missing meta tags found: {len(results['missing_meta_tags'])}")
+    
+    # Print details of broken links (if any)
+    if results['broken_links']:
+        print("\nBroken Links:")
+        for link in results['broken_links']:
+            print(f"  - {link['url']} (Status: {link['status_code']}, Referring page: {link['referring_page']})")
+    
+    # Print details of missing meta tags (if any)
+    if results['missing_meta_tags']:
+        print("\nMissing Meta Tags:")
+        for tag in results['missing_meta_tags']:
+            print(f"  - {tag['url']}: {tag['type']} - {tag['details']}")
+    
+    # Save full results to a JSON file for inspection
+    with open('test_crawl_results.json', 'w') as f:
+        # Convert sets to lists for JSON serialization
+        json_safe_results = results.copy()
+        if "internal_urls" in json_safe_results and isinstance(json_safe_results["internal_urls"], set):
+            json_safe_results["internal_urls"] = list(json_safe_results["internal_urls"])
+        if "external_urls" in json_safe_results and isinstance(json_safe_results["external_urls"], set):
+            json_safe_results["external_urls"] = list(json_safe_results["external_urls"])
+        
+        json.dump(json_safe_results, f, indent=2)
+    
+    print("\nFull results saved to test_crawl_results.json")
 
 if __name__ == "__main__":
-    # Ensure the 'data' directory exists for the database
-    if not os.path.exists('data'):
-        os.makedirs('data')
-
-    crawler = CrawlerModule()
-    website_id = "test_tpcbuild"
-    url_to_crawl = "https://tpcbuild.com/"
-
-    logger.info(f"Starting test crawl for {url_to_crawl}")
-
-    try:
-        results = crawler.crawl_website(
-            website_id=website_id,
-            url=url_to_crawl,
-            max_depth=2,  # Keep depth limited for testing
-            respect_robots=False, # Try to crawl more for testing
-            check_external_links=True,
-            crawl_only=False # We want SEO analysis too
-        )
-
-        logger.info("Crawl completed. Results summary:")
-        logger.info(f"Total pages found: {len(results.get('all_pages', []))}")
-        logger.info(f"Broken links: {len(results.get('broken_links', []))}")
-        for link in results.get('broken_links', []):
-            logger.info(f"  Broken: {link.get('url')}, Status: {link.get('status_code')}, Error: {link.get('error_message')}, Internal: {link.get('is_internal')}, Referring: {link.get('referring_page')}")
-
-        logger.info(f"Missing meta tags entries: {len(results.get('missing_meta_tags', []))}")
-        for tag_info in results.get('missing_meta_tags', []):
-            logger.info(f"  Meta Issue: URL: {tag_info.get('url')}, Type: {tag_info.get('tag_type')}, Suggestion: {tag_info.get('suggestion')}, Unreachable: {tag_info.get('is_unreachable')}")
-
-        # Log some normalization and internal/external check examples if they appear in DEBUG logs
-        # This part will rely on the logs produced by the crawler itself.
-        logger.info("Check DEBUG logs for normalization and internal/external URL checks.")
-
-    except Exception as e:
-        logger.error(f"Test crawl failed with exception: {type(e).__name__}: {e}", exc_info=True)
+    main() 

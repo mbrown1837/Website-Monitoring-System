@@ -524,42 +524,13 @@ class CrawlerModule:
                 self.logger.info(f"🧹 Cleanup delay: {cleanup_delay}s before next site...")
                 time.sleep(cleanup_delay)
             
-            # Send email notifications for all check types
+            # Send ONE combined email notification for all check types
             # Get website configuration for email notifications
             website = self.website_manager.get_website(website_id)
             if website:
-                # Determine check type from the actual check configuration
-                check_type = options.get('check_type')
-                if not check_type:
-                    # Determine check type based on what was actually performed
-                    if check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('blur_enabled') and not check_config.get('performance_enabled'):
-                        check_type = 'crawl'
-                    elif check_config.get('visual_enabled') and not check_config.get('crawl_enabled') and not check_config.get('blur_enabled') and not check_config.get('performance_enabled'):
-                        check_type = 'visual'
-                    elif check_config.get('blur_enabled') and not check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('performance_enabled'):
-                        check_type = 'blur'
-                    elif check_config.get('performance_enabled') and not check_config.get('crawl_enabled') and not check_config.get('visual_enabled') and not check_config.get('blur_enabled'):
-                        check_type = 'performance'
-                    else:
-                        check_type = 'full'  # Multiple checks or unknown configuration
-                
-                # Send appropriate email based on check type
-                if check_type == 'visual':
-                    self._send_single_check_email_notification(website, results, 'visual')
-                elif check_type == 'crawl':
-                    self._send_single_check_email_notification(website, results, 'crawl')
-                elif check_type == 'blur':
-                    self._send_single_check_email_notification(website, results, 'blur')
-                elif check_type == 'performance':
-                    self._send_single_check_email_notification(website, results, 'performance')
-                elif check_type == 'baseline':
-                    self._send_single_check_email_notification(website, results, 'baseline')
-                elif check_type == 'full':
-                    # For full checks, send combined email with all results
-                    self._send_single_check_email_notification(website, results, 'full')
-                else:
-                    # Fallback to full check email
-                    self._send_single_check_email_notification(website, results, 'full')
+                # Always send a combined email with all results instead of separate emails
+                self._send_single_check_email_notification(website, results, 'full')
+                self.logger.info(f"Combined email notification sent for website {website.get('name', 'Unknown')} with all check results")
             else:
                 self.logger.warning(f"Website {website_id} not found for email notification")
             
@@ -607,7 +578,11 @@ class CrawlerModule:
                 })
 
     def _create_visual_baselines(self, results):
-        self._handle_snapshots(results, is_baseline=True)
+        self._creating_baseline = True
+        try:
+            self._handle_snapshots(results, is_baseline=True)
+        finally:
+            self._creating_baseline = False
 
     def _capture_latest_snapshots(self, results):
         self._handle_snapshots(results, is_baseline=False)
@@ -701,7 +676,12 @@ class CrawlerModule:
                                     image_path2=snapshot_path
                                 )
                         else:
-                            self.logger.warning(f"No baseline found for URL {url} to compare against the latest snapshot.")
+                            # Only warn if we're not in baseline creation mode
+                            if not hasattr(self, '_creating_baseline') or not self._creating_baseline:
+                                self.logger.warning(f"No baseline found for URL {url} to compare against the latest snapshot.")
+                    else:
+                        # If we're creating baselines, log that baseline was created
+                        self.logger.info(f"Baseline snapshot created for URL {url}: {snapshot_path}")
 
             except Exception as e:
                 self.logger.error(f"Error processing snapshot for URL {url}: {e}", exc_info=True)
@@ -994,7 +974,13 @@ class CrawlerModule:
             # Get notification emails
             notification_emails = website.get('notification_emails', [])
             if not notification_emails:
-                notification_emails = [config.get('default_notification_email', config.get('notification_email_to', 'admin@example.com'))]
+                # Use the configured notification email instead of hardcoded fallback
+                default_email = config.get('default_notification_email') or config.get('notification_email_to')
+                if default_email:
+                    notification_emails = [default_email]
+                else:
+                    self.logger.warning("No notification email configured - skipping blur detection notification")
+                    return
             
             # Send email using existing alerter module
             if notification_emails:
@@ -1190,9 +1176,8 @@ class CrawlerModule:
                                 f"({results['blur_detection_summary']['blur_percentage']}%), "
                                 f"removed {duplicates_found} duplicate images")
                 
-                # Send email notification if blurry images found
-                if total_blurry_images > 0:
-                    self._send_blur_detection_notification(website, total_images_processed, total_blurry_images)
+                # Note: Blur detection results are included in the combined email notification
+                # No separate blur email notification needed
                 
             except Exception as e:
                 self.logger.error(f"Error running batch blur detection: {e}", exc_info=True)
@@ -1428,8 +1413,8 @@ class CrawlerModule:
             
             self.logger.info(f"Total pages to check for performance: {len(pages_to_check)}")
             
-            # Limit to reasonable number of pages to avoid API limits
-            max_pages = 10  # Reasonable limit for performance testing
+            # Limit to reasonable number of pages to avoid API limits and timeouts
+            max_pages = 5  # Reduced limit to prevent timeouts
             if len(pages_to_check) > max_pages:
                 self.logger.info(f"Limiting performance check to {max_pages} pages (found {len(pages_to_check)})")
                 pages_to_check = pages_to_check[:max_pages]

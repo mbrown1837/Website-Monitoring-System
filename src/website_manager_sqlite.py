@@ -236,6 +236,25 @@ class WebsiteManagerSQLite:
                     website['auto_performance_enabled'] = bool(website['auto_performance_enabled'])
                     website['auto_full_check_enabled'] = bool(website['auto_full_check_enabled'])
                     
+                    # Add last checked information
+                    try:
+                        from src.history_manager_sqlite import HistoryManager
+                        history_manager = HistoryManager(self.db_path)
+                        latest_check = history_manager.get_latest_check_for_site(website['id'])
+                        if latest_check and latest_check.get('timestamp'):
+                            # Convert timestamp to readable format
+                            from datetime import datetime
+                            try:
+                                check_time = datetime.fromisoformat(latest_check['timestamp'].replace('Z', '+00:00'))
+                                website['last_checked_simple'] = check_time.strftime('%Y-%m-%d %H:%M UTC')
+                            except:
+                                website['last_checked_simple'] = 'Recently'
+                        else:
+                            website['last_checked_simple'] = 'Never'
+                    except Exception as e:
+                        self.logger.debug(f"Could not get last check time for website {website['id']}: {e}")
+                        website['last_checked_simple'] = 'Never'
+                    
                     websites.append(website)
                 
                 self._websites_cache = {website['id']: website for website in websites}
@@ -326,6 +345,10 @@ class WebsiteManagerSQLite:
         # Generate ID if not provided
         if 'id' not in website_data:
             website_data['id'] = str(uuid.uuid4())
+        
+        # Ensure new websites are active by default
+        if 'is_active' not in website_data:
+            website_data['is_active'] = True
         
         # Set timestamps
         now = datetime.now(timezone.utc).isoformat()

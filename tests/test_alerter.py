@@ -17,7 +17,7 @@ class TestAlerter(unittest.TestCase):
         # Ensure a minimal config for alerter
         self.test_config = {
             'notification_email_from': "monitor@example.com",
-            'notification_email_to': ["admin@example.com", "user@example.com"],
+            'notification_email_to': ["websitecheckapp@digitalclics.com"],
             'smtp_server': "smtp.example.com",
             'smtp_port': 587,
             'smtp_username': "monitor_user",
