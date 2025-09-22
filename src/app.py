@@ -53,13 +53,14 @@ app = Flask(__name__,
            static_folder=os.path.join(project_root, 'static'))
 app.secret_key = os.urandom(24) # For flash messages
 
-logger = setup_logging(config_path='config/config.yaml') # Explicitly point to config for app
-config = get_config(config_path='config/config.yaml')
+# Use environment-detected configuration instead of hardcoded path
+logger = setup_logging()  # Use environment detection
+config = get_config()     # Use environment detection
 
-# Initialize managers
-website_manager = WebsiteManager(config_path='config/config.yaml')
-history_manager = HistoryManager(config_path='config/config.yaml')
-crawler_module = CrawlerModule(config_path='config/config.yaml')
+# Initialize managers using environment detection
+website_manager = WebsiteManager()
+history_manager = HistoryManager()
+crawler_module = CrawlerModule()
 
 # --- Task Management ---
 tasks = {}
@@ -80,7 +81,7 @@ def run_background_task(task_id, target_func, *args, **kwargs):
 # --- Helper Functions ---
 def get_app_config():
     # Reload config to ensure it's fresh, especially after edits
-    return get_config(config_path='config/config.yaml')
+    return get_config()  # Use environment detection
 
 def make_path_web_accessible(path_from_project_root):
     """
@@ -2244,9 +2245,8 @@ def bulk_import():
 
 # Replace the old block with this one
 if __name__ == '__main__':
-    # Initialize scheduler with proper configuration
-    config_path = 'config/config.yaml'
-    start_scheduler(config_path=config_path)
+    # Initialize scheduler using environment detection
+    start_scheduler()  # Use environment detection
     
     # Start queue processor for manual checks
     from src.queue_processor import start_queue_processor

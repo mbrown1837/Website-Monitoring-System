@@ -11,16 +11,18 @@ from typing import Optional, Union
 
 def get_environment() -> str:
     """Detect the current environment (local, docker, production)."""
+    # Use the same logic as config_loader for consistency
+    # Check environment variables first
+    env = os.getenv('FLASK_ENV', os.getenv('ENVIRONMENT', '')).lower()
+    if env in ['production', 'staging', 'testing']:
+        return env
+    
     # Check for Docker environment
     if os.path.exists('/.dockerenv') or os.environ.get('DOCKER_ENV'):
-        return 'docker'
+        return 'production'  # Treat Docker as production
     
-    # Check for production environment
-    if os.environ.get('FLASK_ENV') == 'production':
-        return 'production'
-    
-    # Default to local development
-    return 'local'
+    # Default to development (changed from 'local' for consistency)
+    return 'development'
 
 
 def get_project_root() -> str:
@@ -95,7 +97,7 @@ def get_config_path_for_environment() -> str:
     project_root = get_project_root()
     environment = get_environment()
     
-    if environment in ['docker', 'production']:
+    if environment in ['production', 'staging']:
         config_path = os.path.join(project_root, 'config', 'config.production.yaml')
         if os.path.exists(config_path):
             return config_path

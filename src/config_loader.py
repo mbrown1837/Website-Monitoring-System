@@ -6,8 +6,18 @@ DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config', 'c
 
 # Environment detection
 def get_environment():
-    """Detect the current environment based on environment variables."""
-    return os.getenv('FLASK_ENV', os.getenv('ENVIRONMENT', 'development')).lower()
+    """Detect the current environment based on environment variables and Docker detection."""
+    # Check environment variables first
+    env = os.getenv('FLASK_ENV', os.getenv('ENVIRONMENT', '')).lower()
+    if env in ['production', 'staging', 'testing']:
+        return env
+    
+    # Check for Docker environment
+    if os.path.exists('/.dockerenv') or os.environ.get('DOCKER_ENV'):
+        return 'production'  # Treat Docker as production
+    
+    # Default to development
+    return 'development'
 
 def get_config_path_for_environment():
     """Get the appropriate config path for the current environment."""
