@@ -134,7 +134,7 @@ def index():
     websites = website_manager.list_websites()
     
     # Initialize crawler module
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get crawler stats
     crawler_stats = {}
@@ -240,14 +240,14 @@ def settings():
             # Update Performance Monitoring settings
             current_config['google_pagespeed_api_key'] = request.form.get('google_pagespeed_api_key', current_config.get('google_pagespeed_api_key', ''))
 
-            save_config(current_config, config_path='config/config.yaml')
+            save_config(current_config)  # Use environment detection
             flash('Settings updated successfully!', 'success')
             # Re-initialize logger and other services if settings affecting them changed
             global logger, website_manager, history_manager, config
-            logger = setup_logging(config_path='config/config.yaml')
-            config = get_config(config_path='config/config.yaml') # update global config
-            website_manager = WebsiteManager(config_path='config/config.yaml') # Re-init with new config if needed
-            history_manager = HistoryManager(config_path='config/config.yaml')
+            logger = setup_logging()  # Use environment detection
+            config = get_config() # update global config
+            website_manager = WebsiteManager() # Re-init with new config if needed
+            history_manager = HistoryManager()  # Use environment detection
 
             return redirect(url_for('settings'))
         except Exception as e:
@@ -389,7 +389,7 @@ def add_website():
                         )
                         
                         # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
-                        full_args = thread_args + ('config/config.yaml', website_manager, history_manager, crawler_module)
+                        full_args = thread_args + (None, website_manager, history_manager, crawler_module)  # Use environment detection
                         thread = threading.Thread(
                             target=run_background_task,
                             args=(task_id, perform_website_check) + full_args
@@ -429,7 +429,7 @@ def add_website():
                         )
                         
                         # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
-                        full_args = thread_args + ('config/config.yaml', website_manager, history_manager, crawler_module)
+                        full_args = thread_args + (None, website_manager, history_manager, crawler_module)  # Use environment detection
                         thread = threading.Thread(
                             target=run_background_task,
                             args=(task_id, perform_website_check) + full_args
@@ -785,7 +785,7 @@ def website_crawler(site_id):
         return redirect(url_for('index'))
     
     # Initialize the crawler module
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get the latest crawler results
     crawler_results = crawler.get_latest_crawl_results(site_id)
@@ -930,7 +930,7 @@ def website_broken_links(site_id):
         return redirect(url_for('index'))
     
     # Initialize the crawler module
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get the latest crawler results
     crawler_results = crawler.get_latest_crawl_results(site_id)
@@ -974,7 +974,7 @@ def website_missing_meta_tags(site_id):
         return redirect(url_for('index'))
     
     # Initialize the crawler module
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get the latest crawler results
     crawler_results = crawler.get_latest_crawl_results(site_id)
@@ -1049,7 +1049,7 @@ def website_summary(site_id):
         return redirect(url_for('index'))
 
     # Initialize modules
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get latest crawler results
     crawler_results = crawler.get_latest_crawl_results(site_id)
@@ -1137,7 +1137,7 @@ def website_blur_detection(site_id):
     blur_detector = BlurDetector()
     
     # Find the latest crawl that has blur detection results
-    crawler = CrawlerModule(config_path='config/config.yaml')
+    crawler = CrawlerModule()  # Use environment detection
     
     # Get the latest crawl with blur detection results
     conn = blur_detector._get_db_connection()
@@ -1329,7 +1329,7 @@ def api_scheduler_reload():
     """Reload scheduler configuration."""
     from src.scheduler_integration import reload_scheduler_config
     
-    config_path = request.json.get('config_path', 'config/config.yaml') if request.is_json else 'config/config.yaml'
+    config_path = request.json.get('config_path', None) if request.is_json else None  # Use environment detection
     success = reload_scheduler_config(config_path)
     
     if success:
@@ -1896,7 +1896,7 @@ def _auto_setup_website(website):
         # Start baseline creation in background
         threading.Thread(
             target=run_background_task,
-            args=(baseline_task_id, perform_website_check, site_id, baseline_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
+            args=(baseline_task_id, perform_website_check, site_id, baseline_options, None, website_manager, history_manager, crawler_module)  # Use environment detection
         ).start()
         
         # Step 2: Schedule full check after baseline (wait for completion)
@@ -1949,7 +1949,7 @@ def _auto_setup_website(website):
             # Start full check in background
             threading.Thread(
                 target=run_background_task,
-                args=(full_check_task_id, perform_website_check, site_id, full_check_options, 'config/config.yaml', website_manager, history_manager, crawler_module)
+                args=(full_check_task_id, perform_website_check, site_id, full_check_options, None, website_manager, history_manager, crawler_module)  # Use environment detection
             ).start()
         
         # Start the follow-up full check watcher
@@ -2252,10 +2252,10 @@ if __name__ == '__main__':
     from src.queue_processor import start_queue_processor
     
     logger.info("🚀 Starting queue processor...")
-    start_queue_processor(config_path=config_path)
+    start_queue_processor()  # Use environment detection
     
     # Explicitly load app's config for its run parameters
-    app_specific_config = get_config(config_path='config/config.yaml') 
+    app_specific_config = get_config()  # Use environment detection 
     
     # 1. CHANGED: Default host is now '0.0.0.0' for deployment
     app_host = app_specific_config.get('dashboard_host', '0.0.0.0')
