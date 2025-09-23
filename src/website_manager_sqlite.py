@@ -239,7 +239,7 @@ class WebsiteManagerSQLite:
                     # Add last checked information
                     try:
                         from src.history_manager_sqlite import HistoryManager
-                        history_manager = HistoryManager(self.db_path)
+                        history_manager = HistoryManager()
                         latest_check = history_manager.get_latest_check_for_site(website['id'])
                         if latest_check and latest_check.get('timestamp'):
                             # Convert timestamp to readable format
