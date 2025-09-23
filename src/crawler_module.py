@@ -524,15 +524,9 @@ class CrawlerModule:
                 self.logger.info(f"🧹 Cleanup delay: {cleanup_delay}s before next site...")
                 time.sleep(cleanup_delay)
             
-            # Send ONE combined email notification for all check types
-            # Get website configuration for email notifications
-            website = self.website_manager.get_website(website_id)
-            if website:
-                # Always send a combined email with all results instead of separate emails
-                self._send_single_check_email_notification(website, results, 'full')
-                self.logger.info(f"Combined email notification sent for website {website.get('name', 'Unknown')} with all check results")
-            else:
-                self.logger.warning(f"Website {website_id} not found for email notification")
+            # Email notifications are handled by the scheduler after all checks are complete
+            # This ensures emails contain complete data from all check types
+            self.logger.info(f"Crawl completed for website {website_id}. Email will be sent after all checks are complete.")
             
             return results
                 

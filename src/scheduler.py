@@ -344,7 +344,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             history_manager.add_check_record(**serializable_result)
             # Don't return early - let the finally block execute to release the lock
         else:
-            # Only run significance checks and additional processing for non-baseline checks
+            # Run significance checks and send email for ALL checks (not just when changes detected)
             significant_changes = determine_significance(check_result, website)
             if significant_changes:
                 check_result.update({
@@ -353,11 +353,14 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
                     'reasons': significant_changes
                 })
                 logger.info(f"Significant changes detected for {website.get('name')}, preparing to send alert.")
-                
-                alerter.send_report(website, check_result)
             else:
                 check_result['status'] = 'No significant change'
                 logger.info(f"No significant changes detected for {website.get('name')}.")
+            
+            # Send email notification for ALL checks (regardless of changes detected)
+            # This ensures complete data is included in emails
+            logger.info(f"Sending email notification for {website.get('name')} with complete check results.")
+            alerter.send_report(website, check_result)
 
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
