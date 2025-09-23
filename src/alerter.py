@@ -161,7 +161,7 @@ def send_report(website: dict, check_results: dict):
                 <!-- Quick Actions -->
                 <h2 style="color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px;">🔗 Quick Actions</h2>
                 <div style="text-align: center; margin: 20px 0;">
-                    <a href="{dashboard_url}/website/{check_results.get('website_id')}/history" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View History</a>
+                    <a href="{dashboard_url}/website/history/{check_results.get('website_id')}" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View History</a>
                     <a href="{dashboard_url}/website/{check_results.get('website_id')}" style="background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Dashboard</a>
                     <a href="{dashboard_url}/website/{check_results.get('website_id')}/crawler" style="background: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Crawler Results</a>
                 </div>
@@ -228,7 +228,7 @@ DETAILED CHECK RESULTS:
 
 QUICK ACTIONS:
 ==============
-- View History: {dashboard_url}/website/{check_results.get('website_id')}/history
+- View History: {dashboard_url}/website/history/{check_results.get('website_id')}
 - View Dashboard: {dashboard_url}/website/{check_results.get('website_id')}
 - View Crawler Results: {dashboard_url}/website/{check_results.get('website_id')}/crawler
 
