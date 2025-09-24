@@ -685,14 +685,18 @@ class CrawlerModule:
 
         if is_baseline:
             results['visual_baselines'] = [{'url': u, 'path': p} for u, p in snapshot_map.items()]
+            self.logger.info(f"DEBUG: About to call _update_website_with_baselines with {len(snapshot_map)} baselines")
             self._update_website_with_baselines(results['website_id'], snapshot_map)
+            self.logger.info(f"DEBUG: _update_website_with_baselines completed")
         else:
             results['latest_snapshots'] = snapshot_map
         
         self.logger.info(f"Captured {len(snapshot_map)} {log_action} snapshots.")
     
     def _update_website_with_baselines(self, website_id, baselines_by_url):
+        self.logger.info(f"DEBUG: _update_website_with_baselines called with website_id: {website_id}, baselines_by_url: {baselines_by_url}")
         if not baselines_by_url:
+            self.logger.warning(f"DEBUG: No baselines to update for website {website_id}")
             return
             
         # Use the existing website_manager instance instead of creating a new one
