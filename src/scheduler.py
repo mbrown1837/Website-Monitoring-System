@@ -418,7 +418,16 @@ def schedule_website_monitoring_tasks(config_path=None):
     default_interval_minutes = config.get('default_monitoring_interval_minutes', 60)
     for site in active_websites:
         site_id = site.get('id')
-        interval_minutes = site.get('check_interval_minutes', default_interval_minutes)
+        # Check both check_interval_minutes and interval (convert hours to minutes)
+        interval_minutes = site.get('check_interval_minutes')
+        if interval_minutes is None:
+            # Try to get interval in hours and convert to minutes
+            interval_hours = site.get('interval')
+            if interval_hours:
+                interval_minutes = int(interval_hours) * 60
+            else:
+                interval_minutes = default_interval_minutes
+        
         if not site_id:
             logger.error(f"SCHEDULER: Skipping site due to missing ID: {site.get('name')}")
             continue

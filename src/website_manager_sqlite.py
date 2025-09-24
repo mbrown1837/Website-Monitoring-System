@@ -361,6 +361,8 @@ class WebsiteManagerSQLite:
             # Update cache
             self._websites_cache[website_data['id']] = website_data
             self.logger.info(f"Added new website: {website_data.get('name')} ({website_data['id']})")
+            # Sync JSON file to keep everything in sync
+            self._sync_json_file()
             return website_data
         else:
             raise Exception("Failed to save website to database")
@@ -381,40 +383,244 @@ class WebsiteManagerSQLite:
             # Update cache
             self._websites_cache[website_id] = website
             self.logger.info(f"Updated website: {website.get('name')} ({website_id})")
+            # Sync JSON file to keep everything in sync
+            self._sync_json_file()
             return True
         else:
             return False
 
     def remove_website(self, website_id: str) -> bool:
-        """Remove a website."""
+        """Remove a website and all its associated data."""
         try:
+            # Get website details before deletion for cleanup
+            website = self.get_website(website_id)
+            if not website:
+                self.logger.warning(f"Website {website_id} not found for removal")
+                return False
+            
+            website_name = website.get('name', 'Unknown')
+            website_url = website.get('url', 'Unknown')
+            
+            self.logger.info(f"Starting comprehensive cleanup for website: {website_name} ({website_url})")
+            
+            # 1. Clean up database records
+            cleanup_success = self._cleanup_website_database_records(website_id)
+            
+            # 2. Clean up snapshot files and directories
+            snapshot_cleanup_success = self._cleanup_website_snapshots(website_id, website)
+            
+            # 3. Clean up scheduler task
+            scheduler_cleanup_success = self._cleanup_website_scheduler_task(website_id)
+            
+            # 4. Remove from cache
+            if website_id in self._websites_cache:
+                del self._websites_cache[website_id]
+            
+            # 5. Remove from websites table
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM websites WHERE id = ?", (website_id,))
-                
-                if cursor.rowcount > 0:
-                    conn.commit()
-                    # Remove from cache
-                    if website_id in self._websites_cache:
-                        del self._websites_cache[website_id]
-                    
-                    # Clean up scheduler task for this website
-                    try:
-                        from .scheduler_integration import remove_site_scheduler_task
-                        remove_site_scheduler_task(website_id)
-                        self.logger.info(f"Removed scheduler task for website {website_id}")
-                    except Exception as scheduler_error:
-                        self.logger.warning(f"Could not remove scheduler task for website {website_id}: {scheduler_error}")
-                    
-                    self.logger.info(f"Removed website {website_id}")
-                    return True
-                else:
-                    self.logger.warning(f"Website {website_id} not found for removal")
-                    return False
+                conn.commit()
+            
+            # 6. Sync JSON file to keep everything in sync
+            self._sync_json_file()
+            
+            # Log cleanup results
+            self.logger.info(f"Website cleanup completed for {website_name}:")
+            self.logger.info(f"  - Database records: {'✅' if cleanup_success else '❌'}")
+            self.logger.info(f"  - Snapshot files: {'✅' if snapshot_cleanup_success else '❌'}")
+            self.logger.info(f"  - Scheduler task: {'✅' if scheduler_cleanup_success else '❌'}")
+            self.logger.info(f"  - JSON file sync: ✅")
+            
+            self.logger.info(f"Successfully removed website {website_name} and all associated data")
+            return True
                     
         except Exception as e:
-            self.logger.error(f"Error removing website {website_id}: {e}")
+            self.logger.error(f"Error removing website {website_id}: {e}", exc_info=True)
             return False
+
+    def _cleanup_website_database_records(self, website_id: str) -> bool:
+        """Clean up all database records associated with a website."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # List of tables to clean up
+                cleanup_tables = [
+                    'check_history',
+                    'crawl_history', 
+                    'crawl_results',
+                    'broken_links',
+                    'missing_meta_tags',
+                    'manual_check_queue',
+                    'scheduler_log',
+                    'scheduler_status',
+                    'scheduler_metrics',
+                    'blur_detection_results'  # Add blur detection cleanup
+                ]
+                
+                total_deleted = 0
+                for table in cleanup_tables:
+                    try:
+                        # Check if table exists
+                        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'")
+                        if cursor.fetchone():
+                            # Delete records for this website
+                            cursor.execute(f"DELETE FROM {table} WHERE website_id = ?", (website_id,))
+                            deleted_count = cursor.rowcount
+                            total_deleted += deleted_count
+                            if deleted_count > 0:
+                                self.logger.info(f"Deleted {deleted_count} records from {table}")
+                    except Exception as table_error:
+                        self.logger.warning(f"Could not clean up table {table}: {table_error}")
+                
+                conn.commit()
+                self.logger.info(f"Database cleanup completed: {total_deleted} total records deleted")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Error cleaning up database records for website {website_id}: {e}")
+            return False
+
+    def _cleanup_website_snapshots(self, website_id: str, website: Dict[str, Any]) -> bool:
+        """Clean up all snapshot files and directories for a website."""
+        try:
+            import shutil
+            import os
+            from pathlib import Path
+            
+            # Get snapshot directory from config
+            snapshot_base_dir = self.config.get('snapshot_directory', 'data/snapshots')
+            if not os.path.isabs(snapshot_base_dir):
+                # Make it relative to project root
+                project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                snapshot_base_dir = os.path.join(project_root, snapshot_base_dir)
+            
+            # Find website-specific directories
+            website_name = website.get('name', 'Unknown')
+            website_url = website.get('url', 'Unknown')
+            
+            # Try different directory naming patterns
+            domain_patterns = []
+            
+            # Extract domain from URL
+            if website_url and website_url != 'Unknown':
+                from urllib.parse import urlparse
+                parsed_url = urlparse(website_url)
+                domain = parsed_url.netloc.replace('.', '_').replace(':', '_')
+                domain_patterns.append(domain)
+            
+            # Also try website name as directory name
+            if website_name and website_name != 'Unknown':
+                safe_name = website_name.replace('.', '_').replace(':', '_').replace('/', '_')
+                domain_patterns.append(safe_name)
+            
+            # Look for directories containing the website_id
+            snapshot_path = Path(snapshot_base_dir)
+            if snapshot_path.exists():
+                deleted_dirs = []
+                deleted_files = 0
+                
+                # Find all directories that might contain this website's data
+                for item in snapshot_path.iterdir():
+                    if item.is_dir():
+                        # Check if this directory contains our website_id
+                        website_id_dir = item / website_id
+                        if website_id_dir.exists():
+                            # This directory contains our website's data
+                            try:
+                                # Count files before deletion (including all subdirectories)
+                                file_count = sum(1 for f in website_id_dir.rglob('*') if f.is_file())
+                                deleted_files += file_count
+                                
+                                # Remove the entire website_id directory (includes baseline, visual, blur_images, etc.)
+                                shutil.rmtree(website_id_dir)
+                                deleted_dirs.append(str(website_id_dir))
+                                self.logger.info(f"Deleted directory: {website_id_dir} ({file_count} files)")
+                            except Exception as dir_error:
+                                self.logger.warning(f"Could not delete directory {website_id_dir}: {dir_error}")
+                        
+                        # Also check for blur_images directory pattern
+                        blur_images_dir = item / f"{website_id}_blur_images"
+                        if blur_images_dir.exists():
+                            try:
+                                file_count = sum(1 for f in blur_images_dir.rglob('*') if f.is_file())
+                                deleted_files += file_count
+                                shutil.rmtree(blur_images_dir)
+                                deleted_dirs.append(str(blur_images_dir))
+                                self.logger.info(f"Deleted blur images directory: {blur_images_dir} ({file_count} files)")
+                            except Exception as dir_error:
+                                self.logger.warning(f"Could not delete blur images directory {blur_images_dir}: {dir_error}")
+                
+                # Also check for domain-based directories
+                for domain_pattern in domain_patterns:
+                    domain_dir = snapshot_path / domain_pattern
+                    if domain_dir.exists():
+                        website_id_dir = domain_dir / website_id
+                        if website_id_dir.exists():
+                            try:
+                                file_count = sum(1 for f in website_id_dir.rglob('*') if f.is_file())
+                                deleted_files += file_count
+                                shutil.rmtree(website_id_dir)
+                                deleted_dirs.append(str(website_id_dir))
+                                self.logger.info(f"Deleted domain directory: {website_id_dir} ({file_count} files)")
+                            except Exception as dir_error:
+                                self.logger.warning(f"Could not delete domain directory {website_id_dir}: {dir_error}")
+                
+                # Clean up empty parent directories
+                for deleted_dir in deleted_dirs:
+                    parent_dir = Path(deleted_dir).parent
+                    try:
+                        if parent_dir.exists() and not any(parent_dir.iterdir()):
+                            parent_dir.rmdir()
+                            self.logger.info(f"Removed empty parent directory: {parent_dir}")
+                    except Exception as parent_error:
+                        self.logger.debug(f"Could not remove empty parent directory {parent_dir}: {parent_error}")
+                
+                self.logger.info(f"Snapshot cleanup completed: {len(deleted_dirs)} directories, {deleted_files} files deleted")
+                return True
+            else:
+                self.logger.info("Snapshot directory does not exist, nothing to clean up")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Error cleaning up snapshots for website {website_id}: {e}")
+            return False
+
+    def _cleanup_website_scheduler_task(self, website_id: str) -> bool:
+        """Clean up scheduler task for a website."""
+        try:
+            from .scheduler_integration import remove_site_scheduler_task
+            remove_site_scheduler_task(website_id)
+            self.logger.info(f"Removed scheduler task for website {website_id}")
+            return True
+        except Exception as e:
+            self.logger.warning(f"Could not remove scheduler task for website {website_id}: {e}")
+            return False
+
+    def _sync_json_file(self):
+        """Sync the JSON file with the current database state."""
+        try:
+            import json
+            import os
+            
+            # Get current websites from database
+            websites = self.list_websites()
+            
+            # Convert to list format for JSON
+            websites_list = []
+            for site_id, website in websites.items():
+                websites_list.append(website)
+            
+            # Write to JSON file
+            json_path = 'data/websites.json'
+            with open(json_path, 'w') as f:
+                json.dump(websites_list, f, indent=2)
+            
+            self.logger.info(f"Synced JSON file with {len(websites_list)} websites")
+            
+        except Exception as e:
+            self.logger.warning(f"Could not sync JSON file: {e}")
 
     def get_active_websites(self) -> List[Dict[str, Any]]:
         """Get all active websites."""

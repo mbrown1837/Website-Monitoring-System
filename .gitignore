@@ -1,10 +1,11 @@
 # Data directories with dynamic content
 data/snapshots/
-data/website_monitor.db
+# Keep database and config files for deployment
+# data/website_monitor.db  # Commented out - needed for deployment
+# data/websites.json       # Commented out - needed for deployment
 data/monitoring.log
 data/dashboard.log
 data/check_history.json
-data/websites.json
 
 # Python
 __pycache__/
