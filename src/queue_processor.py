@@ -193,7 +193,11 @@ class QueueProcessor:
             
             # Perform the check using crawler module
             # Handle baseline checks specially
-            create_baseline = (check_type == 'baseline')
+            # For 'full' checks, create baseline if website doesn't have any baselines yet
+            has_baselines = bool(website.get('all_baselines'))
+            create_baseline = (check_type == 'baseline') or (check_type == 'full' and not has_baselines)
+            
+            self.logger.info(f"Baseline creation decision for {website_name}: check_type={check_type}, has_baselines={has_baselines}, create_baseline={create_baseline}")
             
             results = self.crawler_module.crawl_website(
                 website_id=website_id,

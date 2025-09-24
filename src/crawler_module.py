@@ -463,8 +463,10 @@ class CrawlerModule:
             visual_check_only = options.get('visual_check_only', False)
             if check_config.get('visual_enabled', True) and not crawl_only and (not blur_check_only or visual_check_only):
                 if create_baseline:
+                    self.logger.info(f"Creating visual baselines for website {website_id}")
                     self._create_visual_baselines(results)
                 else:
+                    self.logger.info(f"Capturing latest snapshots for website {website_id}")
                     self._capture_latest_snapshots(results)
             else:
                 self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
@@ -572,9 +574,11 @@ class CrawlerModule:
                 })
 
     def _create_visual_baselines(self, results):
+        self.logger.info(f"DEBUG: _create_visual_baselines called for website {results.get('website_id')}")
         self._creating_baseline = True
         try:
             self._handle_snapshots(results, is_baseline=True)
+            self.logger.info(f"DEBUG: _create_visual_baselines completed for website {results.get('website_id')}")
         finally:
             self._creating_baseline = False
 
