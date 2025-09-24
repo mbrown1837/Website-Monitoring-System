@@ -711,6 +711,7 @@ class CrawlerModule:
         for url, path in baselines_by_url.items():
             all_baselines[url] = {'path': path, 'timestamp': current_time}
         
+        self.logger.info(f"DEBUG: Storing all_baselines: {all_baselines}")
         updates = {"all_baselines": all_baselines, "has_subpage_baselines": True}
         
         # Enhanced logic to find the main page baseline

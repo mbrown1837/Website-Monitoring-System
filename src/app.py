@@ -584,6 +584,8 @@ def website_history(site_id):
     # Process subpage baselines
     subpage_baselines = []
     all_baselines = website.get('all_baselines', {})
+    logger.info(f"DEBUG: all_baselines for {website.get('name')}: {all_baselines}")
+    logger.info(f"DEBUG: all_baselines type: {type(all_baselines)}")
     for url, baseline_data in all_baselines.items():
         # Skip the main URL, as it's handled separately
         if url == website.get('url'):

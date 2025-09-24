@@ -360,7 +360,14 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             # Send email notification for ALL checks (regardless of changes detected)
             # This ensures complete data is included in emails
             logger.info(f"Sending email notification for {website.get('name')} with complete check results.")
-            alerter.send_report(website, check_result)
+            try:
+                email_result = alerter.send_report(website, check_result)
+                if email_result:
+                    logger.info(f"Email sent successfully for {website.get('name')}")
+                else:
+                    logger.error(f"Failed to send email for {website.get('name')}")
+            except Exception as e:
+                logger.error(f"Error sending email for {website.get('name')}: {e}")
 
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
