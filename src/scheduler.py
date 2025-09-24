@@ -340,6 +340,17 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         if final_crawler_options.get('create_baseline'):
             check_result['status'] = 'Baseline Created'
             logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
+            
+            # Send email notification for baseline creation too
+            try:
+                email_result = alerter.send_report(website, check_result)
+                if email_result:
+                    logger.info(f"Email sent successfully for {website.get('name')} baseline creation")
+                else:
+                    logger.error(f"Failed to send email for {website.get('name')} baseline creation")
+            except Exception as e:
+                logger.error(f"Error sending email for {website.get('name')} baseline creation: {e}")
+            
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
             # Don't return early - let the finally block execute to release the lock

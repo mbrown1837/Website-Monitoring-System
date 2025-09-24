@@ -211,9 +211,14 @@ class WebsiteManagerSQLite:
                     
                     if website.get('all_baselines'):
                         try:
+                            self.logger.info(f"DEBUG: Loading all_baselines from database: {website['all_baselines']}")
                             website['all_baselines'] = json.loads(website['all_baselines'])
-                        except json.JSONDecodeError:
+                            self.logger.info(f"DEBUG: Parsed all_baselines: {website['all_baselines']}")
+                        except json.JSONDecodeError as e:
+                            self.logger.error(f"DEBUG: Failed to parse all_baselines: {e}")
                             website['all_baselines'] = {}
+                    else:
+                        self.logger.info(f"DEBUG: No all_baselines found in database for website {website.get('id')}")
                     
                     if website.get('exclude_pages_keywords'):
                         try:
@@ -276,6 +281,10 @@ class WebsiteManagerSQLite:
                 cursor = conn.cursor()
                 
                 # Prepare data for insertion/update
+                all_baselines_data = website.get('all_baselines', {})
+                self.logger.info(f"DEBUG: Saving all_baselines to database: {all_baselines_data}")
+                self.logger.info(f"DEBUG: all_baselines type: {type(all_baselines_data)}")
+                
                 data = (
                     website.get('id'),
                     website.get('url'),
@@ -290,7 +299,7 @@ class WebsiteManagerSQLite:
                     website.get('max_crawl_depth', 2),
                     website.get('visual_diff_threshold', 5),
                     1 if website.get('capture_subpages', True) else 0,
-                    json.dumps(website.get('all_baselines', {})),
+                    json.dumps(all_baselines_data),
                     1 if website.get('has_subpage_baselines', False) else 0,
                     website.get('baseline_visual_path'),
                     1 if website.get('enable_blur_detection', False) else 0,
@@ -377,6 +386,11 @@ class WebsiteManagerSQLite:
         # Update fields
         website.update(updates)
         website['last_updated_utc'] = datetime.now(timezone.utc).isoformat()
+        
+        # Debug logging for all_baselines updates
+        if 'all_baselines' in updates:
+            self.logger.info(f"DEBUG: Updating all_baselines for {website_id}: {updates['all_baselines']}")
+            self.logger.info(f"DEBUG: Website all_baselines after update: {website.get('all_baselines')}")
         
         # Save to database
         if self._save_website(website):
