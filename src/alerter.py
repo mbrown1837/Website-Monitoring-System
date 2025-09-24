@@ -29,6 +29,8 @@ def send_report(website: dict, check_results: dict):
     Analyzes check results and sends the appropriate detailed email report.
     Simplified version without complex CSS styling.
     """
+    logger.info(f"EMAIL DEBUG - send_report called for {website.get('name', 'N/A')}")
+    
     site_name = website.get('name', 'N/A')
     site_url = website.get('url', 'N/A')
     recipient_emails = website.get('notification_emails', [])
@@ -39,6 +41,7 @@ def send_report(website: dict, check_results: dict):
     logger.info(f"EMAIL DEBUG - Crawl stats: {check_results.get('crawl_stats', {})}")
     logger.info(f"EMAIL DEBUG - Broken links count: {len(check_results.get('broken_links', []))}")
     logger.info(f"EMAIL DEBUG - Missing meta tags count: {len(check_results.get('missing_meta_tags', []))}")
+    logger.info(f"EMAIL DEBUG - Recipient emails: {recipient_emails}")
     
     # Determine if this is a change report
     is_change_report = check_results.get('significant_change_detected', False)
@@ -250,8 +253,11 @@ Visit Dashboard: {dashboard_url}
             return False
 
     # Send the email
+    logger.info(f"EMAIL DEBUG - About to send email for {site_name} to {target_recipients}")
     try:
-        return send_email_alert(subject, html_body, text_body, target_recipients)
+        result = send_email_alert(subject, html_body, text_body, target_recipients)
+        logger.info(f"EMAIL DEBUG - Email sending result: {result}")
+        return result
     except Exception as e:
         logger.error(f"Failed to send email report for {site_name}: {e}")
         return False
@@ -261,8 +267,12 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
     Sends an email alert using SMTP settings from the configuration.
     Simplified version for better reliability.
     """
+    logger.info(f"EMAIL DEBUG - send_email_alert called with subject: {subject}")
+    logger.info(f"EMAIL DEBUG - Recipients: {recipient_emails}")
+    
     try:
         config = get_config_dynamic()
+        logger.info(f"EMAIL DEBUG - Config loaded: {bool(config)}")
         
         # Get email configuration
         smtp_server = config.get('smtp_server')
