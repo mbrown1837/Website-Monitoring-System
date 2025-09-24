@@ -756,7 +756,13 @@ class CrawlerModule:
             self.logger.warning(f"Could not find main page baseline for website: {website_url}")
             self.logger.warning(f"Available baseline URLs: {list(all_baselines.keys())}")
         
-        self.website_manager.update_website(website_id, updates)
+        self.logger.info(f"DEBUG: About to update website {website_id} with updates: {updates}")
+        result = self.website_manager.update_website(website_id, updates)
+        self.logger.info(f"DEBUG: Website update result: {result}")
+        
+        # Verify the update worked
+        updated_website = self.website_manager.get_website(website_id)
+        self.logger.info(f"DEBUG: Updated website all_baselines: {updated_website.get('all_baselines', {})}")
             
     def _normalize_url(self, url):
         if not url:
