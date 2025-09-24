@@ -106,15 +106,15 @@ def send_report(website: dict, check_results: dict):
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []))}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Visual Snapshots</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #17a2b8;">{check_results.get('blur_issues_count', 0)}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #17a2b8;">{check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Blur Issues</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #6f42c1;">{check_results.get('performance_pages_checked', 0)}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #6f42c1;">{check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Performance Checks</div>
                     </div>
                 </div>
@@ -136,29 +136,29 @@ def send_report(website: dict, check_results: dict):
                 <!-- Visual Check Results -->
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #28a745;">
                     <h3 style="color: #28a745; margin-top: 0;">📸 Visual Check Results</h3>
-                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []))}</p>
+                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
-                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_score", 0)}%</p>' if check_results.get('visual_diff_score') else ''}
+                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
                     {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
                 </div>
 
                 <!-- Blur Detection Results -->
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #17a2b8;">
                     <h3 style="color: #17a2b8; margin-top: 0;">🔍 Blur Detection Results</h3>
-                    <p><strong>Images Analyzed:</strong> {check_results.get('images_analyzed', 0)}</p>
-                    <p><strong>Blur Issues Found:</strong> {check_results.get('blur_issues_count', 0)}</p>
-                    {f'<p><strong>Blur Score Average:</strong> {check_results.get("blur_score_average", 0)}%</p>' if check_results.get('blur_score_average') else ''}
-                    {f'<p><strong>Most Blurred Image:</strong> {check_results.get("most_blurred_image", "N/A")}</p>' if check_results.get('most_blurred_image') else ''}
+                    <p><strong>Images Analyzed:</strong> {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}</p>
+                    <p><strong>Blur Issues Found:</strong> {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</p>
+                    {f'<p><strong>Blur Percentage:</strong> {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%</p>' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
+                    {f'<p><strong>Total Images Found:</strong> {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}</p>' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
                 </div>
 
                 <!-- Performance Check Results -->
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #6f42c1;">
                     <h3 style="color: #6f42c1; margin-top: 0;">⚡ Performance Check Results</h3>
-                    <p><strong>Pages Checked:</strong> {check_results.get('performance_pages_checked', 0)}</p>
-                    {f'<p><strong>Average Mobile Score:</strong> {check_results.get("avg_mobile_score", 0)}/100</p>' if check_results.get('avg_mobile_score') else ''}
-                    {f'<p><strong>Average Desktop Score:</strong> {check_results.get("avg_desktop_score", 0)}/100</p>' if check_results.get('avg_desktop_score') else ''}
-                    {f'<p><strong>Slowest Page:</strong> {check_results.get("slowest_page", "N/A")}</p>' if check_results.get('slowest_page') else ''}
-                    {f'<p><strong>Performance Issues:</strong> {check_results.get("performance_issues_count", 0)} found</p>' if check_results.get('performance_issues_count', 0) > 0 else ''}
+                    <p><strong>Pages Checked:</strong> {check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}</p>
+                    {f'<p><strong>Average Mobile Score:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_mobile_score", 0)}/100</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
+                    {f'<p><strong>Average Desktop Score:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_desktop_score", 0)}/100</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_desktop_score') else ''}
+                    {f'<p><strong>Slowest Page:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("slowest_page", "N/A")}</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('slowest_page') else ''}
+                    {f'<p><strong>Performance Issues:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("total_issues", 0)} found</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('total_issues', 0) > 0 else ''}
                 </div>
 
                 <!-- Quick Actions -->
@@ -195,9 +195,9 @@ CHECK RESULTS SUMMARY:
 - Pages Crawled: {check_results.get('crawl_stats', {}).get('pages_crawled', 0)}
 - Broken Links: {len(check_results.get('broken_links', []))}
 - Missing Meta Tags: {len(check_results.get('missing_meta_tags', []))}
-- Visual Snapshots: {len(check_results.get('visual_baselines', []))}
-- Blur Issues: {check_results.get('blur_issues_count', 0)}
-- Performance Checks: {check_results.get('performance_pages_checked', 0)}
+- Visual Snapshots: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
+- Blur Issues: {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}
+- Performance Checks: {check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}
 
 DETAILED CHECK RESULTS:
 =======================
@@ -211,23 +211,23 @@ DETAILED CHECK RESULTS:
 {f'- Missing Meta Tags: {len(check_results.get("missing_meta_tags", []))} found' if len(check_results.get('missing_meta_tags', [])) > 0 else ''}
 
 📸 VISUAL CHECK RESULTS:
-- Snapshots Captured: {len(check_results.get('visual_baselines', []))}
+- Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
-{f'- Visual Difference Score: {check_results.get("visual_diff_score", 0)}%' if check_results.get('visual_diff_score') else ''}
+{f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
 {f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
 
 🔍 BLUR DETECTION RESULTS:
-- Images Analyzed: {check_results.get('images_analyzed', 0)}
-- Blur Issues Found: {check_results.get('blur_issues_count', 0)}
-{f'- Blur Score Average: {check_results.get("blur_score_average", 0)}%' if check_results.get('blur_score_average') else ''}
-{f'- Most Blurred Image: {check_results.get("most_blurred_image", "N/A")}' if check_results.get('most_blurred_image') else ''}
+- Images Analyzed: {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}
+- Blur Issues Found: {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}
+{f'- Blur Percentage: {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
+{f'- Total Images Found: {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
 
 ⚡ PERFORMANCE CHECK RESULTS:
-- Pages Checked: {check_results.get('performance_pages_checked', 0)}
-{f'- Average Mobile Score: {check_results.get("avg_mobile_score", 0)}/100' if check_results.get('avg_mobile_score') else ''}
-{f'- Average Desktop Score: {check_results.get("avg_desktop_score", 0)}/100' if check_results.get('avg_desktop_score') else ''}
-{f'- Slowest Page: {check_results.get("slowest_page", "N/A")}' if check_results.get('slowest_page') else ''}
-{f'- Performance Issues: {check_results.get("performance_issues_count", 0)} found' if check_results.get('performance_issues_count', 0) > 0 else ''}
+- Pages Checked: {check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}
+{f'- Average Mobile Score: {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_mobile_score", 0)}/100' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
+{f'- Average Desktop Score: {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_desktop_score", 0)}/100' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_desktop_score') else ''}
+{f'- Slowest Page: {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("slowest_page", "N/A")}' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('slowest_page') else ''}
+{f'- Performance Issues: {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("total_issues", 0)} found' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('total_issues', 0) > 0 else ''}
 
 QUICK ACTIONS:
 ==============
