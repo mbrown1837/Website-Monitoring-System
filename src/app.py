@@ -605,7 +605,7 @@ def website_history(site_id):
 
     # 2. Scan the baseline directory on disk to find any baselines not in the JSON data
     domain_name = urlparse(website.get('url', '')).netloc.replace('.', '_').replace(':', '_')
-    baseline_dir = os.path.join(DATA_DIRECTORY, 'snapshots', domain_name, site_id, 'baseline')
+    baseline_dir = os.path.join('data', 'snapshots', domain_name, site_id, 'baseline')
     
     if os.path.isdir(baseline_dir):
         logger.info(f"Scanning for baseline files in: {baseline_dir}")
