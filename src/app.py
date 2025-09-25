@@ -547,7 +547,6 @@ def website_history(site_id):
 
     # PERMANENT FIX: Check for baseline files in filesystem if baseline_visual_path is missing
     if not website.get('baseline_visual_path'):
-        import os
         from pathlib import Path
         
         # Try to find existing baseline files by scanning the snapshots directory
@@ -584,7 +583,7 @@ def website_history(site_id):
     # Process subpage baselines
     subpage_baselines = []
     all_baselines = website.get('all_baselines', {})
-    logger.info(f"DEBUG: all_baselines for {website.get('name')}: {all_baselines}")                                                                         
+    logger.info(f"DEBUG: all_baselines for {website.get('name')}: {all_baselines}")
     logger.info(f"DEBUG: all_baselines type: {type(all_baselines)}")
     
     # Use a dictionary keyed by url_path to ensure uniqueness
@@ -605,11 +604,11 @@ def website_history(site_id):
 
     # 2. Scan the baseline directory on disk to find any baselines not in the JSON data
     domain_name = urlparse(website.get('url', '')).netloc.replace('.', '_').replace(':', '_')
-    baseline_dir = os.path.join('data', 'snapshots', domain_name, site_id, 'baseline')
+    baseline_dir_path = os.path.join('data', 'snapshots', domain_name, site_id, 'baseline')
     
-    if os.path.isdir(baseline_dir):
-        logger.info(f"Scanning for baseline files in: {baseline_dir}")
-        for filename in os.listdir(baseline_dir):
+    if os.path.isdir(baseline_dir_path):
+        logger.info(f"Scanning for baseline files in: {baseline_dir_path}")
+        for filename in os.listdir(baseline_dir_path):
             if filename.endswith('.png'):
                 # Derive url_path from filename, e.g., "baseline_contact_us.png" -> "contact_us"
                 url_path = filename.replace('baseline_', '', 1).replace('.png', '')
@@ -665,17 +664,17 @@ def website_history(site_id):
     for entry in history:
         # Make snapshot paths web-accessible
         if entry.get('latest_visual_snapshot_path'):
-            entry['latest_visual_snapshot_path_web'] = make_path_web_accessible(entry['latest_visual_snapshot_path'])                                           
+            entry['latest_visual_snapshot_path_web'] = make_path_web_accessible(entry['latest_visual_snapshot_path'])
         if entry.get('visual_diff_image_path'):
-            entry['visual_diff_image_path_web'] = make_path_web_accessible(entry['visual_diff_image_path'])                                                     
+            entry['visual_diff_image_path_web'] = make_path_web_accessible(entry['visual_diff_image_path'])
         processed_history.append(entry)
 
     # Ensure all data is JSON serializable for the template
     website = make_json_serializable(website)
     processed_history = make_json_serializable(processed_history)
-    
-    return render_template('history.html',
-                           website=website,
+
+    return render_template('history.html', 
+                           website=website, 
                            history=processed_history,
                            baseline_pages=processed_subpage_baselines,
                            config=current_config)
@@ -1892,12 +1891,12 @@ def data_files(filepath):
         if 'baseline' in filepath:
             variations = [
                 filepath,
-                filepath.replace('/baseline_', '/baseline/baseline_'),     
+                filepath.replace('/baseline_', '/baseline/baseline_'),
                 filepath.replace('/baseline/', '/'),
                 filepath.replace('baseline.png', 'home.png'),
-                filepath.replace('baseline.png', 'homepage.png'),
-                filepath.replace('baseline.jpg', 'home.jpg'),
-                filepath.replace('baseline.jpg', 'homepage.jpg')
+            filepath.replace('baseline.png', 'homepage.png'),
+            filepath.replace('baseline.jpg', 'home.jpg'),
+            filepath.replace('baseline.jpg', 'homepage.jpg')
             ]
             
             for var_path in variations:
@@ -1926,8 +1925,8 @@ def data_files(filepath):
                         continue
     
     # All strategies failed
-    logger.error(f"Could not find any matching file for {filepath}")
-    return redirect(url_for('static', filename='img/placeholder.png'))
+            logger.error(f"Could not find any matching file for {filepath}")
+            return redirect(url_for('static', filename='img/placeholder.png'))
     
 def _auto_setup_website(website):
     """Automatically create baseline and run full check for newly imported website."""
