@@ -530,6 +530,28 @@ class CrawlerModule:
             # This ensures emails contain complete data from all check types
             self.logger.info(f"Crawl completed for website {website_id}. Email will be sent after all checks are complete.")
             
+            # For individual check types, send email immediately
+            if visual_check_only or blur_check_only or performance_check_only or crawl_only:
+                # Get website object for email notification
+                website = self.website_manager.get_website(website_id)
+                if website:
+                    # Determine the check type for email notification
+                    if visual_check_only:
+                        check_type_name = "visual"
+                    elif blur_check_only:
+                        check_type_name = "blur"
+                    elif performance_check_only:
+                        check_type_name = "performance"
+                    elif crawl_only:
+                        check_type_name = "crawl"
+                    else:
+                        check_type_name = "check"
+                    
+                    self.logger.info(f"Sending individual {check_type_name} email notification for website {website_id}")
+                    self._send_single_check_email_notification(website, results, check_type_name)
+                else:
+                    self.logger.warning(f"Could not load website {website_id} for email notification")
+            
             return results
                 
         except Exception as e:
