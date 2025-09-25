@@ -673,10 +673,10 @@ def website_history(site_id):
     website = make_json_serializable(website)
     processed_history = make_json_serializable(processed_history)
 
-    return render_template('history.html', 
-                           website=website, 
+    return render_template('history.html',
+                           website=website,
                            history=processed_history,
-                           baseline_pages=processed_subpage_baselines,
+                           subpage_baselines=processed_subpage_baselines,
                            config=current_config)
 
 @app.route('/website/<site_id>/manual_check', methods=['POST'])
