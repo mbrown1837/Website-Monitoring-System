@@ -1,6 +1,6 @@
-# Use Python 3.11 slim image
-# If Docker Hub is unavailable, try: FROM ghcr.io/library/python:3.11-slim
-FROM python:3.11-slim
+# Alternative Dockerfile using GitHub Container Registry
+# Use this if Docker Hub is unavailable
+FROM ghcr.io/library/python:3.11-slim
 
 # Set working directory
 WORKDIR /app
