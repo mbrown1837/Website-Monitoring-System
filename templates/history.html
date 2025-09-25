@@ -281,7 +281,7 @@
                                 <div class="d-flex w-100 justify-content-between">
                                     <h6 class="mb-1">
                                         <i class="bi bi-file-earmark-text"></i> 
-                                        {{ baseline.url | replace(website.url, '') | truncate(40, True) or '/' }}
+                                        {{ baseline.display_name }}
                                     </h6>
                                     <small>{{ baseline.timestamp | humanize_datetime }}</small>
                                 </div>

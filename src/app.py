@@ -647,11 +647,32 @@ def website_history(site_id):
     # Process subpage baselines for display
     processed_subpage_baselines = []
     for url_path, baseline_data in subpage_baselines.items():
+        # Reconstruct the full URL from the baseline data
+        full_url = baseline_data.get('url', '')
+        if not full_url:
+            # If no URL in baseline data, try to reconstruct from url_path
+            base_url = website.get('url', '')
+            if url_path in ['home', 'homepage', 'index', '']:
+                full_url = base_url
+            else:
+                # Convert url_path back to URL path (e.g., "pricing" -> "/pricing")
+                url_suffix = f"/{url_path.replace('_', '-')}" if url_path else ""
+                full_url = f"{base_url.rstrip('/')}{url_suffix}"
+        
+        # Create a better display name
+        if url_path in ['home', 'homepage', 'index', '']:
+            display_name = 'Homepage'
+        else:
+            # Convert url_path to a readable title (e.g., "privacy-policy" -> "Privacy Policy")
+            display_name = url_path.replace('-', ' ').replace('_', ' ').title()
+        
+        
         processed_baseline = {
             'url_path': url_path,
+            'url': full_url,
             'path_web': make_path_web_accessible(baseline_data.get('path')),
             'timestamp': baseline_data.get('timestamp'),
-            'display_name': baseline_data.get('display_name', url_path.replace('_', ' ').title())
+            'display_name': display_name
         }
         processed_subpage_baselines.append(processed_baseline)
     
@@ -673,8 +694,8 @@ def website_history(site_id):
     website = make_json_serializable(website)
     processed_history = make_json_serializable(processed_history)
 
-    return render_template('history.html',
-                           website=website,
+    return render_template('history.html', 
+                           website=website, 
                            history=processed_history,
                            subpage_baselines=processed_subpage_baselines,
                            config=current_config)
