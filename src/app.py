@@ -1830,12 +1830,12 @@ def data_files(filepath):
         if 'baseline' in filepath:
             variations = [
                 filepath,
-                filepath.replace('/baseline_', '/baseline/baseline_'),
+                filepath.replace('/baseline_', '/baseline/baseline_'),     
                 filepath.replace('/baseline/', '/'),
                 filepath.replace('baseline.png', 'home.png'),
-            filepath.replace('baseline.png', 'homepage.png'),
-            filepath.replace('baseline.jpg', 'home.jpg'),
-            filepath.replace('baseline.jpg', 'homepage.jpg')
+                filepath.replace('baseline.png', 'homepage.png'),
+                filepath.replace('baseline.jpg', 'home.jpg'),
+                filepath.replace('baseline.jpg', 'homepage.jpg')
             ]
             
             for var_path in variations:
@@ -1861,10 +1861,11 @@ def data_files(filepath):
                         return send_from_directory(DATA_DIRECTORY, alt_path, as_attachment=False)
                     except Exception as e:
                         logger.error(f"Error serving file {alt_path}: {e}")
+                        continue
     
     # All strategies failed
-            logger.error(f"Could not find any matching file for {filepath}")
-            return redirect(url_for('static', filename='img/placeholder.png'))
+    logger.error(f"Could not find any matching file for {filepath}")
+    return redirect(url_for('static', filename='img/placeholder.png'))
     
 def _auto_setup_website(website):
     """Automatically create baseline and run full check for newly imported website."""
