@@ -1,53 +1,17 @@
-# Use Python 3.11 slim image
-FROM python:3.11-alpine
+# Simple Dockerfile with minimal dependencies to avoid registry issues
+FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for Alpine Linux
-RUN apk add --no-cache \
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    musl-dev \
     libffi-dev \
-    openssl-dev \
-    libxml2-dev \
-    libxslt-dev \
-    zlib-dev \
-    jpeg-dev \
-    libpng-dev \
-    tiff-dev \
-    libwebp-dev \
-    openjpeg-dev \
-    freetype-dev \
-    lcms2-dev \
-    harfbuzz-dev \
-    fribidi-dev \
-    libxcb-dev \
+    libssl-dev \
     curl \
-    mesa-dri-gallium \
-    mesa-gl \
-    glib \
-    libsm \
-    libxext \
-    libxrender \
-    libgomp \
-    glib-dev \
-    # Playwright dependencies
-    nss \
-    nspr \
-    dbus \
-    atk \
-    at-spi2-atk \
-    cups-libs \
-    libxkbcommon \
-    libxcomposite \
-    libxdamage \
-    libxfixes \
-    libxrandr \
-    pango \
-    alsa-lib \
-    at-spi2-core
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
