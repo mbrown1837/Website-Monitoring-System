@@ -1495,10 +1495,30 @@ class CrawlerModule:
     def _send_single_check_email_notification(self, website, check_results, check_type):
         """Send single check email notification using the existing alerter module."""
         try:
-            from src.alerter import send_report
+            from src.alerter import (
+                _send_visual_check_email, 
+                _send_crawl_check_email, 
+                _send_blur_check_email, 
+                send_performance_email,
+                _send_baseline_check_email
+            )
+
+            # Use the specific email function for each check type
+            if check_type == "visual":
+                success = _send_visual_check_email(website, check_results)
+            elif check_type == "crawl":
+                success = _send_crawl_check_email(website, check_results)
+            elif check_type == "blur":
+                success = _send_blur_check_email(website, check_results)
+            elif check_type == "performance":
+                success = send_performance_email(website, check_results)
+            elif check_type == "baseline":
+                success = _send_baseline_check_email(website, check_results)
+            else:
+                # Fallback to general send_report
+                from src.alerter import send_report
+                success = send_report(website, check_results)
             
-            # Send email using the main send_report function
-            success = send_report(website, check_results)
             if success:
                 self.logger.info(f"{check_type.title()} email notification sent for website {website.get('name', 'Unknown')}")
             else:
