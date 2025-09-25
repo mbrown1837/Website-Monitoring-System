@@ -584,22 +584,80 @@ def website_history(site_id):
     # Process subpage baselines
     subpage_baselines = []
     all_baselines = website.get('all_baselines', {})
-    logger.info(f"DEBUG: all_baselines for {website.get('name')}: {all_baselines}")
+    logger.info(f"DEBUG: all_baselines for {website.get('name')}: {all_baselines}")                                                                         
     logger.info(f"DEBUG: all_baselines type: {type(all_baselines)}")
-    for url, baseline_data in all_baselines.items():
-        # Skip the main URL, as it's handled separately
-        if url == website.get('url'):
-            continue
-        
+    
+    # Use a dictionary keyed by url_path to ensure uniqueness
+    unique_baselines = {}
+    
+    # 1. Process baselines from the website's JSON data
+    if website.get('all_baselines'):
+        for url, data in website.get('all_baselines', {}).items():
+            url_path = data.get('url_path')
+            if not url_path:
+                # Sanitize URL to create a url_path if missing
+                parsed_url = urlparse(url)
+                url_path = parsed_url.path.strip('/').replace('/', '_').lower() or 'home'
+                data['url_path'] = url_path
+            
+            if url_path not in unique_baselines:
+                unique_baselines[url_path] = data
+
+    # 2. Scan the baseline directory on disk to find any baselines not in the JSON data
+    domain_name = urlparse(website.get('url', '')).netloc.replace('.', '_').replace(':', '_')
+    baseline_dir = os.path.join(DATA_DIRECTORY, 'snapshots', domain_name, site_id, 'baseline')
+    
+    if os.path.isdir(baseline_dir):
+        logger.info(f"Scanning for baseline files in: {baseline_dir}")
+        for filename in os.listdir(baseline_dir):
+            if filename.endswith('.png'):
+                # Derive url_path from filename, e.g., "baseline_contact_us.png" -> "contact_us"
+                url_path = filename.replace('baseline_', '', 1).replace('.png', '')
+                
+                if url_path not in unique_baselines:
+                    filepath = os.path.join('snapshots', domain_name, site_id, 'baseline', filename).replace("\\", "/")
+                    # This baseline exists on disk but not in our records, so we add it.
+                    unique_baselines[url_path] = {
+                        'path': filepath,
+                        'url_path': url_path,
+                        'display_name': url_path.replace('_', ' ').title(),
+                        'timestamp': website.get('baseline_captured_utc', 'Unknown date')
+                    }
+    
+    # 3. Separate the homepage from the subpages
+    homepage_baseline = None
+    subpage_baselines = {}
+    
+    home_keys = ['home', 'homepage', 'index', '']
+    
+    # Find and set the main page baseline
+    for key in home_keys:
+        if key in unique_baselines:
+            homepage_baseline = unique_baselines.pop(key, None)
+            if homepage_baseline:
+                break
+    
+    # Any remaining baselines are subpages
+    subpage_baselines = unique_baselines
+            
+    # Update the website object with the identified homepage baseline for rendering
+    if homepage_baseline and not website.get('baseline_visual_path'):
+        website['baseline_visual_path'] = homepage_baseline.get('path')
+        website['baseline_captured_utc'] = homepage_baseline.get('timestamp')
+    
+    # Process subpage baselines for display
+    processed_subpage_baselines = []
+    for url_path, baseline_data in subpage_baselines.items():
         processed_baseline = {
-            'url': url,
+            'url_path': url_path,
             'path_web': make_path_web_accessible(baseline_data.get('path')),
-            'timestamp': baseline_data.get('timestamp')
+            'timestamp': baseline_data.get('timestamp'),
+            'display_name': baseline_data.get('display_name', url_path.replace('_', ' ').title())
         }
-        subpage_baselines.append(processed_baseline)
+        processed_subpage_baselines.append(processed_baseline)
     
     # Sort subpages alphabetically by URL for consistent order
-    subpage_baselines.sort(key=lambda x: x['url'])
+    processed_subpage_baselines.sort(key=lambda x: x['url_path'])
     
     # Get and process history
     history = history_manager.get_history_for_site(site_id)
@@ -607,15 +665,19 @@ def website_history(site_id):
     for entry in history:
         # Make snapshot paths web-accessible
         if entry.get('latest_visual_snapshot_path'):
-            entry['latest_visual_snapshot_path_web'] = make_path_web_accessible(entry['latest_visual_snapshot_path'])
+            entry['latest_visual_snapshot_path_web'] = make_path_web_accessible(entry['latest_visual_snapshot_path'])                                           
         if entry.get('visual_diff_image_path'):
-            entry['visual_diff_image_path_web'] = make_path_web_accessible(entry['visual_diff_image_path'])
+            entry['visual_diff_image_path_web'] = make_path_web_accessible(entry['visual_diff_image_path'])                                                     
         processed_history.append(entry)
 
-    return render_template('history.html', 
-                           website=website, 
+    # Ensure all data is JSON serializable for the template
+    website = make_json_serializable(website)
+    processed_history = make_json_serializable(processed_history)
+    
+    return render_template('history.html',
+                           website=website,
                            history=processed_history,
-                           subpage_baselines=subpage_baselines,
+                           baseline_pages=processed_subpage_baselines,
                            config=current_config)
 
 @app.route('/website/<site_id>/manual_check', methods=['POST'])
