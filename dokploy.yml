@@ -1,5 +1,5 @@
 # Dokploy Deployment Configuration
-# This is optimized for Dokploy's multi-container support
+# Optimized for Website Monitoring System
 
 version: '3.8'
 
@@ -35,10 +35,6 @@ services:
       - website-monitor-data:/app/data
       - website-monitor-logs:/app/logs
       - website-monitor-snapshots:/app/data/snapshots
-      - website-monitor-crawl-results:/app/data/crawl_results
-      - website-monitor-performance:/app/data/performance
-      - website-monitor-visual-diffs:/app/data/visual_diffs
-      - website-monitor-blur-detection:/app/data/blur_detection
     
     networks:
       - website-monitor-network
@@ -56,14 +52,6 @@ volumes:
   website-monitor-logs:
     driver: local
   website-monitor-snapshots:
-    driver: local
-  website-monitor-crawl-results:
-    driver: local
-  website-monitor-performance:
-    driver: local
-  website-monitor-visual-diffs:
-    driver: local
-  website-monitor-blur-detection:
     driver: local
 
 networks:

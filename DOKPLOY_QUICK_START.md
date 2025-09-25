@@ -1,76 +1,71 @@
 # 🚀 Dokploy Quick Start Guide
 
-## Prerequisites ✅
-- Dokploy installed on Ubuntu VPS
-- Git repository with your code
-- SMTP credentials for email notifications
+## ⚡ **Quick Deployment Steps**
 
-## Step-by-Step Deployment
-
-### 1. Access Dokploy
-- Open browser: `http://your-vps-ip:3000`
-- Login with your credentials
-
-### 2. Create Project
-- Click **"New Project"**
-- Choose **"Git Repository"**
-- Enter repository URL and branch
-- Project name: `website-monitor`
-
-### 3. Configure Environment Variables
-Add these in project settings:
-
+### **1. Access Dokploy**
 ```
-DASHBOARD_URL=http://your-vps-ip:5001
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-EMAIL_FROM=your-email@gmail.com
+http://your-vps-ip:3000
+```
+
+### **2. Create Project**
+- Click **"New Project"**
+- Name: `website-monitor`
+- Type: **Docker Compose**
+
+### **3. Connect Repository**
+- **Git Source**: `https://github.com/yourusername/website-monitoring`
+- **Branch**: `main`
+
+### **4. Environment Variables**
+```bash
+DASHBOARD_URL=http://your-domain.com
 SECRET_KEY=your-secret-key-here
 SCHEDULER_ENABLED=true
 LOG_LEVEL=INFO
 TZ=UTC
 ```
 
-### 4. Deploy
-- Use `dokploy.yml` configuration
+### **5. Deploy**
 - Click **"Deploy"**
-- Wait for build to complete
+- Wait for build completion
+- Access: `http://your-vps-ip:5001`
 
-### 5. Access Application
-- **URL**: `http://your-vps-ip:5001`
-- **Health Check**: `http://your-vps-ip:5001/health`
+## 🔧 **Required Environment Variables**
 
-## Quick Commands
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DASHBOARD_URL` | Your app's public URL | `https://monitor.yourdomain.com` |
+| `SECRET_KEY` | Flask secret key | `your-secret-key-here` |
+| `SCHEDULER_ENABLED` | Enable scheduler | `true` |
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `TZ` | Timezone | `UTC` |
 
+## 📧 **Optional Email Variables**
 ```bash
-# Check status
-docker ps
-
-# View logs
-docker logs website-monitor
-
-# Access container
-docker exec -it website-monitor bash
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+EMAIL_FROM=your-email@gmail.com
 ```
 
-## Troubleshooting
+## 🎯 **Expected Results**
+- ✅ Dashboard accessible at your URL
+- ✅ Scheduler monitoring websites
+- ✅ Health check: `/health` endpoint
+- ✅ Data persistence across restarts
 
-| Issue | Solution |
-|-------|----------|
-| Port in use | Change port in dokploy.yml |
-| Database error | Check volume mounts |
-| Scheduler not working | Verify SCHEDULER_ENABLED=true |
-| Email not working | Check SMTP credentials |
+## 🆘 **Troubleshooting**
+- **App not starting**: Check environment variables
+- **Scheduler not working**: Verify `SCHEDULER_ENABLED=true`
+- **Database issues**: Check volume mounts
+- **Email not working**: Verify SMTP credentials
 
-## Files Created
-- `dokploy.yml` - Dokploy configuration
-- `Dockerfile.production` - Production Dockerfile
-- `DOKPLOY_DEPLOYMENT.md` - Detailed guide
-- `.env.example` - Environment template
+## 📞 **Need Help?**
+1. Check Dokploy logs
+2. Verify all environment variables
+3. Ensure ports 5001 and 8765 are open
+4. Check Docker container status
 
-## Support
-- Check logs in Dokploy dashboard
-- Verify environment variables
-- Test locally first
+---
+**Ready to deploy? Follow the steps above!** 🚀

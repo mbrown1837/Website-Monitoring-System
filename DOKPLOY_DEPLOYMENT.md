@@ -1,98 +1,107 @@
-# 🚀 Dokploy Deployment Guide for Website Monitoring System
+# 🚀 Dokploy Deployment Guide
 
 ## Prerequisites
-- ✅ Dokploy installed on your Ubuntu VPS
-- ✅ Domain name pointing to your VPS (optional but recommended)
-- ✅ SMTP credentials for email notifications
+- ✅ Dokploy installed on your VPS
+- ✅ Your Website Monitoring app code ready
+- ✅ VPS with Docker support
 
-## Step 1: Access Dokploy Dashboard
+## Step-by-Step Deployment
 
-1. Open your browser and go to: `http://your-vps-ip:3000`
-2. Login with your Dokploy credentials
-3. You should see the Dokploy dashboard
-
-## Step 2: Create New Project
-
-1. Click **"New Project"** or **"+"** button
-2. Choose **"Git Repository"** as source
-3. Enter your repository details:
-   - **Repository URL**: Your Git repository URL
-   - **Branch**: `main` or `master`
-   - **Project Name**: `website-monitor`
-   - **Description**: `Website Monitoring System`
-
-## Step 3: Configure Environment Variables
-
-In the project settings, add these environment variables:
-
-### Required Environment Variables:
+### 1. **Access Dokploy Dashboard**
+```bash
+# Open your browser and go to:
+http://your-vps-ip:3000
 ```
-DASHBOARD_URL=http://your-domain.com (or http://your-vps-ip:5001)
+
+### 2. **Create New Project**
+1. Click **"New Project"** in Dokploy dashboard
+2. Enter project name: `website-monitor`
+3. Choose **"Docker Compose"** as deployment type
+
+### 3. **Upload Your Code**
+**Option A: Git Repository (Recommended)**
+1. Push your code to GitHub/GitLab
+2. In Dokploy, select **"Git Source"**
+3. Enter your repository URL
+4. Select branch: `main` or `master`
+
+**Option B: Direct Upload**
+1. Create a ZIP file of your project
+2. Upload via Dokploy's file upload feature
+
+### 4. **Configure Environment Variables**
+In Dokploy dashboard, add these environment variables:
+
+```bash
+# Required Environment Variables
+DASHBOARD_URL=http://your-domain.com
+SECRET_KEY=your-secret-key-here
+SCHEDULER_ENABLED=true
+LOG_LEVEL=INFO
+TZ=UTC
+
+# Email Configuration (Optional)
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USERNAME=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
 EMAIL_FROM=your-email@gmail.com
-SECRET_KEY=your-secret-key-here
 ```
 
-### Optional Environment Variables:
-```
-LOG_LEVEL=INFO
-TZ=UTC
-SCHEDULER_ENABLED=true
-```
+### 5. **Configure Docker Compose**
+1. In Dokploy, select **"Docker Compose"** tab
+2. Use the provided `dokploy.yml` configuration
+3. Or copy the content from the file I created
 
-## Step 4: Configure Docker Compose
+### 6. **Set Up Domain (Optional)**
+1. In Dokploy, go to **"Domains"** section
+2. Add your domain: `monitor.yourdomain.com`
+3. Dokploy will automatically configure SSL with Let's Encrypt
 
-1. In your project, go to **"Docker Compose"** tab
-2. Replace the default content with the content from `dokploy.yml`
-3. Or upload the `dokploy.yml` file directly
-
-## Step 5: Deploy
-
+### 7. **Deploy**
 1. Click **"Deploy"** button
-2. Wait for the build process to complete (5-10 minutes)
-3. Check the logs for any errors
+2. Wait for the build process to complete
+3. Check logs for any errors
 
-## Step 6: Access Your Application
+## 🔧 **Post-Deployment Configuration**
 
-1. Once deployed, your app will be available at:
-   - **Local**: `http://your-vps-ip:5001`
-   - **Domain**: `http://your-domain.com` (if configured)
+### **Access Your App**
+- **Dashboard**: `http://your-vps-ip:5001` or `https://your-domain.com`
+- **Health Check**: `http://your-vps-ip:5001/health`
 
-2. The health check endpoint is available at:
-   - `http://your-vps-ip:5001/health`
+### **Verify Scheduler is Working**
+1. Go to your app dashboard
+2. Check the "Queue" page
+3. You should see scheduled tasks for your websites
 
-## Step 7: Verify Deployment
+### **Monitor Logs**
+1. In Dokploy dashboard, go to **"Logs"**
+2. Check for any errors or warnings
+3. Look for "SCHEDULER: Loaded X websites" message
 
-1. **Check Health**: Visit `/health` endpoint
-2. **Check Logs**: Monitor logs in Dokploy dashboard
-3. **Test Scheduler**: Check if websites are being monitored
-4. **Test Email**: Add a test website and verify email notifications
+## 🛠️ **Troubleshooting**
 
-## Troubleshooting
+### **Common Issues**
 
-### Common Issues:
+**1. Scheduler Not Starting**
+```bash
+# Check if SCHEDULER_ENABLED=true in environment variables
+# Verify database is accessible
+```
 
-1. **Port Already in Use**:
-   - Change port in `dokploy.yml` from `5001` to another port
-   - Update `DASHBOARD_URL` environment variable
+**2. Database Connection Issues**
+```bash
+# Ensure data volume is properly mounted
+# Check database file permissions
+```
 
-2. **Database Issues**:
-   - Check if volumes are properly mounted
-   - Verify database permissions
+**3. Email Not Working**
+```bash
+# Verify SMTP credentials
+# Check firewall settings for port 587
+```
 
-3. **Scheduler Not Working**:
-   - Check logs for scheduler errors
-   - Verify `SCHEDULER_ENABLED=true` is set
-
-4. **Email Not Working**:
-   - Verify SMTP credentials
-   - Check firewall settings for port 587
-
-### Useful Commands:
-
+### **Useful Commands**
 ```bash
 # Check container status
 docker ps
@@ -102,29 +111,42 @@ docker logs website-monitor
 
 # Access container shell
 docker exec -it website-monitor bash
-
-# Check database
-docker exec -it website-monitor sqlite3 /app/data/website_monitor.db
 ```
 
-## Monitoring & Maintenance
+## 📊 **Monitoring & Maintenance**
 
-1. **Logs**: Monitor logs in Dokploy dashboard
-2. **Updates**: Push changes to Git, Dokploy will auto-deploy
-3. **Backups**: Database is stored in Docker volume
-4. **Scaling**: Dokploy supports horizontal scaling
+### **Health Checks**
+- Dokploy automatically monitors your app health
+- Set up notifications for downtime
+- Monitor resource usage
 
-## Security Considerations
+### **Backups**
+- Dokploy can backup your data volumes
+- Set up automated backups in Dokploy dashboard
+- Export database regularly
 
-1. **Firewall**: Only expose necessary ports (80, 443, 3000)
-2. **SSL**: Configure SSL certificate for production
-3. **Secrets**: Use Dokploy's secret management for sensitive data
-4. **Updates**: Keep Dokploy and Docker images updated
+### **Updates**
+- Push changes to your Git repository
+- Dokploy will automatically redeploy
+- Or manually trigger deployment from dashboard
 
-## Support
+## 🎯 **Expected Results**
+
+After successful deployment:
+- ✅ Website monitoring dashboard accessible
+- ✅ Scheduler running and monitoring websites
+- ✅ Email notifications working
+- ✅ Data persistence across restarts
+- ✅ Automatic SSL certificate (if domain configured)
+
+## 📞 **Support**
 
 If you encounter issues:
-1. Check Dokploy logs
-2. Check application logs
-3. Verify environment variables
-4. Test locally first
+1. Check Dokploy logs first
+2. Verify environment variables
+3. Ensure all required ports are open
+4. Check Docker container status
+
+---
+
+**Next Steps**: After deployment, test your app thoroughly and configure your domain for production use.

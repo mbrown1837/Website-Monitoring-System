@@ -116,7 +116,12 @@ class HistoryManagerSQLite:
     def add_check_record(self, site_id: str, status: str, **details) -> str:
         """Add a new check record to the database."""
         try:
-            check_id = details.get('check_id') or f"check_{int(datetime.now().timestamp())}_{site_id[:8]}"
+            # Generate unique check_id with microsecond precision and random component
+            import time
+            import random
+            timestamp_ms = int(time.time() * 1000000)  # Microsecond precision
+            random_suffix = random.randint(1000, 9999)
+            check_id = details.get('check_id') or f"check_{timestamp_ms}_{random_suffix}_{site_id[:8]}"
             
             # Prepare data for insertion
             data = (

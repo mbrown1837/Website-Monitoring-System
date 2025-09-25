@@ -645,7 +645,18 @@ class CrawlerModule:
                     # If we are capturing the LATEST snapshot (not creating a baseline)
                     if not is_baseline:
                         # Find the corresponding baseline path for this URL
+                        # Try exact match first
                         baseline_info = all_baselines.get(url)
+                        
+                        # If no exact match, try normalized URL matching
+                        if not baseline_info:
+                            normalized_url = self._normalize_url(url)
+                            for stored_url, stored_info in all_baselines.items():
+                                if self._normalize_url(stored_url) == normalized_url:
+                                    baseline_info = stored_info
+                                    self.logger.info(f"Found baseline match using normalized URL: {stored_url} -> {url}")
+                                    break
+                        
                         if baseline_info and 'path' in baseline_info and os.path.exists(baseline_info['path']):
                             baseline_path = baseline_info['path']
                             self.logger.info(f"Comparing latest snapshot for {url} against baseline: {baseline_path}")

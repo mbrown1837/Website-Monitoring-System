@@ -218,6 +218,41 @@ class PerformanceChecker:
         except Exception:
             return False
     
+    def _is_valid_pagespeed_url(self, url):
+        """Check if URL is valid for PageSpeed API."""
+        try:
+            from urllib.parse import urlparse
+            
+            parsed = urlparse(url)
+            
+            # Must have scheme and netloc
+            if not parsed.scheme or not parsed.netloc:
+                return False
+                
+            # Must be HTTP or HTTPS
+            if parsed.scheme not in ['http', 'https']:
+                return False
+                
+            # Skip test/development URLs that PageSpeed API doesn't support
+            invalid_domains = [
+                'httpstat.us',
+                'httpbin.org',
+                'localhost',
+                '127.0.0.1',
+                '0.0.0.0',
+                'example.com',
+                'test.com'
+            ]
+            
+            domain = parsed.netloc.lower()
+            for invalid_domain in invalid_domains:
+                if invalid_domain in domain:
+                    return False
+                    
+            return True
+        except Exception:
+            return False
+    
     def _call_pagespeed_api(self, url, strategy='mobile', max_retries=3):
         """
         Call Google PageSpeed Insights API with retry logic.
@@ -230,6 +265,11 @@ class PerformanceChecker:
         Returns:
             dict: API response data
         """
+        # Validate URL for PageSpeed API
+        if not self._is_valid_pagespeed_url(url):
+            self.logger.warning(f"Skipping PageSpeed API for invalid URL: {url}")
+            return None
+            
         params = {
             'url': url,
             'key': self.api_key,
