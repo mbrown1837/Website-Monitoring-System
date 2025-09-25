@@ -1,0 +1,71 @@
+# Dokploy Deployment Configuration
+# This is optimized for Dokploy's multi-container support
+
+version: '3.8'
+
+services:
+  website-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: website-monitor
+    restart: unless-stopped
+    
+    ports:
+      - "5001:5001"
+    
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///data/website_monitor.db
+      - WEBSOCKET_HOST=0.0.0.0
+      - WEBSOCKET_PORT=8765
+      - DASHBOARD_URL=${DASHBOARD_URL}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - SECRET_KEY=${SECRET_KEY}
+      - SCHEDULER_ENABLED=true
+      - LOG_LEVEL=INFO
+      - TZ=UTC
+    
+    volumes:
+      - website-monitor-data:/app/data
+      - website-monitor-logs:/app/logs
+      - website-monitor-snapshots:/app/data/snapshots
+      - website-monitor-crawl-results:/app/data/crawl_results
+      - website-monitor-performance:/app/data/performance
+      - website-monitor-visual-diffs:/app/data/visual_diffs
+      - website-monitor-blur-detection:/app/data/blur_detection
+    
+    networks:
+      - website-monitor-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  website-monitor-data:
+    driver: local
+  website-monitor-logs:
+    driver: local
+  website-monitor-snapshots:
+    driver: local
+  website-monitor-crawl-results:
+    driver: local
+  website-monitor-performance:
+    driver: local
+  website-monitor-visual-diffs:
+    driver: local
+  website-monitor-blur-detection:
+    driver: local
+
+networks:
+  website-monitor-network:
+    driver: bridge

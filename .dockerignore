@@ -2,69 +2,53 @@
 .git
 .gitignore
 
-# Python
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-.tox
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git
-.mypy_cache
-.pytest_cache
-.hypothesis
+# Documentation
+docs/
+*.md
+!README.md
 
-# Virtual environments
-venv/
-ENV/
-env/
-.venv/
+# Development files
+.env
+.env.local
+.env.development
+.env.test
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Application specific
-data/*.db
-data/*.log
-screenshots/
-logs/
-*.csv
-*.xlsx
-*.xls
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
 
-# Documentation
-README.md
-*.md
-docs/
-
-# Test files
+# Testing
 tests/
-test_*
-*_test.py
+.pytest_cache/
+.coverage
+
+# Logs
+*.log
+logs/
+
+# Data (will be mounted as volumes)
+data/snapshots/
+data/crawl_results/
+data/performance/
+data/visual_diffs/
+data/blur_detection/
 
 # Temporary files
-tmp/
-temp/
+*.tmp
+*.temp

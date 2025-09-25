@@ -1,0 +1,136 @@
+# Production Docker Compose Configuration
+# Optimized for production deployment with Nginx reverse proxy
+
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: website-monitor-nginx
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - website-monitor-static:/var/www/static:ro
+    
+    depends_on:
+      - website-monitor
+    
+    networks:
+      - website-monitor-network
+
+  website-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: website-monitor-app
+    restart: unless-stopped
+    
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///data/website_monitor.db
+      - WEBSOCKET_HOST=0.0.0.0
+      - WEBSOCKET_PORT=8765
+      - DASHBOARD_URL=${DASHBOARD_URL}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - SECRET_KEY=${SECRET_KEY}
+      - SCHEDULER_ENABLED=true
+      - LOG_LEVEL=INFO
+      - TZ=UTC
+    
+    volumes:
+      - website-monitor-data:/app/data
+      - website-monitor-logs:/app/logs
+      - website-monitor-screenshots:/app/screenshots
+      - website-monitor-config:/app/config
+      - website-monitor-static:/app/static
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    networks:
+      - website-monitor-network
+
+  # Separate scheduler service for better process isolation
+  website-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: website-monitor-scheduler
+    restart: unless-stopped
+    
+    command: ["python", "src/scheduler.py"]
+    
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///data/website_monitor.db
+      - SCHEDULER_ENABLED=true
+      - LOG_LEVEL=INFO
+      - TZ=UTC
+    
+    volumes:
+      - website-monitor-data:/app/data
+      - website-monitor-logs:/app/logs
+      - website-monitor-screenshots:/app/screenshots
+      - website-monitor-config:/app/config
+    
+    networks:
+      - website-monitor-network
+    
+    depends_on:
+      - website-monitor
+
+  # Database backup service
+  db-backup:
+    image: alpine:latest
+    container_name: website-monitor-backup
+    restart: "no"
+    
+    volumes:
+      - website-monitor-data:/data:ro
+      - ./backups:/backups
+    
+    command: |
+      sh -c "
+        apk add --no-cache sqlite3 &&
+        while true; do
+          timestamp=$$(date +%Y%m%d_%H%M%S)
+          sqlite3 /data/website_monitor.db '.backup /backups/website_monitor_$$timestamp.db'
+          find /backups -name 'website_monitor_*.db' -mtime +7 -delete
+          sleep 86400
+        done
+      "
+    
+    networks:
+      - website-monitor-network
+
+volumes:
+  website-monitor-data:
+    driver: local
+  website-monitor-logs:
+    driver: local
+  website-monitor-screenshots:
+    driver: local
+  website-monitor-config:
+    driver: local
+  website-monitor-static:
+    driver: local
+
+networks:
+  website-monitor-network:
+    driver: bridge

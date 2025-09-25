@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 from src.crawler_module import CrawlerModule
 from src.comparators import compare_screenshots, compare_html_text_content
 from src.snapshot_tool import save_visual_snapshot, save_html_snapshot
-from src.history_manager import HistoryManager
+from src.history_manager_sqlite import HistoryManager
 
 logger = setup_logging()
 config = get_config()
@@ -417,6 +417,11 @@ def schedule_website_monitoring_tasks(config_path=None):
     # Force reload websites from database
     logger.info("SCHEDULER: Forcing website reload from database...")
     website_manager._load_websites(force_reload=True)
+    
+    # Debug: Log database path and website count
+    logger.info(f"SCHEDULER: Database path: {website_manager.db_path}")
+    logger.info(f"SCHEDULER: Cache loaded: {website_manager._websites_loaded}")
+    logger.info(f"SCHEDULER: Cache size: {len(website_manager._websites_cache)}")
 
     try:
         all_websites_map = website_manager.list_websites()

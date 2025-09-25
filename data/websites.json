@@ -214,5 +214,82 @@
     "baseline_visual_path_web": null,
     "exclude_pages_keywords": [],
     "last_checked_simple": "Never"
+  },
+  {
+    "id": "bcab634e-ded1-4627-82e1-6df26d4aba20",
+    "url": "https://httpbin.org",
+    "name": "Test Baseline Site",
+    "check_interval_minutes": 30,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-09-24T18:29:42.659001+00:00",
+    "last_updated_utc": "2025-09-24T18:34:55.642897+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {
+      "https://httpbin.org/": {
+        "path": "data/snapshots/httpbin_org/bcab634e-ded1-4627-82e1-6df26d4aba20/baseline/baseline_home.png",
+        "timestamp": "2025-09-24T18:34:55.633748+00:00"
+      },
+      "https://httpbin.org/forms/post": {
+        "path": "data/snapshots/httpbin_org/bcab634e-ded1-4627-82e1-6df26d4aba20/baseline/baseline_forms_post.png",
+        "timestamp": "2025-09-24T18:34:55.633748+00:00"
+      }
+    },
+    "has_subpage_baselines": true,
+    "baseline_visual_path": "data/snapshots/httpbin_org/bcab634e-ded1-4627-82e1-6df26d4aba20/baseline/baseline_home.png",
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": null,
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never"
+  },
+  {
+    "id": "30b7dafe-6d4d-48bc-9ce0-d4378d6dbb38",
+    "url": "https://httpbin.org",
+    "name": "Test Baseline Site",
+    "check_interval_minutes": 30,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-09-24T18:38:11.112522+00:00",
+    "last_updated_utc": "2025-09-24T18:43:17.831015+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {
+      "https://httpbin.org/": {
+        "path": "data/snapshots/httpbin_org/30b7dafe-6d4d-48bc-9ce0-d4378d6dbb38/baseline/baseline_home.png",
+        "timestamp": "2025-09-24T18:43:17.820751+00:00"
+      },
+      "https://httpbin.org/forms/post": {
+        "path": "data/snapshots/httpbin_org/30b7dafe-6d4d-48bc-9ce0-d4378d6dbb38/baseline/baseline_forms_post.png",
+        "timestamp": "2025-09-24T18:43:17.820751+00:00"
+      }
+    },
+    "has_subpage_baselines": true,
+    "baseline_visual_path": "data/snapshots/httpbin_org/30b7dafe-6d4d-48bc-9ce0-d4378d6dbb38/baseline/baseline_home.png",
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": null,
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never",
+    "baseline_captured_utc": "2025-09-24T18:43:17.820751+00:00"
   }
 ]

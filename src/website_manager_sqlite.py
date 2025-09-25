@@ -17,7 +17,7 @@ from src.logger_setup import setup_logging
 import src.content_retriever as content_retriever
 import src.snapshot_tool as snapshot_tool
 from urllib.parse import urlparse
-from .path_utils import get_project_root, resolve_path, clean_path_for_logging
+from src.path_utils import get_project_root, resolve_path, clean_path_for_logging
 
 class WebsiteManagerSQLite:
     def __init__(self, config_path=None):
@@ -488,7 +488,7 @@ class WebsiteManagerSQLite:
                     except Exception as table_error:
                         self.logger.warning(f"Could not clean up table {table}: {table_error}")
                 
-                conn.commit()
+                    conn.commit()
                 self.logger.info(f"Database cleanup completed: {total_deleted} total records deleted")
                 return True
                 
@@ -600,7 +600,7 @@ class WebsiteManagerSQLite:
         except Exception as e:
             self.logger.error(f"Error cleaning up snapshots for website {website_id}: {e}")
             return False
-
+                    
     def _cleanup_website_scheduler_task(self, website_id: str) -> bool:
         """Clean up scheduler task for a website."""
         try:
