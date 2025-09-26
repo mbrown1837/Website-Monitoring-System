@@ -1,5 +1,4 @@
 name,url,monitoring_interval,max_depth,enable_crawl,enable_visual,enable_blur_detection,enable_performance,exclude_pages_keywords
-Westland DRE,https://westlanddre.com,86400,2,true,true,true,true,
-Digital Clics,https://digitalclics.com,86400,2,true,true,true,true,
-Example Site 1,https://example.com,86400,2,true,true,true,true,
-Example Site 2,https://httpbin.org,86400,2,true,true,true,true,
+Your Website Name,https://your-website.com,86400,2,true,true,true,true,
+Another Website,https://another-website.com,86400,2,true,true,true,true,
+Third Website,https://third-website.com,86400,2,true,true,true,true,
