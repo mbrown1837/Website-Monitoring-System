@@ -12,6 +12,14 @@ from email.mime.image import MIMEImage
 from datetime import datetime
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
+from src.container_utils import (
+    safe_format_visual_score,
+    safe_format_broken_links,
+    safe_format_missing_meta,
+    safe_format_blur_percentage,
+    safe_format_performance_scores,
+    safe_format_baseline_comparison
+)
 
 logger = setup_logging()
 
@@ -215,6 +223,13 @@ def _create_email_content(site_name: str, site_url: str, check_type: str, check_
     </html>
     """
 
+def _safe_f_string(template: str, **kwargs) -> str:
+    """Safely format f-strings to avoid syntax issues in containers."""
+    try:
+        return template.format(**kwargs)
+    except Exception:
+        return template
+
 def _create_metrics_section(check_type: str, check_results: dict) -> str:
     """
     Create metrics section based on check type.
@@ -357,7 +372,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #28a745; margin-top: 0;">📸 Visual Comparison Results</h3>
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
-                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
+                    {safe_format_visual_score(check_results)}
                     <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
                 </div>
         """
@@ -374,8 +389,8 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Total Links Found:</strong> {check_results.get('crawl_stats', {}).get('total_links', 0)}</p>
                     <p><strong>Total Images Found:</strong> {check_results.get('crawl_stats', {}).get('total_images', 0)}</p>
                     <p><strong>Sitemap Found:</strong> {'Yes' if check_results.get('crawl_stats', {}).get('sitemap_found', False) else 'No'}</p>
-                    {f'<p><strong>Broken Links:</strong> {len(broken_links)} found</p>' if broken_links else ''}
-                    {f'<p><strong>Missing Meta Tags:</strong> {len(missing_meta)} found</p>' if missing_meta else ''}
+                    {safe_format_broken_links(broken_links)}
+                    {safe_format_missing_meta(missing_meta)}
                 </div>
         """
     
@@ -387,7 +402,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #17a2b8; margin-top: 0;">🔍 Blur Detection Results</h3>
                     <p><strong>Images Analyzed:</strong> {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}</p>
                     <p><strong>Blur Issues Found:</strong> {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</p>
-                    {f'<p><strong>Blur Percentage:</strong> {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%</p>' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
+                    {safe_format_blur_percentage(check_results)}
                     {f'<p><strong>Total Images Found:</strong> {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}</p>' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
                 </div>
         """
@@ -453,7 +468,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #28a745; margin-top: 0;">📸 Visual Check Results</h3>
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
-                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
+                    {safe_format_visual_score(check_results)}
                     <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
                 </div>
 
@@ -462,7 +477,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #17a2b8; margin-top: 0;">🔍 Blur Detection Results</h3>
                     <p><strong>Images Analyzed:</strong> {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}</p>
                     <p><strong>Blur Issues Found:</strong> {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</p>
-                    {f'<p><strong>Blur Percentage:</strong> {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%</p>' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
+                    {safe_format_blur_percentage(check_results)}
                     {f'<p><strong>Total Images Found:</strong> {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}</p>' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
                 </div>
 
