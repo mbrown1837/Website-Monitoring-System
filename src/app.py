@@ -2313,6 +2313,19 @@ if __name__ == '__main__':
     logger.info("🚀 Starting queue processor...")
     start_queue_processor()  # Use environment detection
     
+    # Ensure queue processor is running
+    try:
+        from src.queue_processor import get_queue_processor
+        queue_processor = get_queue_processor()
+        if not queue_processor._running:
+            logger.warning("Queue processor not running, starting it...")
+            queue_processor.start()
+        logger.info("✅ Queue processor is running")
+        logger.info(f"Queue processor status: running={queue_processor._running}")
+        logger.info(f"Queue items pending: {len(queue_processor.get_queue_status())}")
+    except Exception as e:
+        logger.error(f"Failed to start queue processor: {e}")
+    
     # Explicitly load app's config for its run parameters
     app_specific_config = get_config()  # Use environment detection 
     
