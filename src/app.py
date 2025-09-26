@@ -197,35 +197,35 @@ def settings():
     if request.method == 'POST':
         try:
             # Update general settings
-            current_config['log_level'] = request.form.get('log_level', current_config['log_level'])
+            current_config['log_level'] = request.form.get('log_level', current_config.get('log_level', 'INFO'))
             current_config['default_monitoring_interval_minutes'] = int(request.form.get('default_monitoring_interval_minutes', current_config.get('default_monitoring_interval_minutes', 60)))
 
             # Update Snapshot/Playwright settings
-            current_config['snapshot_directory'] = request.form.get('snapshot_directory', current_config['snapshot_directory'])
-            current_config['playwright_browser_type'] = request.form.get('playwright_browser_type', current_config['playwright_browser_type'])
+            current_config['snapshot_directory'] = request.form.get('snapshot_directory', current_config.get('snapshot_directory', 'data/snapshots'))
+            current_config['playwright_browser_type'] = request.form.get('playwright_browser_type', current_config.get('playwright_browser_type', 'chromium'))
             current_config['playwright_headless_mode'] = request.form.get('playwright_headless_mode') == 'True'
-            current_config['playwright_user_agent'] = request.form.get('playwright_user_agent', current_config['playwright_user_agent'])
-            current_config['playwright_render_delay_ms'] = int(request.form.get('playwright_render_delay_ms', current_config['playwright_render_delay_ms']))
-            current_config['playwright_navigation_timeout_ms'] = int(request.form.get('playwright_navigation_timeout_ms', current_config['playwright_navigation_timeout_ms']))
+            current_config['playwright_user_agent'] = request.form.get('playwright_user_agent', current_config.get('playwright_user_agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'))
+            current_config['playwright_render_delay_ms'] = int(request.form.get('playwright_render_delay_ms', current_config.get('playwright_render_delay_ms', 3000)))
+            current_config['playwright_navigation_timeout_ms'] = int(request.form.get('playwright_navigation_timeout_ms', current_config.get('playwright_navigation_timeout_ms', 60000)))
             
             # New Percentage-based Threshold
             current_config['visual_change_alert_threshold_percent'] = float(request.form.get('visual_change_alert_threshold_percent', current_config.get('visual_change_alert_threshold_percent', 1.0)))
             
             # Update Notification (SMTP) settings
-            current_config['notification_email_from'] = request.form.get('notification_email_from', current_config['notification_email_from'])
-            current_config['notification_email_to'] = request.form.get('notification_email_to', current_config['notification_email_to'])
-            current_config['smtp_server'] = request.form.get('smtp_server', current_config.get('smtp_server'))
+            current_config['notification_email_from'] = request.form.get('notification_email_from', current_config.get('notification_email_from', 'websitecheckapp@digitalclics.com'))
+            current_config['notification_email_to'] = request.form.get('notification_email_to', current_config.get('notification_email_to', 'websitecheckapp@digitalclics.com'))
+            current_config['smtp_server'] = request.form.get('smtp_server', current_config.get('smtp_server', 'mail.digitalclics.com'))
             current_config['smtp_port'] = int(request.form.get('smtp_port', current_config.get('smtp_port', 587)))
-            current_config['smtp_username'] = request.form.get('smtp_username', current_config.get('smtp_username'))
-            current_config['smtp_password'] = request.form.get('smtp_password', current_config.get('smtp_password'))
+            current_config['smtp_username'] = request.form.get('smtp_username', current_config.get('smtp_username', 'websitecheckapp@digitalclics.com'))
+            current_config['smtp_password'] = request.form.get('smtp_password', current_config.get('smtp_password', ''))
             current_config['smtp_use_tls'] = request.form.get('smtp_use_tls') == 'True'
 
             # Update Comparison Thresholds
             # Convert percentage input from form (0-100) to decimal (0-1) for storage
-            content_threshold_percent = float(request.form.get('content_change_threshold', current_config['content_change_threshold'] * 100))
+            content_threshold_percent = float(request.form.get('content_change_threshold', current_config.get('content_change_threshold', 1.0) * 100))
             current_config['content_change_threshold'] = content_threshold_percent / 100.0
             
-            structure_threshold_percent = float(request.form.get('structure_change_threshold', current_config['structure_change_threshold'] * 100))
+            structure_threshold_percent = float(request.form.get('structure_change_threshold', current_config.get('structure_change_threshold', 1.0) * 100))
             current_config['structure_change_threshold'] = structure_threshold_percent / 100.0
             
             current_config['visual_difference_threshold'] = float(request.form.get('visual_difference_threshold', current_config.get('visual_difference_threshold', 5.0)))
@@ -239,6 +239,10 @@ def settings():
 
             # Update Performance Monitoring settings
             current_config['google_pagespeed_api_key'] = request.form.get('google_pagespeed_api_key', current_config.get('google_pagespeed_api_key', ''))
+            
+            # Update additional settings that might be missing
+            current_config['smtp_use_ssl'] = request.form.get('smtp_use_ssl') == 'True'
+            current_config['default_notification_email'] = request.form.get('default_notification_email', current_config.get('default_notification_email', 'websitecheckapp@digitalclics.com'))
 
             save_config(current_config)  # Use environment detection
             flash('Settings updated successfully!', 'success')
@@ -415,7 +419,7 @@ def add_website():
                         except Exception as e:
                             logger.error(f"Failed to add full check to queue for {name}: {e}")
                             flash(f'Website "{name}" added, but failed to queue initial check. You can run it manually from the dashboard.', 'warning')
-                            return redirect(url_for('index'))
+                        return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error adding website: {e}", exc_info=True)
             flash(f'Error adding website: {str(e)}', 'danger')
