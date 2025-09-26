@@ -466,8 +466,20 @@ class CrawlerModule:
                     self.logger.info(f"Creating visual baselines for website {website_id}")
                     self._create_visual_baselines(results)
                 else:
-                    self.logger.info(f"Capturing latest snapshots for website {website_id}")
-                    self._capture_latest_snapshots(results)
+                    # Check if baselines exist before doing visual check
+                    website_config = self.website_manager.get_website(website_id)
+                    all_baselines = website_config.get('all_baselines', {}) if website_config else {}
+                    
+                    if not all_baselines:
+                        # No baselines exist, return error message
+                        self.logger.warning(f"No baselines found for website {website_id}. Cannot perform visual check.")
+                        results['error'] = "Please first create baselines, then do the visual check."
+                        results['status'] = 'error'
+                        return results
+                    else:
+                        self.logger.info(f"Found {len(all_baselines)} baselines for website {website_id}. Proceeding with visual check.")
+                        self.logger.info(f"Capturing latest snapshots for website {website_id}")
+                        self._capture_latest_snapshots(results)
             else:
                 self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
             
@@ -599,7 +611,8 @@ class CrawlerModule:
         self.logger.info(f"DEBUG: _create_visual_baselines called for website {results.get('website_id')}")
         self._creating_baseline = True
         try:
-            self._handle_snapshots(results, is_baseline=True)
+            # Only create baselines for pages that will do visual checks
+            self._handle_snapshots(results, is_baseline=True, visual_check_only=True)
             self.logger.info(f"DEBUG: _create_visual_baselines completed for website {results.get('website_id')}")
         finally:
             self._creating_baseline = False
@@ -607,7 +620,7 @@ class CrawlerModule:
     def _capture_latest_snapshots(self, results):
         self._handle_snapshots(results, is_baseline=False)
 
-    def _handle_snapshots(self, results, is_baseline):
+    def _handle_snapshots(self, results, is_baseline, visual_check_only=False):
         from src.snapshot_tool import save_visual_snapshot
         from src.comparators import compare_screenshots_percentage # Import our comparison function
 
@@ -626,13 +639,27 @@ class CrawlerModule:
 
         # --- FIX: Filter out direct links to images and excluded pages ---
         image_ext_pattern = re.compile(r'\.(png|jpg|jpeg|gif|webp|svg|bmp)$', re.IGNORECASE)
-        pages_to_snapshot = [
-            p for p in results.get('all_pages', []) 
-            if (p.get('is_internal') and 
-                p.get('status_code') == 200 and 
-                not image_ext_pattern.search(p['url']) and
-                not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
-        ]
+        
+        if visual_check_only:
+            # For baseline creation, only create baselines for pages that will do visual checks
+            # This means excluding pages that would be excluded from visual checks
+            pages_to_snapshot = [
+                p for p in results.get('all_pages', []) 
+                if (p.get('is_internal') and 
+                    p.get('status_code') == 200 and 
+                    not image_ext_pattern.search(p['url']) and
+                    not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
+            ]
+            self.logger.info(f"Creating baselines only for pages that will do visual checks: {len(pages_to_snapshot)} pages")
+        else:
+            # For regular visual checks, use all valid pages
+            pages_to_snapshot = [
+                p for p in results.get('all_pages', []) 
+                if (p.get('is_internal') and 
+                    p.get('status_code') == 200 and 
+                    not image_ext_pattern.search(p['url']) and
+                    not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
+            ]
         
         if not pages_to_snapshot:
             self.logger.warning(f"No valid internal pages found to capture {log_action} snapshots.")

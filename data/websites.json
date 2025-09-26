@@ -1,26 +1,38 @@
 [
   {
-    "id": "e78b2010-533f-4320-9200-f1709e76b87e",
+    "id": "44da625f-a9ff-48d7-b03b-ce5672f3f450",
     "url": "https://westlanddre.com/",
-    "name": "wsestkadnn",
+    "name": "Westland",
     "check_interval_minutes": 60,
     "is_active": true,
     "tags": [],
     "notification_emails": [],
-    "created_utc": "2025-09-25T21:45:36.352120+00:00",
-    "last_updated_utc": "2025-09-25T21:48:50.149327+00:00",
+    "created_utc": "2025-09-25T22:30:18.011311+00:00",
+    "last_updated_utc": "2025-09-25T22:41:25.905978+00:00",
     "render_delay": 6,
     "max_crawl_depth": 2,
     "visual_diff_threshold": 5,
     "capture_subpages": true,
     "all_baselines": {
       "https://westlanddre.com/": {
-        "path": "data/snapshots/westlanddre_com/e78b2010-533f-4320-9200-f1709e76b87e/baseline/baseline_home.png",
-        "timestamp": "2025-09-25T21:48:50.147625+00:00"
+        "path": "data/snapshots/westlanddre_com/44da625f-a9ff-48d7-b03b-ce5672f3f450/baseline/baseline_home.png",
+        "timestamp": "2025-09-25T22:41:25.644845+00:00"
+      },
+      "https://westlanddre.com/pricing": {
+        "path": "data/snapshots/westlanddre_com/44da625f-a9ff-48d7-b03b-ce5672f3f450/baseline/baseline_pricing.png",
+        "timestamp": "2025-09-25T22:41:25.644845+00:00"
+      },
+      "https://westlanddre.com/privacy-policy": {
+        "path": "data/snapshots/westlanddre_com/44da625f-a9ff-48d7-b03b-ce5672f3f450/baseline/baseline_privacy-policy.png",
+        "timestamp": "2025-09-25T22:41:25.644845+00:00"
+      },
+      "https://westlanddre.com/disclaimer": {
+        "path": "data/snapshots/westlanddre_com/44da625f-a9ff-48d7-b03b-ce5672f3f450/baseline/baseline_disclaimer.png",
+        "timestamp": "2025-09-25T22:41:25.644845+00:00"
       }
     },
     "has_subpage_baselines": true,
-    "baseline_visual_path": "data/snapshots/westlanddre_com/e78b2010-533f-4320-9200-f1709e76b87e/baseline/baseline_home.png",
+    "baseline_visual_path": "data/snapshots/westlanddre_com/44da625f-a9ff-48d7-b03b-ce5672f3f450/baseline/baseline_home.png",
     "enable_blur_detection": false,
     "blur_detection_scheduled": false,
     "blur_detection_manual": true,
@@ -31,7 +43,6 @@
     "auto_full_check_enabled": true,
     "baseline_visual_path_web": null,
     "exclude_pages_keywords": [],
-    "last_checked_simple": "Never",
-    "baseline_captured_utc": "2025-09-25T21:48:50.147625+00:00"
+    "last_checked_simple": "2025-09-26 05:58 UTC"
   }
 ]

@@ -207,6 +207,21 @@ class QueueProcessor:
                 create_baseline=create_baseline
             )
             
+            # Check if the crawler returned an error result
+            if results.get('status') == 'error' and results.get('error'):
+                error_message = results.get('error', 'Unknown error occurred')
+                self.logger.warning(f"⚠️ Crawler returned error for {website_name}: {error_message}")
+                
+                # Update status to failed with user-friendly error message
+                self.website_manager.update_queue_status(
+                    queue_id, 
+                    'failed', 
+                    error_message=error_message
+                )
+                
+                self._broadcast_status_update(queue_id, 'failed', f"Failed {check_type} check for {website_name}: {error_message}")
+                return
+            
             # Update status to completed
             # Convert results to JSON-serializable format
             serializable_results = self._make_json_serializable(results)

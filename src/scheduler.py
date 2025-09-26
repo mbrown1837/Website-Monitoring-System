@@ -343,6 +343,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             
             # Send email notification for baseline creation too
             try:
+                check_result['is_manual'] = False  # Mark as scheduled check
                 email_result = alerter.send_report(website, check_result)
                 if email_result:
                     logger.info(f"Email sent successfully for {website.get('name')} baseline creation")
@@ -372,6 +373,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             # This ensures complete data is included in emails
             logger.info(f"Sending email notification for {website.get('name')} with complete check results.")
             try:
+                check_result['is_manual'] = False  # Mark as scheduled check
                 email_result = alerter.send_report(website, check_result)
                 if email_result:
                     logger.info(f"Email sent successfully for {website.get('name')}")
