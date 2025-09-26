@@ -521,7 +521,7 @@ Status: {check_results.get('status', 'Completed')}
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}'}
+- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}
 
 QUICK ACTIONS:
 ==============
@@ -695,7 +695,7 @@ DETAILED CHECK RESULTS:
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}'}
+- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}
 
 🔍 BLUR DETECTION RESULTS:
 - Images Analyzed: {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}
