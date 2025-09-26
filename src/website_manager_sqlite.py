@@ -459,32 +459,40 @@ class WebsiteManagerSQLite:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 
-                # List of tables to clean up
-                cleanup_tables = [
-                    'check_history',
-                    'crawl_history', 
-                    'crawl_results',
-                    'broken_links',
-                    'missing_meta_tags',
-                    'manual_check_queue',
-                    'scheduler_log',
-                    'scheduler_status',
-                    'scheduler_metrics',
-                    'blur_detection_results'  # Add blur detection cleanup
-                ]
+                # List of tables to clean up with their website ID column names
+                cleanup_tables = {
+                    'check_history': 'site_id',
+                    'crawl_history': 'site_id', 
+                    'crawl_results': 'site_id',
+                    'broken_links': 'site_id',
+                    'missing_meta_tags': 'site_id',
+                    'manual_check_queue': 'website_id',
+                    'scheduler_log': 'website_id',
+                    'scheduler_status': 'website_id',  # This table doesn't have website_id column
+                    'scheduler_metrics': 'website_id',
+                    'blur_detection_results': 'site_id',
+                    'performance_results': 'site_id'
+                }
                 
                 total_deleted = 0
-                for table in cleanup_tables:
+                for table, id_column in cleanup_tables.items():
                     try:
                         # Check if table exists
                         cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'")
                         if cursor.fetchone():
-                            # Delete records for this website
-                            cursor.execute(f"DELETE FROM {table} WHERE website_id = ?", (website_id,))
-                            deleted_count = cursor.rowcount
-                            total_deleted += deleted_count
-                            if deleted_count > 0:
-                                self.logger.info(f"Deleted {deleted_count} records from {table}")
+                            # Check if the ID column exists in this table
+                            cursor.execute(f"PRAGMA table_info({table})")
+                            columns = [col[1] for col in cursor.fetchall()]
+                            
+                            if id_column in columns:
+                                # Delete records for this website
+                                cursor.execute(f"DELETE FROM {table} WHERE {id_column} = ?", (website_id,))
+                                deleted_count = cursor.rowcount
+                                total_deleted += deleted_count
+                                if deleted_count > 0:
+                                    self.logger.info(f"Deleted {deleted_count} records from {table}")
+                            else:
+                                self.logger.debug(f"Table {table} does not have column {id_column}, skipping")
                     except Exception as table_error:
                         self.logger.warning(f"Could not clean up table {table}: {table_error}")
                 
