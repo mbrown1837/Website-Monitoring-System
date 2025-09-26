@@ -274,14 +274,19 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
         config = get_config_dynamic()
         logger.info(f"EMAIL DEBUG - Config loaded: {bool(config)}")
         
-        # Get email configuration
-        smtp_server = config.get('smtp_server')
-        smtp_port = config.get('smtp_port', 587)
-        smtp_username = config.get('smtp_username')
-        smtp_password = config.get('smtp_password')
-        from_email = config.get('notification_email_from')
-        use_tls = config.get('smtp_use_tls', True)
-        use_ssl = config.get('smtp_use_ssl', False)
+        # Get email configuration with environment variable overrides
+        smtp_server = os.environ.get('SMTP_SERVER') or config.get('smtp_server')
+        smtp_port = int(os.environ.get('SMTP_PORT', config.get('smtp_port', 587)))
+        smtp_username = os.environ.get('SMTP_USERNAME') or config.get('smtp_username')
+        smtp_password = os.environ.get('SMTP_PASSWORD') or config.get('smtp_password')
+        from_email = os.environ.get('NOTIFICATION_EMAIL_FROM') or config.get('notification_email_from')
+        use_tls = os.environ.get('SMTP_USE_TLS', str(config.get('smtp_use_tls', True))).lower() == 'true'
+        use_ssl = os.environ.get('SMTP_USE_SSL', str(config.get('smtp_use_ssl', False))).lower() == 'true'
+        
+        # Log the SMTP configuration being used
+        logger.info(f"EMAIL DEBUG - SMTP Server: {smtp_server}:{smtp_port}")
+        logger.info(f"EMAIL DEBUG - SMTP Auth: {smtp_username}")
+        logger.info(f"EMAIL DEBUG - SMTP TLS: {use_tls}, SSL: {use_ssl}")
         
         # Validate required configuration
         if not all([smtp_server, smtp_username, smtp_password, from_email]):
@@ -318,20 +323,40 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             for attachment in attachments:
                 msg.attach(attachment)
 
-        # Send email
-        if use_ssl:
-            server = smtplib.SMTP_SSL(smtp_server, smtp_port)
-        else:
-            server = smtplib.SMTP(smtp_server, smtp_port)
-            if use_tls:
-                server.starttls()
+        # Send email with fallback servers
+        fallback_servers = [
+            (smtp_server, smtp_port, use_tls, use_ssl),  # Primary server
+            ('smtp.gmail.com', 587, True, False),        # Gmail fallback
+            ('smtp.outlook.com', 587, True, False),       # Outlook fallback
+        ]
         
-        server.login(smtp_username, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        
-        logger.info(f"Email sent successfully to {', '.join(recipient_emails)}")
-        return True
+        for server_host, server_port, server_tls, server_ssl in fallback_servers:
+            try:
+                logger.info(f"EMAIL DEBUG - Attempting connection to {server_host}:{server_port}")
+                
+                if server_ssl:
+                    server = smtplib.SMTP_SSL(server_host, server_port, timeout=10)
+                else:
+                    server = smtplib.SMTP(server_host, server_port, timeout=10)
+                    if server_tls:
+                        server.starttls()
+                
+                # Only try to login if we have credentials for this server
+                if server_host == smtp_server:
+                    server.login(smtp_username, smtp_password)
+                else:
+                    logger.warning(f"EMAIL DEBUG - Skipping login for fallback server {server_host} (no credentials)")
+                    continue
+                
+                server.send_message(msg)
+                server.quit()
+                
+                logger.info(f"Email sent successfully to {', '.join(recipient_emails)} via {server_host}:{server_port}")
+                return True
+                
+            except Exception as e:
+                logger.warning(f"EMAIL DEBUG - Failed to send via {server_host}:{server_port}: {e}")
+                continue
         
     except Exception as e:
         logger.error(f"Failed to send email: {e}")
