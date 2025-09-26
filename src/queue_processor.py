@@ -222,6 +222,23 @@ class QueueProcessor:
                 self._broadcast_status_update(queue_id, 'failed', f"Failed {check_type} check for {website_name}: {error_message}")
                 return
             
+            # Send email notification for the check
+            try:
+                from src.alerter import send_report
+                
+                # Mark as manual check for email template purposes
+                results['is_manual'] = True
+                
+                # Send email notification
+                self.logger.info(f"📧 Sending email notification for {website_name} {check_type} check")
+                email_result = send_report(website, results)
+                if email_result:
+                    self.logger.info(f"✅ Email sent successfully for {website_name} {check_type} check")
+                else:
+                    self.logger.warning(f"⚠️ Failed to send email for {website_name} {check_type} check")
+            except Exception as e:
+                self.logger.error(f"❌ Error sending email for {website_name} {check_type} check: {e}")
+            
             # Update status to completed
             # Convert results to JSON-serializable format
             serializable_results = self._make_json_serializable(results)

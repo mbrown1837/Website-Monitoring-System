@@ -400,45 +400,22 @@ def add_website():
                         flash(f'Website "{name}" added. Baseline creation started in the background.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'full':
-                        # Run full check with ALL monitoring types regardless of automation settings
-                        task_id = str(uuid.uuid4())
-                        tasks[task_id] = {
-                            'status': 'pending',
-                            'description': f'Full initial check for {name}'
-                        }
-                        
-                        logger.info(f"Running full initial check for new website ID: {website['id']} (Task ID: {task_id})")
-                        
-                        # Force ALL checks regardless of user's automation settings (as per requirement)
-                        check_config = {
-                            'crawl_enabled': True,
-                            'visual_enabled': True,
-                            'blur_enabled': True,
-                            'performance_enabled': True
-                        }
-                        logger.info(f"Using forced Full Check configuration for initial setup: {check_config}")
-                        
-                        thread_args = (
-                            website['id'],
-                            {
-                                'create_baseline': not website.get('baseline_visual_path'),  # Create baseline if none exists
-                                'capture_subpages': True,
-                                'check_config': check_config,
-                                'is_scheduled': False
-                            }
-                        )
-                        
-                        # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
-                        full_args = thread_args + (None, website_manager, history_manager, crawler_module)  # Use environment detection
-                        thread = threading.Thread(
-                            target=run_background_task,
-                            args=(task_id, perform_website_check) + full_args
-                        )
-                        thread.daemon = True
-                        thread.start()
-                        
-                        flash(f'Website "{name}" added. Full initial check started in the background.', 'success')
-                        return redirect(url_for('index'))
+                        # Use queue system for full check to ensure proper email sending
+                        try:
+                            from src.queue_processor import get_queue_processor
+                            queue_processor = get_queue_processor()
+                            
+                            # Add full check to queue
+                            queue_id = queue_processor.add_manual_check(website['id'], 'full')
+                            logger.info(f"Added full check to queue for {name} (Queue ID: {queue_id})")
+                            
+                            flash(f'Website "{name}" added. Full initial check queued and will start shortly.', 'success')
+                            return redirect(url_for('index'))
+                            
+                        except Exception as e:
+                            logger.error(f"Failed to add full check to queue for {name}: {e}")
+                            flash(f'Website "{name}" added, but failed to queue initial check. You can run it manually from the dashboard.', 'warning')
+                            return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error adding website: {e}", exc_info=True)
             flash(f'Error adding website: {str(e)}', 'danger')
