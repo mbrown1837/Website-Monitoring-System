@@ -2,10 +2,17 @@
 .git
 .gitignore
 
-# Documentation
+# Documentation (Keep essential docs)
 docs/
 *.md
 !README.md
+!DEPLOYMENT_GUIDE.md
+!DOKPLOY_QUICK_START.md
+!EMAIL_CONFIGURATION_GUIDE.md
+!BULK_IMPORT_GUIDE.md
+!MANUAL_CHECKS_GUIDE.md
+!WEBSITE_DELETION_SYNC_GUIDE.md
+!IMPROVED_EMAIL_SYSTEM_SUMMARY.md
 
 # Development files
 .env
@@ -33,10 +40,15 @@ env/
 venv/
 .venv/
 
-# Testing
+# Testing (Keep essential test scripts)
 tests/
 .pytest_cache/
 .coverage
+!scripts/test_email.py
+!scripts/test_bulk_import.py
+!scripts/test_manual_checks.py
+!scripts/test_all_email_functions.py
+!scripts/test_improved_email_system.py
 
 # Logs
 *.log
