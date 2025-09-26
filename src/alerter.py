@@ -31,7 +31,7 @@ def _determine_check_type(check_results: dict) -> str:
     
     # Analyze what checks were actually performed
     has_crawl = bool(check_results.get('crawl_stats', {}).get('pages_crawled', 0) > 0)
-    has_visual = bool(check_results.get('visual_baselines') or check_results.get('latest_snapshots'))
+    has_visual = bool(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))
     has_blur = bool(check_results.get('blur_detection_summary', {}).get('total_images_processed', 0) > 0)
     has_performance = bool(check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0) > 0)
     
@@ -198,9 +198,9 @@ def _create_email_content(site_name: str, site_url: str, check_type: str, check_
                 <!-- Quick Actions -->
                 <h2 style="color: #333; border-bottom: 2px solid {header_color}; padding-bottom: 10px;">🔗 Quick Actions</h2>
                 <div style="text-align: center; margin: 20px 0;">
-                    <a href="{dashboard_url}/website/history/{check_results.get('site_id', check_results.get('site_id', check_results.get('website_id')))}" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View History</a>
-                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('site_id', check_results.get('website_id')))}" style="background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Dashboard</a>
-                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('site_id', check_results.get('website_id')))}/crawler" style="background: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Crawler Results</a>
+                    <a href="{dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View History</a>
+                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}" style="background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Dashboard</a>
+                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler" style="background: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Crawler Results</a>
                 </div>
 
                 <!-- Footer -->
@@ -358,7 +358,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
                     {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
-                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
+                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>'}
                 </div>
         """
     
@@ -454,7 +454,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
                     {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
-                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
+                    <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
                 </div>
 
                 <!-- Blur Detection Results -->
@@ -506,7 +506,7 @@ Status: {check_results.get('status', 'Completed')}
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
+{f'- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}'}
 
 QUICK ACTIONS:
 ==============
@@ -680,7 +680,7 @@ DETAILED CHECK RESULTS:
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
+{f'- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}'}
 
 🔍 BLUR DETECTION RESULTS:
 - Images Analyzed: {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}
@@ -733,7 +733,19 @@ def send_report(website: dict, check_results: dict):
 
     # Get dashboard URL - prioritize environment variable for Dokploy
     config = get_config_dynamic()
-    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
+    
+    # First try environment variable
+    dashboard_url = os.environ.get('DASHBOARD_URL')
+    
+    # If not set, try config
+    if not dashboard_url:
+        dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    
+    # Handle environment variable substitution in config
+    if dashboard_url and '${DASHBOARD_URL:-' in dashboard_url:
+        # Extract the fallback URL from the environment variable template
+        fallback_url = dashboard_url.split(':-')[1].rstrip('}')
+        dashboard_url = os.environ.get('DASHBOARD_URL', fallback_url)
     
     # Log the dashboard URL being used for debugging
     logger.info(f"Using dashboard URL: {dashboard_url}")
