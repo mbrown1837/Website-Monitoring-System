@@ -478,8 +478,8 @@ class CrawlerModule:
                         return results
                     else:
                         self.logger.info(f"Found {len(all_baselines)} baselines for website {website_id}. Proceeding with visual check.")
-                        self.logger.info(f"Capturing latest snapshots for website {website_id}")
-                        self._capture_latest_snapshots(results)
+                    self.logger.info(f"Capturing latest snapshots for website {website_id}")
+                    self._capture_latest_snapshots(results)
             else:
                 self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
             
@@ -1544,7 +1544,7 @@ class CrawlerModule:
             else:
                 # Fallback to general send_report
                 from src.alerter import send_report
-                success = send_report(website, check_results)
+            success = send_report(website, check_results)
             
             if success:
                 self.logger.info(f"{check_type.title()} email notification sent for website {website.get('name', 'Unknown')}")
