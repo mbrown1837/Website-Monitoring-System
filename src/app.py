@@ -1806,8 +1806,8 @@ def api_site_history(site_id):
         return jsonify({"error": "Site not found"}), 404
     return jsonify(history)
 
-@app.route('/snapshots/<site_id>/<type>/<filename>')
-def serve_snapshot(site_id, type, filename):
+@app.route('/snapshots/<path:file_path>')
+def serve_snapshot(file_path):
     """Serve snapshot files with enhanced security and error handling - consolidated from dashboard_app.py"""
     try:
         from .path_utils import validate_path_safety, clean_path_for_logging
@@ -1815,38 +1815,35 @@ def serve_snapshot(site_id, type, filename):
         # Fallback for direct execution
         from src.path_utils import validate_path_safety, clean_path_for_logging
     
-    allowed_types = ["html", "visual", "diff"]
-    if type not in allowed_types:
-        return render_template('404.html', message="Invalid snapshot type."), 404
+    # Security check: Ensure the file path doesn't contain directory traversal attempts
+    if '..' in file_path or file_path.startswith('/'):
+        logger.warning(f"Potential directory traversal attempt detected: {file_path}")
+        return render_template('404.html', message="Invalid file path."), 404
     
-    # Security check: Ensure the filename doesn't contain directory traversal attempts
-    if '..' in filename or filename.startswith('/'):
-        logger.warning(f"Potential directory traversal attempt detected: {filename}")
-        return render_template('404.html', message="Invalid filename."), 404
-    
-    # Normalize the filename for consistency
-    filename = os.path.normpath(filename).replace('\\', '/')
+    # Normalize the file path for consistency
+    file_path = os.path.normpath(file_path).replace('\\', '/')
     
     # Use the centralized snapshot directory from config
     snapshot_dir = config.get('snapshot_directory', 'data/snapshots')
-    directory = os.path.join(snapshot_dir, site_id, type)
+    full_path = os.path.join(snapshot_dir, file_path)
     
     # Security check: Ensure the resolved path is within the snapshot directory
-    if not validate_path_safety(directory, snapshot_dir):
-        logger.warning(f"Path security check failed for: {directory}")
+    if not validate_path_safety(full_path, snapshot_dir):
+        logger.warning(f"Path security check failed for: {full_path}")
         return render_template('404.html', message="Invalid path."), 404
     
-    logger.debug(f"Attempting to serve: {filename} from directory: {clean_path_for_logging(directory)}")
+    logger.debug(f"Attempting to serve: {file_path} from snapshot directory: {clean_path_for_logging(snapshot_dir)}")
     
-    file_path = os.path.join(directory, filename)
-    if not os.path.exists(file_path):
-        logger.warning(f"Snapshot file not found: {clean_path_for_logging(file_path)}")
-        return render_template('404.html', message=f"Snapshot file {filename} not found."), 404
+    if not os.path.exists(full_path):
+        logger.warning(f"Snapshot file not found: {clean_path_for_logging(full_path)}")
+        return render_template('404.html', message=f"Snapshot file not found."), 404
 
     try:
+        directory = os.path.dirname(full_path)
+        filename = os.path.basename(full_path)
         return send_from_directory(directory, filename)
     except Exception as e:
-        logger.error(f"Error serving snapshot file {filename}: {e}")
+        logger.error(f"Error serving snapshot file {file_path}: {e}")
         return render_template('404.html', message="Error serving file."), 404
 
 # Route to serve files from the data directory (e.g., snapshots)

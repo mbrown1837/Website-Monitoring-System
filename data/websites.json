@@ -1,1 +1,49 @@
-[]
+[
+  {
+    "id": "39c03ad2-a9b0-4a30-af5e-a04825a865b4",
+    "url": "https://westlanddre.com/",
+    "name": "Westland",
+    "check_interval_minutes": 60,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-09-26T07:15:25.791328+00:00",
+    "last_updated_utc": "2025-09-26T07:24:47.158528+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {
+      "https://westlanddre.com/": {
+        "path": "data/snapshots/westlanddre_com/39c03ad2-a9b0-4a30-af5e-a04825a865b4/baseline/baseline_home.png",
+        "timestamp": "2025-09-26T07:24:47.154721+00:00"
+      },
+      "https://westlanddre.com/pricing": {
+        "path": "data/snapshots/westlanddre_com/39c03ad2-a9b0-4a30-af5e-a04825a865b4/baseline/baseline_pricing.png",
+        "timestamp": "2025-09-26T07:24:47.154721+00:00"
+      },
+      "https://westlanddre.com/privacy-policy": {
+        "path": "data/snapshots/westlanddre_com/39c03ad2-a9b0-4a30-af5e-a04825a865b4/baseline/baseline_privacy-policy.png",
+        "timestamp": "2025-09-26T07:24:47.154721+00:00"
+      },
+      "https://westlanddre.com/disclaimer": {
+        "path": "data/snapshots/westlanddre_com/39c03ad2-a9b0-4a30-af5e-a04825a865b4/baseline/baseline_disclaimer.png",
+        "timestamp": "2025-09-26T07:24:47.154721+00:00"
+      }
+    },
+    "has_subpage_baselines": true,
+    "baseline_visual_path": "data/snapshots/westlanddre_com/39c03ad2-a9b0-4a30-af5e-a04825a865b4/baseline/baseline_home.png",
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": null,
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never",
+    "baseline_captured_utc": "2025-09-26T07:24:47.154721+00:00"
+  }
+]
