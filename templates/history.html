@@ -461,6 +461,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // The queue-manager.js handles all the click events and polling updates
     // Old JavaScript below is deprecated and will be overridden by the new system
     
+    // Get button elements
+    const checkNowBtn = document.getElementById('checkNowBtn');
+    const visualCheckBtn = document.getElementById('visualCheckBtn');
+    const crawlCheckBtn = document.getElementById('crawlCheckBtn');
+    const blurCheckBtn = document.getElementById('blurCheckBtn');
+    const performanceCheckBtn = document.getElementById('performanceCheckBtn');
+    const createBaselineBtn = document.getElementById('createBaselineBtn');
+    
     if (checkNowBtn) {
         checkNowBtn.addEventListener('click', function() {
             // Show loading state
