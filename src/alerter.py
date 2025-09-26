@@ -358,7 +358,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
                     {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
-                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>'}
+                    <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
                 </div>
         """
     
