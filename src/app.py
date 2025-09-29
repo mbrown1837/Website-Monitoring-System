@@ -367,46 +367,20 @@ def add_website():
                         flash(f'Website "{name}" added successfully. No initial checks were run.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'baseline':
-                        # Create baseline + run enabled automated checks for comparison data
-                        task_id = str(uuid.uuid4())
-                        tasks[task_id] = {
-                            'status': 'pending',
-                            'description': f'Creating baseline for {name}'
-                        }
-                        
-                        logger.info(f"Creating baseline for new website ID: {website['id']} (Task ID: {task_id})")
-                        
-                        # Get the automated check configuration for this website
-                        automated_check_config = website_manager.get_automated_check_config(website['id'])
-                        
-                        # For baseline creation, respect user's individual settings
-                        baseline_check_config = {
-                            'crawl_enabled': automated_check_config.get('crawl_enabled', True),
-                            'visual_enabled': automated_check_config.get('visual_enabled', True),
-                            'blur_enabled': automated_check_config.get('blur_enabled', False),
-                            'performance_enabled': automated_check_config.get('performance_enabled', False)
-                        }
-                        
-                        thread_args = (
-                            website['id'],
-                            {
-                                'create_baseline': True,
-                                'capture_subpages': True,
-                                'check_config': baseline_check_config,
-                                'is_scheduled': False  # This is a manual baseline creation, not a scheduled check
-                            }
-                        )
-                        
-                        # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
-                        full_args = thread_args + (None, website_manager, history_manager, crawler_module)  # Use environment detection
-                        thread = threading.Thread(
-                            target=run_background_task,
-                            args=(task_id, perform_website_check) + full_args
-                        )
-                        thread.daemon = True
-                        thread.start()
-                        
-                        flash(f'Website "{name}" added. Baseline creation started in the background.', 'success')
+                        # Create baseline + run enabled automated checks for comparison data using queue system
+                        try:
+                            from src.queue_processor import get_queue_processor
+                            queue_processor = get_queue_processor()
+                            
+                            # Add baseline creation to queue
+                            queue_id = queue_processor.add_manual_check(website['id'], 'baseline')
+                            logger.info(f"Added baseline creation to queue for {name} (Queue ID: {queue_id})")
+                            
+                            flash(f'Website "{name}" added. Baseline creation queued and will start shortly.', 'success')
+                            
+                        except Exception as e:
+                            logger.error(f"Failed to add baseline creation to queue for {name}: {e}")
+                            flash(f'Website "{name}" added, but baseline creation failed to queue. Please try manual baseline creation.', 'warning')
                         return redirect(url_for('index'))
                     elif initial_setup == 'full':
                         # Use queue system for full check to ensure proper email sending
