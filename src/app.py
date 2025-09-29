@@ -355,7 +355,11 @@ def add_website():
                 website = website_manager.add_website(website_data)
                 
                 if website:
-                    reschedule_tasks()
+                    # Force reschedule with enhanced scheduler
+                    try:
+                        force_reschedule_enhanced_scheduler()
+                    except Exception as e:
+                        logger.warning(f"Could not reschedule after adding website: {e}")
                     
                     # Handle initial setup based on user choice
                     if initial_setup == 'none':
@@ -491,7 +495,11 @@ def edit_website(site_id):
                  flash('Name and URL are required.', 'danger')
             else:
                 website_manager.update_website(site_id, updated_data)
-                reschedule_tasks()
+                # Force reschedule with enhanced scheduler
+                try:
+                    force_reschedule_enhanced_scheduler()
+                except Exception as e:
+                    logger.warning(f"Could not reschedule after updating website: {e}")
                 flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
                 return redirect(url_for('index'))
         except Exception as e:
