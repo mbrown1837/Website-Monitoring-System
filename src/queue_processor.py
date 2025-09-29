@@ -229,6 +229,13 @@ class QueueProcessor:
                 # Mark as manual check for email template purposes
                 results['is_manual'] = True
                 
+                # Ensure baseline data is properly included for email templates
+                if 'all_baselines' in results and not results.get('visual_baselines'):
+                    # Convert all_baselines to visual_baselines format for email template
+                    all_baselines = results.get('all_baselines', {})
+                    if isinstance(all_baselines, dict):
+                        results['visual_baselines'] = [{'url': url, 'path': data['path']} for url, data in all_baselines.items()]
+                
                 # Send email notification
                 self.logger.info(f"📧 Sending email notification for {website_name} {check_type} check")
                 email_result = send_report(website, results)

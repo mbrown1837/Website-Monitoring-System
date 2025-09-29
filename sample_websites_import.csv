@@ -1,4 +1,0 @@
-name,url,monitoring_interval,max_depth,enable_crawl,enable_visual,enable_blur_detection,enable_performance,exclude_pages_keywords
-Your Website Name,https://your-website.com,86400,2,true,true,true,true,
-Another Website,https://another-website.com,86400,2,true,true,true,true,
-Third Website,https://third-website.com,86400,2,true,true,true,true,

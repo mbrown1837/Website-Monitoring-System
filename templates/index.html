@@ -143,7 +143,7 @@
                         <span class="text-muted">No data</span>
                     {% endif %}
                 </td>
-                <td>{{ site_data.get('last_checked_simple', 'Never') }}</td>
+                <td>{{ site_data.get('last_updated_utc', 'Never') | humanize_datetime }}</td>
                 <td class="action-buttons">
                             <div class="btn-group" role="group">
                                 <a href="{{ url_for('website_history', site_id=site_id) }}" class="btn btn-sm btn-outline-info">

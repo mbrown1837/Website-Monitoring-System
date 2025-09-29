@@ -1,0 +1,26 @@
+{
+  "last_schedule_time": "2025-09-29T20:01:57.762060+00:00",
+  "scheduled_websites": {
+    "4d2ae6e0-66ac-481d-b3f6-10df3c3daaae": {
+      "name": "https://westlanddre.com/",
+      "url": "https://westlanddre.com/",
+      "interval": 60,
+      "scheduled_at": "2025-09-29T20:01:57.748344+00:00"
+    },
+    "c2efa336-bf69-4d5c-9301-d4ecc2a4a218": {
+      "name": "test",
+      "url": "https://example.com/",
+      "interval": 60,
+      "scheduled_at": "2025-09-29T20:01:57.760661+00:00"
+    },
+    "aa0ae398-99cb-444a-a3db-545cc5b97811": {
+      "name": "https://legowerk.webflow.io/",
+      "url": "https://legowerk.webflow.io/",
+      "interval": 60,
+      "scheduled_at": "2025-09-29T20:01:57.761419+00:00"
+    }
+  },
+  "consecutive_errors": 0,
+  "last_error_time": null,
+  "scheduler_running": true
+}

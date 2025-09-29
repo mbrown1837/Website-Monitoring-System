@@ -12,14 +12,6 @@ from email.mime.image import MIMEImage
 from datetime import datetime
 from src.config_loader import get_config
 from src.logger_setup import setup_logging
-from src.container_utils import (
-    safe_format_visual_score,
-    safe_format_broken_links,
-    safe_format_missing_meta,
-    safe_format_blur_percentage,
-    safe_format_performance_scores,
-    safe_format_baseline_comparison
-)
 
 logger = setup_logging()
 
@@ -39,7 +31,7 @@ def _determine_check_type(check_results: dict) -> str:
     
     # Analyze what checks were actually performed
     has_crawl = bool(check_results.get('crawl_stats', {}).get('pages_crawled', 0) > 0)
-    has_visual = bool(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))
+    has_visual = bool(check_results.get('visual_baselines') or check_results.get('latest_snapshots') or check_results.get('all_baselines'))
     has_blur = bool(check_results.get('blur_detection_summary', {}).get('total_images_processed', 0) > 0)
     has_performance = bool(check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0) > 0)
     
@@ -207,7 +199,7 @@ def _create_email_content(site_name: str, site_url: str, check_type: str, check_
                 <h2 style="color: #333; border-bottom: 2px solid {header_color}; padding-bottom: 10px;">🔗 Quick Actions</h2>
                 <div style="text-align: center; margin: 20px 0;">
                     <a href="{dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View History</a>
-                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}" style="background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Dashboard</a>
+                    <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary" style="background: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Dashboard</a>
                     <a href="{dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler" style="background: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 5px; display: inline-block; font-weight: bold;">View Crawler Results</a>
                 </div>
 
@@ -223,13 +215,6 @@ def _create_email_content(site_name: str, site_url: str, check_type: str, check_
     </html>
     """
 
-def _safe_f_string(template: str, **kwargs) -> str:
-    """Safely format f-strings to avoid syntax issues in containers."""
-    try:
-        return template.format(**kwargs)
-    except Exception:
-        return template
-
 def _create_metrics_section(check_type: str, check_results: dict) -> str:
     """
     Create metrics section based on check type.
@@ -240,7 +225,7 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                 <h2 style="color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px;">📸 Visual Check Results</h2>
                 <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Snapshots</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
@@ -317,7 +302,7 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                 <h2 style="color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px;">📸 Baseline Creation Results</h2>
                 <div style="display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap;">
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Baselines Created</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
@@ -346,7 +331,7 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Missing Meta Tags</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: #28a745;">{len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Visual Snapshots</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
@@ -370,10 +355,10 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                 <h2 style="color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px;">🔍 Visual Check Details</h2>
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #28a745;">
                     <h3 style="color: #28a745; margin-top: 0;">📸 Visual Comparison Results</h3>
-                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
+                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
-                    {safe_format_visual_score(check_results)}
-                    <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
+                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
+                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
                 </div>
         """
     
@@ -389,8 +374,8 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Total Links Found:</strong> {check_results.get('crawl_stats', {}).get('total_links', 0)}</p>
                     <p><strong>Total Images Found:</strong> {check_results.get('crawl_stats', {}).get('total_images', 0)}</p>
                     <p><strong>Sitemap Found:</strong> {'Yes' if check_results.get('crawl_stats', {}).get('sitemap_found', False) else 'No'}</p>
-                    {safe_format_broken_links(broken_links)}
-                    {safe_format_missing_meta(missing_meta)}
+                    {f'<p><strong>Broken Links:</strong> {len(broken_links)} found</p>' if broken_links else ''}
+                    {f'<p><strong>Missing Meta Tags:</strong> {len(missing_meta)} found</p>' if missing_meta else ''}
                 </div>
         """
     
@@ -402,7 +387,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #17a2b8; margin-top: 0;">🔍 Blur Detection Results</h3>
                     <p><strong>Images Analyzed:</strong> {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}</p>
                     <p><strong>Blur Issues Found:</strong> {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</p>
-                    {safe_format_blur_percentage(check_results)}
+                    {f'<p><strong>Blur Percentage:</strong> {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%</p>' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
                     {f'<p><strong>Total Images Found:</strong> {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}</p>' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
                 </div>
         """
@@ -427,7 +412,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                 <h2 style="color: #333; border-bottom: 2px solid #28a745; padding-bottom: 10px;">🔍 Baseline Creation Details</h2>
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #28a745;">
                     <h3 style="color: #28a745; margin-top: 0;">📸 Baseline Creation Results</h3>
-                    <p><strong>Baselines Created:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
+                    <p><strong>Baselines Created:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</p>
                     <p><strong>Status:</strong> ✅ Successfully completed</p>
                     <p><strong>Next Steps:</strong> You can now run visual checks to compare against these baselines.</p>
                 </div>
@@ -466,10 +451,10 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                 <!-- Visual Check Results -->
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #28a745;">
                     <h3 style="color: #28a745; margin-top: 0;">📸 Visual Check Results</h3>
-                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}</p>
+                    <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
-                    {safe_format_visual_score(check_results)}
-                    <p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}</p>
+                    {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
+                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
                 </div>
 
                 <!-- Blur Detection Results -->
@@ -477,7 +462,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <h3 style="color: #17a2b8; margin-top: 0;">🔍 Blur Detection Results</h3>
                     <p><strong>Images Analyzed:</strong> {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}</p>
                     <p><strong>Blur Issues Found:</strong> {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}</p>
-                    {safe_format_blur_percentage(check_results)}
+                    {f'<p><strong>Blur Percentage:</strong> {check_results.get("blur_detection_summary", {}).get("blur_percentage", 0)}%</p>' if check_results.get('blur_detection_summary', {}).get('blur_percentage') else ''}
                     {f'<p><strong>Total Images Found:</strong> {check_results.get("blur_detection_summary", {}).get("total_images_found", 0)}</p>' if check_results.get('blur_detection_summary', {}).get('total_images_found') else ''}
                 </div>
 
@@ -518,15 +503,16 @@ Status: {check_results.get('status', 'Completed')}
 
 📸 VISUAL CHECK RESULTS:
 =======================
-- Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
+- Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}
+{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
 
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -555,7 +541,8 @@ Status: {check_results.get('status', 'Completed')}
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -580,7 +567,8 @@ Status: {check_results.get('status', 'Completed')}
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -606,7 +594,8 @@ Status: {check_results.get('status', 'Completed')}
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -623,14 +612,15 @@ Status: {check_results.get('status', 'Completed')}
 
 📸 BASELINE CREATION RESULTS:
 =============================
-- Baselines Created: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
+- Baselines Created: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Status: ✅ Successfully completed
 - Next Steps: You can now run visual checks to compare against these baselines.
 
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -655,7 +645,8 @@ Status: Failed
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
+- View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
 Visit Dashboard: {dashboard_url}
@@ -676,7 +667,7 @@ CHECK RESULTS SUMMARY:
 - Pages Crawled: {check_results.get('crawl_stats', {}).get('pages_crawled', 0)}
 - Broken Links: {len(check_results.get('broken_links', []))}
 - Missing Meta Tags: {len(check_results.get('missing_meta_tags', []))}
-- Visual Snapshots: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
+- Visual Snapshots: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Blur Issues: {check_results.get('blur_detection_summary', {}).get('blurry_images', 0)}
 - Performance Checks: {check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}
 
@@ -692,10 +683,10 @@ DETAILED CHECK RESULTS:
 {f'- Missing Meta Tags: {len(check_results.get("missing_meta_tags", []))} found' if len(check_results.get('missing_meta_tags', [])) > 0 else ''}
 
 📸 VISUAL CHECK RESULTS:
-- Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}))}
+- Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-- Baseline Comparison: {"Completed" if check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) else "No baseline available"}
+{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
 
 🔍 BLUR DETECTION RESULTS:
 - Images Analyzed: {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}
@@ -713,7 +704,7 @@ DETAILED CHECK RESULTS:
 QUICK ACTIONS:
 ==============
 - View History: {dashboard_url}/website/history/{check_results.get('site_id', check_results.get('website_id'))}
-- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}
+- View Dashboard: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/summary
 - View Crawler Results: {dashboard_url}/website/{check_results.get('site_id', check_results.get('website_id'))}/crawler
 
 This is an automated report from your Website Monitoring System.
@@ -748,13 +739,7 @@ def send_report(website: dict, check_results: dict):
 
     # Get dashboard URL - prioritize environment variable for Dokploy
     config = get_config_dynamic()
-    
-    # First try environment variable
-    dashboard_url = os.environ.get('DASHBOARD_URL')
-    
-    # If not set, try config
-    if not dashboard_url:
-        dashboard_url = config.get('dashboard_url', 'http://localhost:5001')
+    dashboard_url = os.environ.get('DASHBOARD_URL') or config.get('dashboard_url', 'http://localhost:5001')
     
     # Handle environment variable substitution in config
     if dashboard_url and '${DASHBOARD_URL:-' in dashboard_url:
@@ -860,12 +845,18 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
             for attachment in attachments:
                 msg.attach(attachment)
 
-        # Send email with fallback servers
+        # Send email with Digital Clics SMTP fallback configurations
+        # Only use Digital Clics SMTP with different TLS/SSL combinations
         fallback_servers = [
-            (smtp_server, smtp_port, use_tls, use_ssl),  # Primary server
-            ('smtp.gmail.com', 587, True, False),        # Gmail fallback
-            ('smtp.outlook.com', 587, True, False),       # Outlook fallback
+            (smtp_server, smtp_port, use_tls, use_ssl),  # Primary configuration
+            (smtp_server, 465, False, True),             # SSL on port 465
+            (smtp_server, 587, True, False),             # TLS on port 587
+            (smtp_server, 25, False, False),             # Plain connection on port 25
         ]
+        
+        logger.info(f"EMAIL DEBUG - Digital Clics SMTP fallback configurations:")
+        for i, (host, port, tls, ssl) in enumerate(fallback_servers):
+            logger.info(f"  {i+1}. {host}:{port} (TLS: {tls}, SSL: {ssl})")
         
         for server_host, server_port, server_tls, server_ssl in fallback_servers:
             try:
@@ -878,24 +869,20 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
                     if server_tls:
                         server.starttls()
                 
-                # Only try to login if we have credentials for this server
-                if server_host == smtp_server:
-                    server.login(smtp_username, smtp_password)
-                else:
-                    logger.warning(f"EMAIL DEBUG - Skipping login for fallback server {server_host} (no credentials)")
-                    continue
+                # Always try to login since we're only using Digital Clics SMTP
+                server.login(smtp_username, smtp_password)
                 
                 server.send_message(msg)
                 server.quit()
                 
-                logger.info(f"Email sent successfully to {', '.join(recipient_emails)} via {server_host}:{server_port}")
+                logger.info(f"Email sent successfully to {', '.join(recipient_emails)} via {server_host}:{server_port} (TLS: {server_tls}, SSL: {server_ssl})")
                 return True
-                
+
             except Exception as e:
-                logger.warning(f"EMAIL DEBUG - Failed to send via {server_host}:{server_port}: {e}")
+                logger.warning(f"EMAIL DEBUG - Failed to send via {server_host}:{server_port} (TLS: {server_tls}, SSL: {server_ssl}): {e}")
                 continue
-        
-        logger.error("Failed to send email via all servers")
+
+        logger.error("Failed to send email via all Digital Clics SMTP configurations")
         return False
         
     except Exception as e:

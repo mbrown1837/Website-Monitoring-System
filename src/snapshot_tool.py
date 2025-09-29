@@ -15,83 +15,225 @@ config = get_config()
 
 DEFAULT_SNAPSHOT_DIR = "data/snapshots"
 
-def scroll_and_load_lazy_content(page):
-    """Advanced scrolling to trigger all lazy-loaded content"""
+def handle_sticky_elements(page):
+    """Advanced sticky element handling that addresses all common scenarios"""
     
-    # First, scroll to trigger lazy images specifically
-    lazy_images = page.locator('img[loading="lazy"]:visible, img[data-src]:visible').all()
-    logger.info(f"Found {len(lazy_images)} lazy images to load")
-    
-    for img in lazy_images:
-        try:
-            img.scroll_into_view_if_needed()
-            # Wait for image to actually load
-            img.wait_for(state='visible', timeout=3000)
-            # Check if image has natural width (loaded)
-            page.wait_for_function(
-                'img => img.naturalWidth > 0',
-                arg=img,
-                timeout=5000
-            )
-        except Exception as e:
-            logger.debug(f"Error loading lazy image: {e}")
-            continue
-    
-    # Advanced scrolling strategy
-    logger.info("Performing advanced scrolling...")
-    last_height = page.evaluate("document.body.scrollHeight")
-    attempts = 0
-    max_attempts = 20
-    
-    while attempts < max_attempts:
-        # Scroll down in multiple steps
-        for i in range(0, 10):
-            page.evaluate(f"window.scrollTo(0, {last_height * (i + 1) / 10})")
-            time.sleep(0.3)
-        
-        # Wait for any new content to load
-        time.sleep(2)
-        
-        # Check if page height increased (new content loaded)
-        new_height = page.evaluate("document.body.scrollHeight")
-        if new_height > last_height:
-            logger.info(f"New content detected! Height: {last_height} -> {new_height}")
-            last_height = new_height
-            attempts = 0  # Reset attempts when new content is found
-        else:
-            attempts += 1
-        
-        # Additional triggers for lazy content
-        page.keyboard.press('End')
-        time.sleep(0.5)
-    
-    # Final scroll to ensure everything is triggered
-    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-    time.sleep(3)
+    page.evaluate("""
+        () => {
+            // Find all sticky and fixed elements
+            const allElements = document.querySelectorAll('*');
+            const stickyElements = [];
+            
+            allElements.forEach(el => {
+                const style = window.getComputedStyle(el);
+                if (style.position === 'sticky' || style.position === 'fixed') {
+                    stickyElements.push({
+                        element: el,
+                        originalPosition: style.position,
+                        originalTop: style.top,
+                        originalZIndex: style.zIndex
+                    });
+                }
+            });
+            
+            // Store original values and convert to relative
+            window.stickyElementsBackup = stickyElements;
+            
+            stickyElements.forEach(item => {
+                const el = item.element;
+                el.style.position = 'relative';
+                el.style.top = 'auto';
+                el.style.zIndex = 'auto';
+            });
+            
+            // Handle common sticky classes
+            const commonStickySelectors = [
+                '.sticky', '.fixed', '.navbar-fixed-top', '.navbar-fixed',
+                '.header-fixed', '.floating', '.affix', '.sticky-header',
+                '.fixed-header', '.navbar-static-top', '.sticky-nav'
+            ];
+            
+            commonStickySelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.position === 'sticky' || style.position === 'fixed') {
+                        el.style.position = 'relative';
+                        el.style.top = 'auto';
+                    }
+                });
+            });
+        }
+    """)
 
-def wait_for_all_content(page):
-    """Wait for all content to be fully loaded"""
+def advanced_lazy_loading_handler(page):
+    """Comprehensive lazy loading handler using latest Playwright techniques"""
     
-    # Wait for network to be idle
+    logger.info("Starting advanced lazy loading detection...")
+    
+    # Step 1: Force eager loading for native lazy images
+    page.evaluate("""
+        () => {
+            // Force all lazy images to eager loading
+            document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+                img.loading = 'eager';
+            });
+            
+            // Handle data-src lazy images
+            document.querySelectorAll('img[data-src]:not([src])').forEach(img => {
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                }
+            });
+            
+            // Handle srcset lazy images
+            document.querySelectorAll('img[data-srcset]:not([srcset])').forEach(img => {
+                if (img.dataset.srcset) {
+                    img.srcset = img.dataset.srcset;
+                    img.removeAttribute('data-srcset');
+                }
+            });
+        }
+    """)
+    
+    # Step 2: Smart scrolling to trigger intersection observers
     try:
-        page.wait_for_load_state('networkidle', timeout=30000)
+        page_height = page.evaluate("document.documentElement.scrollHeight")
+        viewport_height = page.evaluate("window.innerHeight")
+        
+        # Calculate scroll positions to ensure all content is triggered
+        scroll_positions = []
+        current_pos = 0
+        step_size = viewport_height // 2  # Overlap scrolling
+        
+        while current_pos < page_height:
+            scroll_positions.append(current_pos)
+            current_pos += step_size
+            
+        # Add final position
+        scroll_positions.append(page_height)
+        
+        # Scroll through all positions
+        for pos in scroll_positions:
+            page.evaluate(f"window.scrollTo(0, {pos})")
+            time.sleep(0.2)  # Brief pause for intersection observers
+            
+            # Wait for any new network requests
+            try:
+                page.wait_for_load_state('networkidle', timeout=2000)
+            except:
+                pass  # Continue if timeout
+                
     except Exception as e:
-        logger.info(f"Network idle timeout, continuing: {e}")
+        logger.warning(f"Error during smart scrolling: {e}")
     
-    # Wait for all images to load
+    # Step 3: Handle specific lazy loading libraries
+    page.evaluate("""
+        () => {
+            // Trigger common lazy loading libraries
+            const lazyElements = document.querySelectorAll(
+                '[data-lazy], [data-src], [class*="lazy"], [class*="lazyload"]'
+            );
+            
+            lazyElements.forEach(el => {
+                // Trigger intersection observer manually
+                const event = new Event('load');
+                el.dispatchEvent(event);
+                
+                // Force visibility if hidden
+                if (el.style.display === 'none' && !el.classList.contains('hidden-permanently')) {
+                    el.style.display = 'block';
+                }
+            });
+        }
+    """)
+    
+    # Step 4: Wait for all images to actually load
     try:
         page.wait_for_function("""
             () => {
                 const images = Array.from(document.images);
-                return images.every(img => img.complete && img.naturalWidth > 0);
+                return images.every(img => {
+                    // Check if image is loaded and has content
+                    return img.complete && (img.naturalWidth > 0 || img.src === '');
+                });
             }
-        """, timeout=30000)
-        logger.info("All images loaded successfully")
+        """, timeout=10000)  # Reduced from 15000 to 10000
+        logger.info("All images successfully loaded")
     except Exception as e:
-        logger.info(f"Some images may not have loaded, continuing: {e}")
+        logger.warning(f"Some images may not have loaded completely: {e}")
     
-    # Wait for any animations or transitions to complete
+    # Step 5: Return to top for screenshot
+    page.evaluate("window.scrollTo(0, 0)")
+    time.sleep(1)  # Allow scroll to complete
+
+def scroll_and_load_lazy_content(page):
+    """Legacy function - now calls advanced lazy loading handler"""
+    advanced_lazy_loading_handler(page)
+
+def ensure_complete_loading(page):
+    """Ensure absolutely everything is loaded before screenshot"""
+    
+    logger.info("Ensuring complete page loading...")
+    
+    # Wait for network to be completely idle
+    try:
+        page.wait_for_load_state('networkidle', timeout=30000)
+    except Exception as e:
+        logger.info(f"Network idle timeout: {e}")
+    
+    # Wait for all fonts to load
+    try:
+        page.wait_for_function("""
+            () => document.fonts.ready.then(() => true)
+        """, timeout=10000)
+        logger.info("All fonts loaded")
+    except Exception as e:
+        logger.info(f"Font loading timeout: {e}")
+    
+    # Wait for CSS animations to complete
+    try:
+        page.wait_for_function("""
+            () => {
+                const animations = document.getAnimations();
+                return animations.every(anim => 
+                    anim.playState === 'finished' || 
+                    anim.playState === 'idle'
+                );
+            }
+        """, timeout=5000)
+        logger.info("All animations completed")
+    except Exception as e:
+        logger.info(f"Animation completion timeout: {e}")
+    
+    # Final verification of image loading
+    try:
+        page.wait_for_function("""
+            () => {
+                const images = Array.from(document.images);
+                const videos = Array.from(document.querySelectorAll('video'));
+                
+                const imagesLoaded = images.every(img => 
+                    img.complete && (img.naturalWidth > 0 || img.src === '')
+                );
+                
+                const videosLoaded = videos.every(video => 
+                    video.readyState >= 3 || video.src === ''
+                );
+                
+                return imagesLoaded && videosLoaded;
+            }
+        """, timeout=10000)  # Reduced from 15000 to 10000
+        logger.info("All media content verified as loaded")
+    except Exception as e:
+        logger.warning(f"Media loading verification timeout: {e}")
+    
+    # Give everything a moment to stabilize
     time.sleep(2)
+
+def wait_for_all_content(page):
+    """Legacy function - now calls enhanced loading verification"""
+    ensure_complete_loading(page)
 
 def force_load_lazy_content(page):
     """Force load any remaining lazy content"""
@@ -245,10 +387,21 @@ def save_visual_snapshot(site_id: str, url: str, timestamp: datetime = None, is_
             with sync_playwright() as p:
                 browser_type = config.get('playwright_browser_type', 'chromium')
                 
-                # Add additional launch arguments for stability
-                launch_args = []
+                # Enhanced launch arguments for stability
+                launch_args = [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-extensions'
+                ]
+                
                 if browser_type == 'chromium':
-                    launch_args.append('--use-angle=gl')
+                    launch_args.extend([
+                        '--use-angle=gl',
+                        '--disable-background-timer-throttling',
+                        '--disable-renderer-backgrounding'
+                    ])
 
                 browser = getattr(p, browser_type).launch(
                     headless=config.get('playwright_headless_mode', True),
@@ -260,12 +413,24 @@ def save_visual_snapshot(site_id: str, url: str, timestamp: datetime = None, is_
                     viewport={'width': 1920, 'height': 1080}
                 )
                 page = context.new_page()
-                page.goto(url, wait_until='domcontentloaded', timeout=config.get('playwright_navigation_timeout_ms', 30000))
                 
+                # Navigate with comprehensive waiting
+                page.goto(url, 
+                    wait_until='domcontentloaded', 
+                    timeout=config.get('playwright_navigation_timeout_ms', 30000)
+                )
+                
+                # Initial render delay
                 time.sleep(config.get('playwright_render_delay_ms', 2000) / 1000)
                 
-                scroll_and_load_lazy_content(page)
-                wait_for_all_content(page)
+                # Handle sticky elements FIRST
+                handle_sticky_elements(page)
+                
+                # Advanced lazy loading handling
+                advanced_lazy_loading_handler(page)
+                
+                # Ensure everything is completely loaded
+                ensure_complete_loading(page)
                 
                 page.screenshot(path=image_path_abs, full_page=True)
                 browser.close()

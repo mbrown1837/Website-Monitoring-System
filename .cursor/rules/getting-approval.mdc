@@ -1,0 +1,8 @@
+---
+description: Propose all changes and wait for user approval before implementation.
+alwaysApply: true
+---
+- For any task requiring modifications, first outline the proposed changes and the intended approach to solve the problem.
+- Clearly state that you are awaiting approval before proceeding with the implementation.
+- Once approval is granted, execute the plan exactly as described.
+- If the user provides feedback or requests adjustments, incorporate them into a revised plan and await final approval before taking action.

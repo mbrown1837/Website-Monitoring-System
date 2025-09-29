@@ -1,4 +1,0 @@
-name,url,monitoring_interval,max_depth,enable_crawl,enable_visual,enable_blur_detection,enable_performance,exclude_pages_keywords
-Test Site 1,https://example.com,86400,2,true,true,true,true,
-Test Site 2,https://httpbin.org,86400,2,true,true,true,true,
-Test Site 3,https://jsonplaceholder.typicode.com,86400,2,true,true,true,true,

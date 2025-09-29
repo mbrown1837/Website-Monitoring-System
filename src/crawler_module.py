@@ -478,8 +478,8 @@ class CrawlerModule:
                         return results
                     else:
                         self.logger.info(f"Found {len(all_baselines)} baselines for website {website_id}. Proceeding with visual check.")
-                    self.logger.info(f"Capturing latest snapshots for website {website_id}")
-                    self._capture_latest_snapshots(results)
+                        self.logger.info(f"Capturing latest snapshots for website {website_id}")
+                        self._capture_latest_snapshots(results)
             else:
                 self.logger.info(f"Skipping visual snapshots - visual_enabled: {check_config.get('visual_enabled', True)}, crawl_only: {crawl_only}, blur_check_only: {blur_check_only}, visual_check_only: {visual_check_only}")
             
@@ -824,9 +824,15 @@ class CrawlerModule:
         result = self.website_manager.update_website(website_id, updates)
         self.logger.info(f"DEBUG: Website update result: {result}")
         
+        # Force reload from database to ensure we get the latest data
+        self.website_manager._load_websites(force_reload=True)
+        
         # Verify the update worked
         updated_website = self.website_manager.get_website(website_id)
         self.logger.info(f"DEBUG: Updated website all_baselines: {updated_website.get('all_baselines', {})}")
+        
+        # Note: results parameter is not available in this method
+        # Baseline data will be available through the database update
             
     def _normalize_url(self, url):
         if not url:
@@ -1544,7 +1550,7 @@ class CrawlerModule:
             else:
                 # Fallback to general send_report
                 from src.alerter import send_report
-            success = send_report(website, check_results)
+                success = send_report(website, check_results)
             
             if success:
                 self.logger.info(f"{check_type.title()} email notification sent for website {website.get('name', 'Unknown')}")
