@@ -464,6 +464,18 @@ class CrawlerModule:
             if check_config.get('visual_enabled', True) and not crawl_only and (not blur_check_only or visual_check_only):
                 if create_baseline:
                     self.logger.info(f"Creating visual baselines for website {website_id}")
+                    # For baseline creation, we need to crawl the website first to discover all pages
+                    if not results.get('all_pages'):
+                        self.logger.info(f"No pages discovered yet, crawling website first for baseline creation")
+                        # Temporarily enable crawling for baseline creation
+                        original_crawl_config = check_config.get('crawl_enabled', False)
+                        check_config['crawl_enabled'] = True
+                        # Perform a crawl to discover all pages for baseline creation
+                        crawl_results = self._crawl_website_pages(url, website_id, max_depth)
+                        if crawl_results:
+                            results.update(crawl_results)
+                        # Restore original crawl config
+                        check_config['crawl_enabled'] = original_crawl_config
                     self._create_visual_baselines(results)
                 else:
                     # Check if baselines exist before doing visual check
@@ -813,7 +825,11 @@ class CrawlerModule:
         if main_baseline_path and not website.get('baseline_visual_path'):
             updates['baseline_visual_path'] = main_baseline_path
             updates['baseline_captured_utc'] = current_time
+            # Also set the web-accessible path for dashboard display
+            from src.app import make_path_web_accessible
+            updates['baseline_visual_path_web'] = make_path_web_accessible(main_baseline_path)
             self.logger.info(f"Updated baseline_visual_path: {main_baseline_path}")
+            self.logger.info(f"Updated baseline_visual_path_web: {updates['baseline_visual_path_web']}")
         elif website.get('baseline_visual_path'):
             self.logger.info(f"Baseline already exists: {website.get('baseline_visual_path')}")
         else:
