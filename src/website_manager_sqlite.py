@@ -613,9 +613,24 @@ class WebsiteManagerSQLite:
     def _cleanup_website_scheduler_task(self, website_id: str) -> bool:
         """Clean up scheduler task for a website."""
         try:
-            from .scheduler_integration import remove_site_scheduler_task
-            remove_site_scheduler_task(website_id)
-            self.logger.info(f"Removed scheduler task for website {website_id}")
+            # Try enhanced scheduler first
+            try:
+                from .enhanced_scheduler import remove_website_from_scheduler
+                if remove_website_from_scheduler(website_id):
+                    self.logger.info(f"Removed website {website_id} from enhanced scheduler")
+                    return True
+            except ImportError:
+                pass
+            
+            # Fallback to old scheduler integration
+            try:
+                from .scheduler_integration import remove_site_scheduler_task
+                remove_site_scheduler_task(website_id)
+                self.logger.info(f"Removed scheduler task for website {website_id}")
+                return True
+            except ImportError:
+                pass
+                
             return True
         except Exception as e:
             self.logger.warning(f"Could not remove scheduler task for website {website_id}: {e}")

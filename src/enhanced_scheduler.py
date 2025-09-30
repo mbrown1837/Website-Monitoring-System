@@ -199,14 +199,21 @@ class EnhancedScheduler:
         try:
             self.logger.info("Enhanced Scheduler: Setting up website monitoring schedules...")
             
-            # Clear existing schedules
+            # Clear existing schedules more thoroughly
             schedule.clear()
+            schedule.clear_jobs()
+            
+            # Clear our internal tracking
+            self.scheduled_websites.clear()
             
             # Get active websites
             active_websites = self._get_active_websites()
             
             if not active_websites:
                 self.logger.warning("Enhanced Scheduler: No active websites found")
+                # Save empty state
+                self.last_schedule_time = datetime.now(timezone.utc).isoformat()
+                self._save_state()
                 return False
             
             # Schedule each website
@@ -221,12 +228,13 @@ class EnhancedScheduler:
                         self.logger.error(f"Enhanced Scheduler: Skipping site with missing ID: {site_name}")
                         continue
                     
-                    # Schedule the check
-                    schedule.every(interval_minutes).minutes.do(
+                    # Schedule the check with a tag for easy removal
+                    job = schedule.every(interval_minutes).minutes.do(
                         self._perform_website_check,
                         site_id=site_id,
                         site_name=site_name
                     )
+                    job.tag(site_id)  # Tag the job with site_id for easy removal
                     
                     # Track scheduled website
                     self.scheduled_websites[site_id] = {
@@ -264,7 +272,12 @@ class EnhancedScheduler:
             # Get website details
             website = self.website_manager.get_website(site_id)
             if not website:
-                self.logger.error(f"Enhanced Scheduler: Website {site_id} not found")
+                self.logger.warning(f"Enhanced Scheduler: Website {site_id} not found, removing from schedule")
+                # Remove from our tracking
+                if site_id in self.scheduled_websites:
+                    del self.scheduled_websites[site_id]
+                # Cancel this specific job by tag
+                schedule.clear(site_id)
                 return
             
             # Perform the check using crawler module
@@ -422,11 +435,39 @@ class EnhancedScheduler:
         """Force reschedule all websites"""
         try:
             self.logger.info("Enhanced Scheduler: Force rescheduling all websites...")
+            
+            # Clear all schedules and state first
+            schedule.clear()
+            schedule.clear_jobs()
+            self.scheduled_websites.clear()
+            
             # Reinitialize managers to ensure fresh data
             self._initialize_managers()
             return self._schedule_website_checks()
         except Exception as e:
             self.logger.error(f"Enhanced Scheduler: Failed to force reschedule: {e}")
+            return False
+    
+    def remove_website(self, site_id: str) -> bool:
+        """Remove a specific website from the scheduler"""
+        try:
+            self.logger.info(f"Enhanced Scheduler: Removing website {site_id} from schedule")
+            
+            # Remove from our tracking
+            if site_id in self.scheduled_websites:
+                del self.scheduled_websites[site_id]
+            
+            # Clear the specific job by tag
+            schedule.clear(site_id)
+            
+            # Save updated state
+            self._save_state()
+            
+            self.logger.info(f"Enhanced Scheduler: Successfully removed website {site_id}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced Scheduler: Failed to remove website {site_id}: {e}")
             return False
 
 # Global instance
@@ -473,6 +514,13 @@ def reset_enhanced_scheduler():
     if _enhanced_scheduler:
         _enhanced_scheduler.stop()
     _enhanced_scheduler = None
+
+def remove_website_from_scheduler(site_id: str) -> bool:
+    """Remove a website from the scheduler"""
+    global _enhanced_scheduler
+    if _enhanced_scheduler:
+        return _enhanced_scheduler.remove_website(site_id)
+    return False
 
 if __name__ == '__main__':
     # Test the enhanced scheduler
