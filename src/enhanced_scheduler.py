@@ -201,7 +201,6 @@ class EnhancedScheduler:
             
             # Clear existing schedules more thoroughly
             schedule.clear()
-            schedule.clear_jobs()
             
             # Clear our internal tracking
             self.scheduled_websites.clear()
@@ -438,7 +437,6 @@ class EnhancedScheduler:
             
             # Clear all schedules and state first
             schedule.clear()
-            schedule.clear_jobs()
             self.scheduled_websites.clear()
             
             # Reinitialize managers to ensure fresh data
