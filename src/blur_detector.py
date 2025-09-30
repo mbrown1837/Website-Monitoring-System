@@ -226,16 +226,22 @@ class BlurDetector:
             
             image_url = normalized_url
             
-            # Download the image with retry mechanism
+            # Download the image with retry mechanism and enhanced headers to avoid 403 errors
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
                 'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
                 'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+                'Pragma': 'no-cache',
+                'Referer': page_url,  # Add referer to appear as if coming from the page
+                'Sec-Fetch-Dest': 'image',
+                'Sec-Fetch-Mode': 'no-cors',
+                'Sec-Fetch-Site': 'same-origin',
+                'DNT': '1',
+                'Sec-GPC': '1'
             }
             
             # Get timeout from config or use default (increased for slow connections)
@@ -321,8 +327,53 @@ class BlurDetector:
                         
                 except requests.exceptions.HTTPError as e:
                     if e.response.status_code == 403:
-                        self.logger.warning(f"Access forbidden (403) for image {image_url} - skipping (no retry)")
-                        return None
+                        # Try different strategies for 403 errors
+                        if attempt == 0:
+                            # First attempt: try with different headers
+                            self.logger.warning(f"Access forbidden (403) for image {image_url} - trying alternative headers...")
+                            # Try with minimal headers
+                            minimal_headers = {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                                'Accept': 'image/*,*/*;q=0.8',
+                                'Referer': page_url
+                            }
+                            try:
+                                response = session.get(
+                                    image_url, 
+                                    timeout=(timeout, timeout),
+                                    stream=True,
+                                    allow_redirects=True,
+                                    headers=minimal_headers
+                                )
+                                response.raise_for_status()
+                                # If successful, process the response
+                                content_type = response.headers.get('content-type', '').lower()
+                                if not content_type.startswith('image/'):
+                                    self.logger.warning(f"URL {image_url} does not appear to be an image (content-type: {content_type})")
+                                    return None
+                                
+                                image_data = response.content
+                                if len(image_data) < 1024:
+                                    self.logger.debug(f"Image too small ({len(image_data)} bytes), skipping: {image_url}")
+                                    return None
+                                
+                                if len(image_data) > 10 * 1024 * 1024:
+                                    self.logger.warning(f"Image too large ({len(image_data)} bytes), skipping: {image_url}")
+                                    return None
+                                
+                                if not self._is_valid_image_data(image_data):
+                                    self.logger.warning(f"Invalid image format detected for {image_url}")
+                                    return None
+                                
+                                self.logger.debug(f"Successfully downloaded image from {image_url} with alternative headers ({len(image_data)} bytes)")
+                                return image_data
+                            except Exception:
+                                # If alternative headers also fail, skip this image
+                                self.logger.warning(f"Access forbidden (403) for image {image_url} even with alternative headers - skipping")
+                                return None
+                        else:
+                            self.logger.warning(f"Access forbidden (403) for image {image_url} - skipping (no retry)")
+                            return None
                     elif e.response.status_code == 404:
                         self.logger.warning(f"Image not found (404) for {image_url} - skipping (no retry)")
                         return None
