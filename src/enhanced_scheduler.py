@@ -74,12 +74,25 @@ class EnhancedScheduler:
     
     def _setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
-        def signal_handler(signum, frame):
-            self.logger.info(f"Enhanced Scheduler: Received signal {signum}, initiating shutdown...")
-            self.stop()
-        
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
+        try:
+            # Check if we're in the main thread
+            import threading
+            if threading.current_thread() is not threading.main_thread():
+                self.logger.info("Enhanced Scheduler: Not in main thread, skipping signal handler setup")
+                return
+            
+            def signal_handler(signum, frame):
+                self.logger.info(f"Enhanced Scheduler: Received signal {signum}, initiating shutdown...")
+                self.stop()
+            
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+            self.logger.info("Enhanced Scheduler: Signal handlers set up successfully")
+        except ValueError as e:
+            # Signal handlers can only be set in the main thread
+            self.logger.warning(f"Enhanced Scheduler: Cannot set signal handlers in current thread: {e}")
+        except Exception as e:
+            self.logger.warning(f"Enhanced Scheduler: Failed to set up signal handlers: {e}")
     
     def _load_state(self):
         """Load scheduler state from file"""
