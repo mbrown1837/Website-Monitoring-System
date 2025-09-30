@@ -270,7 +270,7 @@ class EnhancedScheduler:
                 
                 # Send email report
                 try:
-                    send_report(check_results)
+                    send_report(website, check_results)
                     self.logger.info(f"Enhanced Scheduler: Email sent for {site_name}")
                 except Exception as e:
                     self.logger.error(f"Enhanced Scheduler: Failed to send email for {site_name}: {e}")
