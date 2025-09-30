@@ -100,7 +100,7 @@
                                 </div>
                     {% endif %}
                 </td>
-                <td>{{ site_data.interval }}</td>
+                <td>{{ (site_data.check_interval_minutes // 60) if site_data.check_interval_minutes else 'N/A' }}</td>
                 <td>
                     {% if site_data.tags %}
                         {% for tag in site_data.tags %}
