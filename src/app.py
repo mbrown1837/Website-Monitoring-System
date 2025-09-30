@@ -40,6 +40,7 @@ except ImportError:
     from src.history_manager_sqlite import HistoryManager
     from src.crawler_module import CrawlerModule
 from src.scheduler import perform_website_check, make_json_serializable
+from src.scheduler_integration import reschedule_tasks
 try:
     from .enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler
 except ImportError:
