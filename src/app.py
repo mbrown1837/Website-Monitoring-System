@@ -266,19 +266,24 @@ def settings():
 def clear_scheduler_tasks():
     """Admin route to clear all scheduled tasks."""
     try:
-        from src.enhanced_scheduler import force_reschedule_enhanced_scheduler
-        success = force_reschedule_enhanced_scheduler()
+        from src.enhanced_scheduler import reset_enhanced_scheduler, start_enhanced_scheduler
+        
+        # Reset the scheduler completely
+        reset_enhanced_scheduler()
+        
+        # Restart the scheduler
+        success = start_enhanced_scheduler()
         
         if success:
-            flash('All scheduler tasks cleared successfully!', 'success')
-            logger.info("Admin action: All scheduler tasks cleared")
+            flash('Scheduler restarted successfully!', 'success')
+            logger.info("Admin action: Scheduler restarted successfully")
         else:
-            flash('Failed to clear scheduler tasks. Check logs for details.', 'warning')
-            logger.warning("Admin action: Failed to clear scheduler tasks")
+            flash('Failed to restart scheduler. Check logs for details.', 'warning')
+            logger.warning("Admin action: Failed to restart scheduler")
             
     except Exception as e:
-        logger.error(f"Error clearing scheduler tasks: {e}", exc_info=True)
-        flash(f'Error clearing scheduler tasks: {str(e)}', 'danger')
+        logger.error(f"Error restarting scheduler: {e}", exc_info=True)
+        flash(f'Error restarting scheduler: {str(e)}', 'danger')
     
     return redirect(url_for('settings'))
 

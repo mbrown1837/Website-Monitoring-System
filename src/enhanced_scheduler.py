@@ -409,6 +409,8 @@ class EnhancedScheduler:
         """Force reschedule all websites"""
         try:
             self.logger.info("Enhanced Scheduler: Force rescheduling all websites...")
+            # Reinitialize managers to ensure fresh data
+            self._initialize_managers()
             return self._schedule_website_checks()
         except Exception as e:
             self.logger.error(f"Enhanced Scheduler: Failed to force reschedule: {e}")
@@ -451,6 +453,13 @@ def force_reschedule_enhanced_scheduler() -> bool:
     if _enhanced_scheduler:
         return _enhanced_scheduler.force_reschedule()
     return False
+
+def reset_enhanced_scheduler():
+    """Reset the global enhanced scheduler instance"""
+    global _enhanced_scheduler
+    if _enhanced_scheduler:
+        _enhanced_scheduler.stop()
+    _enhanced_scheduler = None
 
 if __name__ == '__main__':
     # Test the enhanced scheduler
