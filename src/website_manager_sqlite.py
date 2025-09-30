@@ -485,12 +485,12 @@ class WebsiteManagerSQLite:
                             columns = [col[1] for col in cursor.fetchall()]
                             
                             if id_column in columns:
-                                # Delete records for this website
+                            # Delete records for this website
                                 cursor.execute(f"DELETE FROM {table} WHERE {id_column} = ?", (website_id,))
-                                deleted_count = cursor.rowcount
-                                total_deleted += deleted_count
-                                if deleted_count > 0:
-                                    self.logger.info(f"Deleted {deleted_count} records from {table}")
+                            deleted_count = cursor.rowcount
+                            total_deleted += deleted_count
+                            if deleted_count > 0:
+                                self.logger.info(f"Deleted {deleted_count} records from {table}")
                             else:
                                 self.logger.debug(f"Table {table} does not have column {id_column}, skipping")
                     except Exception as table_error:

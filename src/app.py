@@ -355,11 +355,7 @@ def add_website():
                 website = website_manager.add_website(website_data)
                 
                 if website:
-                    # Force reschedule with enhanced scheduler
-                    try:
-                        force_reschedule_enhanced_scheduler()
-                    except Exception as e:
-                        logger.warning(f"Could not reschedule after adding website: {e}")
+                    reschedule_tasks()
                     
                     # Handle initial setup based on user choice
                     if initial_setup == 'none':
@@ -367,20 +363,46 @@ def add_website():
                         flash(f'Website "{name}" added successfully. No initial checks were run.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'baseline':
-                        # Create baseline + run enabled automated checks for comparison data using queue system
-                        try:
-                            from src.queue_processor import get_queue_processor
-                            queue_processor = get_queue_processor()
-                            
-                            # Add baseline creation to queue
-                            queue_id = queue_processor.add_manual_check(website['id'], 'baseline')
-                            logger.info(f"Added baseline creation to queue for {name} (Queue ID: {queue_id})")
-                            
-                            flash(f'Website "{name}" added. Baseline creation queued and will start shortly.', 'success')
-                            
-                        except Exception as e:
-                            logger.error(f"Failed to add baseline creation to queue for {name}: {e}")
-                            flash(f'Website "{name}" added, but baseline creation failed to queue. Please try manual baseline creation.', 'warning')
+                        # Create baseline + run enabled automated checks for comparison data
+                        task_id = str(uuid.uuid4())
+                        tasks[task_id] = {
+                            'status': 'pending',
+                            'description': f'Creating baseline for {name}'
+                        }
+                        
+                        logger.info(f"Creating baseline for new website ID: {website['id']} (Task ID: {task_id})")
+                        
+                        # Get the automated check configuration for this website
+                        automated_check_config = website_manager.get_automated_check_config(website['id'])
+                        
+                        # For baseline creation, respect user's individual settings
+                        baseline_check_config = {
+                            'crawl_enabled': automated_check_config.get('crawl_enabled', True),
+                            'visual_enabled': automated_check_config.get('visual_enabled', True),
+                            'blur_enabled': automated_check_config.get('blur_enabled', False),
+                            'performance_enabled': automated_check_config.get('performance_enabled', False)
+                        }
+                        
+                        thread_args = (
+                            website['id'],
+                            {
+                                'create_baseline': True,
+                                'capture_subpages': True,
+                                'check_config': baseline_check_config,
+                                'is_scheduled': False  # This is a manual baseline creation, not a scheduled check
+                            }
+                        )
+                        
+                        # Add manager instances to args to fix database consistency (site_id, options, config_path, managers)
+                        full_args = thread_args + (None, website_manager, history_manager, crawler_module)  # Use environment detection
+                        thread = threading.Thread(
+                            target=run_background_task,
+                            args=(task_id, perform_website_check) + full_args
+                        )
+                        thread.daemon = True
+                        thread.start()
+                        
+                        flash(f'Website "{name}" added. Baseline creation started in the background.', 'success')
                         return redirect(url_for('index'))
                     elif initial_setup == 'full':
                         # Use queue system for full check to ensure proper email sending
@@ -398,7 +420,7 @@ def add_website():
                         except Exception as e:
                             logger.error(f"Failed to add full check to queue for {name}: {e}")
                             flash(f'Website "{name}" added, but failed to queue initial check. You can run it manually from the dashboard.', 'warning')
-                            return redirect(url_for('index'))
+                        return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error adding website: {e}", exc_info=True)
             flash(f'Error adding website: {str(e)}', 'danger')
@@ -469,11 +491,7 @@ def edit_website(site_id):
                  flash('Name and URL are required.', 'danger')
             else:
                 website_manager.update_website(site_id, updated_data)
-                # Force reschedule with enhanced scheduler
-                try:
-                    force_reschedule_enhanced_scheduler()
-                except Exception as e:
-                    logger.warning(f"Could not reschedule after updating website: {e}")
+                reschedule_tasks()
                 flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
                 return redirect(url_for('index'))
         except Exception as e:
@@ -1792,7 +1810,7 @@ def serve_snapshot(file_path):
     
     # Use the centralized snapshot directory from config
     snapshot_dir = config.get('snapshot_directory', 'data/snapshots')
-    full_path = os.path.join(snapshot_dir, file_path)
+    full_path = os.path.abspath(os.path.normpath(os.path.join(snapshot_dir, file_path)))
     
     # Security check: Ensure the resolved path is within the snapshot directory
     if not validate_path_safety(full_path, snapshot_dir):
@@ -1806,9 +1824,12 @@ def serve_snapshot(file_path):
         return render_template('404.html', message=f"Snapshot file not found."), 404
 
     try:
-        directory = os.path.dirname(full_path)
+        directory = os.path.abspath(os.path.dirname(full_path))
         filename = os.path.basename(full_path)
-        logger.debug(f"Serving file: {filename} from directory: {directory}")
+        logger.info(f"DEBUG: Serving file: {filename} from directory: {directory}")
+        logger.info(f"DEBUG: Full path: {full_path}")
+        logger.info(f"DEBUG: Directory exists: {os.path.exists(directory)}")
+        logger.info(f"DEBUG: File exists: {os.path.exists(full_path)}")
         
         # Ensure directory exists
         if not os.path.exists(directory):

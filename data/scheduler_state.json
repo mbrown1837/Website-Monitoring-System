@@ -1,5 +1,5 @@
 {
-  "last_schedule_time": "2025-09-29T20:01:57.762060+00:00",
+  "last_schedule_time": "2025-09-29T23:35:37.742444+00:00",
   "scheduled_websites": {
     "4d2ae6e0-66ac-481d-b3f6-10df3c3daaae": {
       "name": "https://westlanddre.com/",
@@ -18,6 +18,24 @@
       "url": "https://legowerk.webflow.io/",
       "interval": 60,
       "scheduled_at": "2025-09-29T20:01:57.761419+00:00"
+    },
+    "f2cf9480-eb3f-4393-bbd0-ed9242e11d83": {
+      "name": "studio7event.com",
+      "url": "https://studio7event.com/",
+      "interval": 60,
+      "scheduled_at": "2025-09-29T21:05:19.064231+00:00"
+    },
+    "83d90c2d-8943-490a-b303-75f0a8f132e2": {
+      "name": "Test Website",
+      "url": "https://example.com",
+      "interval": 60,
+      "scheduled_at": "2025-09-29T21:05:19.064587+00:00"
+    },
+    "a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9": {
+      "name": "studio7event.com",
+      "url": "https://studio7event.com/",
+      "interval": 1440,
+      "scheduled_at": "2025-09-29T23:35:37.742156+00:00"
     }
   },
   "consecutive_errors": 0,

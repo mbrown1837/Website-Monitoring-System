@@ -459,18 +459,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Manual check buttons now use the queue system via data attributes
     // The queue-manager.js handles all the click events and polling updates
-    // Old JavaScript below is deprecated and will be overridden by the new system
+    // Old JavaScript event listeners have been removed to prevent conflicts
     
-    // Get button elements
-    const checkNowBtn = document.getElementById('checkNowBtn');
-    const visualCheckBtn = document.getElementById('visualCheckBtn');
-    const crawlCheckBtn = document.getElementById('crawlCheckBtn');
-    const blurCheckBtn = document.getElementById('blurCheckBtn');
-    const performanceCheckBtn = document.getElementById('performanceCheckBtn');
-    const createBaselineBtn = document.getElementById('createBaselineBtn');
-    
-    if (checkNowBtn) {
-        checkNowBtn.addEventListener('click', function() {
+    // Old event listeners removed - queue-manager.js handles all button clicks
             // Show loading state
             this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
             this.disabled = true;

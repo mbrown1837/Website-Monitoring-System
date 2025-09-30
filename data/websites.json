@@ -1,1 +1,49 @@
-[]
+[
+  {
+    "id": "a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9",
+    "url": "https://studio7event.com/",
+    "name": "studio7event.com",
+    "check_interval_minutes": 1440,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-09-29T21:06:34.380642+00:00",
+    "last_updated_utc": "2025-09-29T21:08:56.645953+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {
+      "https://studio7event.com/": {
+        "path": "data/snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_home.png",
+        "timestamp": "2025-09-29T21:08:56.629144+00:00"
+      },
+      "https://studio7event.com/about": {
+        "path": "data/snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_about.png",
+        "timestamp": "2025-09-29T21:08:56.629144+00:00"
+      },
+      "https://studio7event.com/faq": {
+        "path": "data/snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_faq.png",
+        "timestamp": "2025-09-29T21:08:56.629144+00:00"
+      },
+      "https://studio7event.com/contact": {
+        "path": "data/snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_contact.png",
+        "timestamp": "2025-09-29T21:08:56.629144+00:00"
+      }
+    },
+    "has_subpage_baselines": true,
+    "baseline_visual_path": "data/snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_home.png",
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": "snapshots/studio7event_com/a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9/baseline/baseline_home.png",
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never",
+    "baseline_captured_utc": "2025-09-29T21:08:56.629144+00:00"
+  }
+]

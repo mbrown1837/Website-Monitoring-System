@@ -226,11 +226,6 @@ class GreenflareWrapper:
             # Skip tel: and mailto: links
             if row.get('url', '').lower().startswith(('tel:', 'mailto:')):
                 continue
-            
-            # Skip image URLs - they shouldn't be treated as pages
-            url = row.get('url', '')
-            if self._is_image_url(url):
-                continue
                 
             page = {
                 'url': row.get('url', ''),
@@ -322,10 +317,6 @@ class GreenflareWrapper:
 
             # Skip if already visited or max depth reached
             if url in visited_urls or depth > self.max_depth:
-                continue
-            
-            # Skip image URLs - they shouldn't be treated as pages
-            if self._is_image_url(url):
                 continue
             
             visited_urls.add(url)
@@ -495,32 +486,10 @@ class GreenflareWrapper:
                 url_domain = url_domain[4:]
             if base_domain.startswith('www.'):
                 base_domain = base_domain[4:]
-            
+                
             return url_domain == base_domain
         except:
             return False
-    
-    def _is_image_url(self, url):
-        """Check if a URL points to an image file."""
-        if not url:
-            return False
-        
-        # Common image file extensions
-        image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico', '.tiff', '.tif']
-        
-        # Check if URL ends with image extension
-        url_lower = url.lower()
-        for ext in image_extensions:
-            if url_lower.endswith(ext):
-                return True
-        
-        # Check for common image paths
-        image_paths = ['/wp-content/uploads/', '/images/', '/img/', '/assets/images/', '/static/images/']
-        for path in image_paths:
-            if path in url_lower:
-                return True
-        
-        return False
     
     def crawl(self, url):
         """Legacy method for compatibility with the previous API."""

@@ -464,90 +464,7 @@ class CrawlerModule:
             if check_config.get('visual_enabled', True) and not crawl_only and (not blur_check_only or visual_check_only):
                 if create_baseline:
                     self.logger.info(f"Creating visual baselines for website {website_id}")
-                    # For baseline creation, we need to crawl the website first to discover all pages
-                    if not results.get('all_pages'):
-                        self.logger.info(f"No pages discovered yet, crawling website first for baseline creation")
-                        # Temporarily enable crawling for baseline creation
-                        original_crawl_config = check_config.get('crawl_enabled', False)
-                        check_config['crawl_enabled'] = True
-                        # Perform a crawl to discover all pages for baseline creation
-                        # Use the existing crawl logic with proper exclude keywords handling
-                        greenflare_config = {
-                            'start_urls': [url], 
-                            'max_depth': max_depth,
-                            'respect_robots_txt': True, 
-                            'check_external_links': False,
-                            'extract_images': True,
-                            'extract_alt_text': True,
-                            'meta_tags': self.config.get('meta_tags_to_check', ["title", "description"])
-                        }
-                        
-                        crawler = self.bot.configure(greenflare_config)
-                        start_time = time.time()
-                        crawl_results = crawler.run()
-                        self.logger.info(f"Crawl for baseline creation completed in {time.time() - start_time:.2f} seconds.")
-                        
-                        # Process the crawl results
-                        for page in crawl_results.get('pages', []):
-                            self._process_page(page, results, url)
-                        
-                        # Restore original crawl config
-                        check_config['crawl_enabled'] = original_crawl_config
                     self._create_visual_baselines(results)
-                    
-                    # After creating baselines, perform checks based on individual options
-                    self.logger.info(f"Performing checks after baseline creation for website {website_id}")
-                    self.logger.info(f"Check config: {check_config}")
-                    
-                    # Perform checks using internal methods to avoid recursion
-                    try:
-                        # Run crawl check if enabled
-                        if check_config.get('crawl_enabled', False):
-                            self.logger.info(f"Running crawl check for website {website_id}")
-                            # Use the existing crawl logic with proper exclude keywords handling
-                            greenflare_config = {
-                                'start_urls': [url], 
-                                'max_depth': max_depth,
-                                'respect_robots_txt': True, 
-                                'check_external_links': False,
-                                'extract_images': True,
-                                'extract_alt_text': True,
-                                'meta_tags': self.config.get('meta_tags_to_check', ["title", "description"])
-                            }
-                            
-                            crawler = self.bot.configure(greenflare_config)
-                            start_time = time.time()
-                            crawl_results = crawler.run()
-                            self.logger.info(f"Crawl check completed in {time.time() - start_time:.2f} seconds.")
-                            
-                            # Process the crawl results
-                            for page in crawl_results.get('pages', []):
-                                self._process_page(page, results, url)
-                        
-                        # Run visual check if enabled (always true for baseline creation)
-                        if check_config.get('visual_enabled', True):
-                            self.logger.info(f"Running visual check for website {website_id}")
-                            visual_results = self._perform_visual_check(url, website_id, results.get('all_pages', []))
-                            if visual_results:
-                                results.update(visual_results)
-                        
-                        # Run blur check if enabled
-                        if check_config.get('blur_enabled', False):
-                            self.logger.info(f"Running blur check for website {website_id}")
-                            blur_results = self._perform_blur_check(url, website_id, results.get('all_pages', []))
-                            if blur_results:
-                                results.update(blur_results)
-                        
-                        # Run performance check if enabled
-                        if check_config.get('performance_enabled', False):
-                            self.logger.info(f"Running performance check for website {website_id}")
-                            performance_results = self._perform_performance_check(url, website_id)
-                            if performance_results:
-                                results.update(performance_results)
-                                
-                        self.logger.info(f"All enabled checks completed for website {website_id}")
-                    except Exception as e:
-                        self.logger.error(f"Error during checks after baseline creation: {e}")
                 else:
                     # Check if baselines exist before doing visual check
                     website_config = self.website_manager.get_website(website_id)
@@ -896,12 +813,7 @@ class CrawlerModule:
         if main_baseline_path and not website.get('baseline_visual_path'):
             updates['baseline_visual_path'] = main_baseline_path
             updates['baseline_captured_utc'] = current_time
-            # Also set the web-accessible path for dashboard display
-            # Use a simple path conversion instead of importing from app to avoid circular import
-            web_path = main_baseline_path.replace('data/', '') if main_baseline_path.startswith('data/') else main_baseline_path
-            updates['baseline_visual_path_web'] = web_path
             self.logger.info(f"Updated baseline_visual_path: {main_baseline_path}")
-            self.logger.info(f"Updated baseline_visual_path_web: {updates['baseline_visual_path_web']}")
         elif website.get('baseline_visual_path'):
             self.logger.info(f"Baseline already exists: {website.get('baseline_visual_path')}")
         else:
