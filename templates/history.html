@@ -145,7 +145,7 @@
                     </tr>
                     <tr>
                         <th>Last Checked:</th>
-                        <td>{{ (history[0].get('timestamp') if history and history[0] else website.last_checked_utc) | humanize_datetime }}</td>
+                        <td>{{ (history[0].get('timestamp_utc') if history and history[0] else website.last_checked_utc) | humanize_datetime }}</td>
                     </tr>
                     <tr>
                         <th>Baseline Created:</th>
@@ -283,7 +283,7 @@
                                         <i class="bi bi-file-earmark-text"></i> 
                                         {{ baseline.display_name }}
                                     </h6>
-                                    <small>{{ baseline.timestamp | humanize_datetime }}</small>
+                                    <small>{{ baseline.timestamp_utc | humanize_datetime }}</small>
                                 </div>
                                 <small class="text-muted">{{ baseline.url | truncate(60) }}</small>
                             </a>
@@ -317,12 +317,26 @@
                 <tbody>
                     {% for item in history %}
                     <tr>
-                        <td>{{ item.timestamp | humanize_datetime }}</td>
+                        <td>{{ item.timestamp_utc | humanize_datetime }}</td>
                         <td>
-                            {% if item.status == 'completed' %}
+                            {% if item.status == 'Baseline Created' %}
+                                <span class="badge bg-info">Baseline Created</span>
+                            {% elif item.status == 'No significant change' %}
+                                <span class="badge bg-success">No Changes</span>
+                            {% elif item.status == 'Error' %}
+                                <span class="badge bg-danger">Error</span>
+                            {% elif item.status == 'completed' %}
                                 <span class="badge bg-success">Completed</span>
+                            {% elif item.status == 'success' %}
+                                <span class="badge bg-success">Success</span>
+                            {% elif item.status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                            {% elif item.status == 'queued' %}
+                                <span class="badge bg-warning">Queued</span>
+                            {% elif item.status == 'processing' %}
+                                <span class="badge bg-primary">Processing</span>
                             {% else %}
-                                <span class="badge bg-secondary">In Progress</span>
+                                <span class="badge bg-secondary">{{ item.status or 'Unknown' }}</span>
                             {% endif %}
                         </td>
                         <td>
