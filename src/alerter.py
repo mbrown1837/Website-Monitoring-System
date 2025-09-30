@@ -21,9 +21,19 @@ def _determine_check_type(check_results: dict) -> str:
     Returns: 'manual_visual', 'manual_crawl', 'manual_blur', 'manual_performance', 
              'manual_baseline', 'manual_full', 'scheduled_full', 'scheduled_combined'
     """
-    # Check if this is a baseline creation
+    # Check if this is a baseline creation (but only if it's truly just a baseline creation)
     if check_results.get('status') == 'Baseline Created':
-        return 'manual_baseline'
+        # Check if this was a full check that also created baselines
+        has_crawl = bool(check_results.get('crawl_stats', {}).get('pages_crawled', 0) > 0)
+        has_blur = bool(check_results.get('blur_detection_summary', {}).get('total_images_processed', 0) > 0)
+        has_performance = bool(check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0) > 0)
+        
+        # If it has other checks besides just baseline creation, it's a full check
+        if has_crawl or has_blur or has_performance:
+            is_manual = check_results.get('is_manual', False)
+            return 'manual_full' if is_manual else 'scheduled_full'
+        else:
+            return 'manual_baseline'
     
     # Check if this is an error (like no baselines for visual check)
     if check_results.get('status') == 'error':
