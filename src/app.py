@@ -265,7 +265,7 @@ def settings():
 def clear_scheduler_tasks():
     """Admin route to clear all scheduled tasks."""
     try:
-        from src.scheduler_integration import clear_all_scheduler_tasks
+        from src.scheduler_integration import clear_all_scheduler_tasks, reschedule_tasks
         success = clear_all_scheduler_tasks()
         
         if success:
