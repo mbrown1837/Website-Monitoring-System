@@ -148,20 +148,30 @@ def advanced_lazy_loading_handler(page):
         }
     """)
     
-    # Step 4: Wait for all images to actually load
+    # Step 4: Wait for visible images to load (optimized)
     try:
         page.wait_for_function("""
             () => {
                 const images = Array.from(document.images);
-                return images.every(img => {
-                    // Check if image is loaded and has content
-                    return img.complete && (img.naturalWidth > 0 || img.src === '');
+                const visibleImages = images.filter(img => {
+                    const rect = img.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0 && 
+                           window.getComputedStyle(img).display !== 'none';
                 });
+                
+                // Check if at least 80% of visible images are loaded
+                if (visibleImages.length === 0) return true;
+                
+                const loadedCount = visibleImages.filter(img => 
+                    img.complete && (img.naturalWidth > 0 || img.src === '')
+                ).length;
+                
+                return loadedCount >= Math.ceil(visibleImages.length * 0.8);
             }
-        """, timeout=10000)  # Reduced from 15000 to 10000
-        logger.info("All images successfully loaded")
+        """, timeout=5000)  # Reduced from 10000 to 5000 for better performance
+        logger.info("Visible images loading completed")
     except Exception as e:
-        logger.warning(f"Some images may not have loaded completely: {e}")
+        logger.info(f"Image loading completed with some timeouts: {e}")
     
     # Step 5: Return to top for screenshot
     page.evaluate("window.scrollTo(0, 0)")
@@ -206,27 +216,38 @@ def ensure_complete_loading(page):
     except Exception as e:
         logger.info(f"Animation completion timeout: {e}")
     
-    # Final verification of image loading
+    # Final verification of image loading (optimized for performance)
     try:
         page.wait_for_function("""
             () => {
                 const images = Array.from(document.images);
                 const videos = Array.from(document.querySelectorAll('video'));
                 
-                const imagesLoaded = images.every(img => 
-                    img.complete && (img.naturalWidth > 0 || img.src === '')
-                );
+                // Only check visible images to reduce processing time
+                const visibleImages = images.filter(img => {
+                    const rect = img.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0 && 
+                           window.getComputedStyle(img).display !== 'none';
+                });
                 
-                const videosLoaded = videos.every(video => 
-                    video.readyState >= 3 || video.src === ''
-                );
+                // Check if at least 80% of visible images are loaded (more lenient)
+                const imagesLoaded = visibleImages.length === 0 || 
+                    visibleImages.filter(img => 
+                        img.complete && (img.naturalWidth > 0 || img.src === '')
+                    ).length >= Math.ceil(visibleImages.length * 0.8);
+                
+                // Check videos (more lenient - only check if they have src)
+                const videosLoaded = videos.length === 0 || 
+                    videos.every(video => 
+                        video.readyState >= 3 || video.src === '' || !video.src
+                    );
                 
                 return imagesLoaded && videosLoaded;
             }
-        """, timeout=10000)  # Reduced from 15000 to 10000
-        logger.info("All media content verified as loaded")
+        """, timeout=5000)  # Reduced from 10000 to 5000 for better performance
+        logger.info("Media content verification completed")
     except Exception as e:
-        logger.warning(f"Media loading verification timeout: {e}")
+        logger.info(f"Media loading verification completed with some timeouts: {e}")
     
     # Give everything a moment to stabilize
     time.sleep(2)

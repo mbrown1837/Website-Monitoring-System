@@ -40,7 +40,7 @@ except ImportError:
     from src.history_manager_sqlite import HistoryManager
     from src.crawler_module import CrawlerModule
 from src.scheduler import perform_website_check, make_json_serializable
-from src.scheduler_integration import reschedule_tasks
+from src.enhanced_scheduler import force_reschedule_enhanced_scheduler
 try:
     from .enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler
 except ImportError:
@@ -266,8 +266,8 @@ def settings():
 def clear_scheduler_tasks():
     """Admin route to clear all scheduled tasks."""
     try:
-        from src.scheduler_integration import clear_all_scheduler_tasks, reschedule_tasks
-        success = clear_all_scheduler_tasks()
+        from src.enhanced_scheduler import force_reschedule_enhanced_scheduler
+        success = force_reschedule_enhanced_scheduler()
         
         if success:
             flash('All scheduler tasks cleared successfully!', 'success')
@@ -356,7 +356,7 @@ def add_website():
                 website = website_manager.add_website(website_data)
                 
                 if website:
-                    reschedule_tasks()
+                    force_reschedule_enhanced_scheduler()
                     
                     # Handle initial setup based on user choice
                     if initial_setup == 'none':
@@ -492,7 +492,7 @@ def edit_website(site_id):
                  flash('Name and URL are required.', 'danger')
             else:
                 website_manager.update_website(site_id, updated_data)
-                reschedule_tasks()
+                force_reschedule_enhanced_scheduler()
                 flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
                 return redirect(url_for('index'))
         except Exception as e:

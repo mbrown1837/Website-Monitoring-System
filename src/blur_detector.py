@@ -319,6 +319,26 @@ class BlurDetector:
                         self.logger.error(f"Failed to download {image_url} after {max_retries} attempts due to connection error: {e}")
                         return None
                         
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code == 403:
+                        self.logger.warning(f"Access forbidden (403) for image {image_url} - skipping (no retry)")
+                        return None
+                    elif e.response.status_code == 404:
+                        self.logger.warning(f"Image not found (404) for {image_url} - skipping (no retry)")
+                        return None
+                    elif e.response.status_code in [429, 503, 504]:
+                        # Server overloaded, retry with backoff
+                        if attempt < max_retries - 1:
+                            wait_time = (2 ** attempt) * 2
+                            self.logger.warning(f"Server overloaded ({e.response.status_code}) for {image_url}, attempt {attempt + 1}/{max_retries}, retrying in {wait_time}s...")
+                            time.sleep(wait_time)
+                        else:
+                            self.logger.error(f"Failed to download {image_url} after {max_retries} attempts due to server overload ({e.response.status_code})")
+                            return None
+                    else:
+                        self.logger.warning(f"HTTP error {e.response.status_code} for {image_url} - skipping")
+                        return None
+                        
                 except requests.exceptions.RequestException as e:
                     if attempt < max_retries - 1:
                         wait_time = (2 ** attempt) * 2

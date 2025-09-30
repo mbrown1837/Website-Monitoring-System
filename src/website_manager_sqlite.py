@@ -219,6 +219,7 @@ class WebsiteManagerSQLite:
                             website['all_baselines'] = {}
                     else:
                         self.logger.info(f"DEBUG: No all_baselines found in database for website {website.get('id')}")
+                        website['all_baselines'] = {}
                     
                     if website.get('exclude_pages_keywords'):
                         try:

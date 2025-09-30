@@ -1550,7 +1550,7 @@ class CrawlerModule:
             else:
                 # Fallback to general send_report
                 from src.alerter import send_report
-            success = send_report(website, check_results)
+                success = send_report(website, check_results)
             
             if success:
                 self.logger.info(f"{check_type.title()} email notification sent for website {website.get('name', 'Unknown')}")

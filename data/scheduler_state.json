@@ -1,5 +1,5 @@
 {
-  "last_schedule_time": "2025-09-29T23:35:37.742444+00:00",
+  "last_schedule_time": "2025-09-30T05:06:12.308730+00:00",
   "scheduled_websites": {
     "4d2ae6e0-66ac-481d-b3f6-10df3c3daaae": {
       "name": "https://westlanddre.com/",
@@ -36,6 +36,30 @@
       "url": "https://studio7event.com/",
       "interval": 1440,
       "scheduled_at": "2025-09-29T23:35:37.742156+00:00"
+    },
+    "223d7c59-6301-4a40-8d3a-e6bba414636b": {
+      "name": "Westland",
+      "url": "https://westlanddre.com/",
+      "interval": 60,
+      "scheduled_at": "2025-09-30T00:34:33.972211+00:00"
+    },
+    "0c7beba8-a8bc-40fb-8645-2b58e0a768d9": {
+      "name": "InstagramScraper",
+      "url": "https://westlanddre.com/",
+      "interval": 60,
+      "scheduled_at": "2025-09-30T05:06:12.307571+00:00"
+    },
+    "e58a13a7-088d-4c1e-a1a6-600292a8a11d": {
+      "name": "Baseline Test Site",
+      "url": "https://example.com",
+      "interval": 60,
+      "scheduled_at": "2025-09-30T05:06:12.307995+00:00"
+    },
+    "8da5b271-d600-4e2d-a1ad-8127e8246c84": {
+      "name": "Baseline Test Site",
+      "url": "https://example.com",
+      "interval": 60,
+      "scheduled_at": "2025-09-30T05:06:12.308361+00:00"
     }
   },
   "consecutive_errors": 0,
