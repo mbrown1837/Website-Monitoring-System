@@ -179,7 +179,7 @@ class EnhancedScheduler:
     def _get_active_websites(self) -> List[Dict[str, Any]]:
         """Get active websites from database"""
         try:
-            # Force reload from database
+            # Force reload from database to ensure we have the latest data
             self.website_manager._load_websites(force_reload=True)
             all_websites = self.website_manager.list_websites()
             
@@ -189,6 +189,11 @@ class EnhancedScheduler:
                     active_websites.append(site)
             
             self.logger.info(f"Enhanced Scheduler: Found {len(active_websites)} active websites")
+            
+            # Log website details for debugging
+            for site in active_websites:
+                self.logger.debug(f"Active website: {site.get('name', 'Unknown')} (ID: {site.get('id', 'Unknown')}) - Interval: {site.get('check_interval_minutes', 60)} minutes")
+            
             return active_websites
         except Exception as e:
             self.logger.error(f"Enhanced Scheduler: Failed to get active websites: {e}")
@@ -268,7 +273,7 @@ class EnhancedScheduler:
         try:
             self.logger.info(f"Enhanced Scheduler: Performing check for {site_name} (ID: {site_id})")
             
-            # Get website details
+            # Get website details with force reload to ensure we have latest data
             website = self.website_manager.get_website(site_id)
             if not website:
                 self.logger.warning(f"Enhanced Scheduler: Website {site_id} not found, removing from schedule")
@@ -277,6 +282,8 @@ class EnhancedScheduler:
                     del self.scheduled_websites[site_id]
                 # Cancel this specific job by tag
                 schedule.clear(site_id)
+                # Save updated state
+                self._save_state()
                 return
             
             # Perform the check using crawler module
@@ -419,16 +426,29 @@ class EnhancedScheduler:
     
     def get_status(self) -> Dict[str, Any]:
         """Get scheduler status"""
-        return {
-            'running': self.scheduler_running,
-            'thread_alive': self.scheduler_thread.is_alive() if self.scheduler_thread else False,
-            'scheduled_websites': len(self.scheduled_websites),
-            'consecutive_errors': self.consecutive_errors,
-            'last_schedule_time': self.last_schedule_time,
-            'last_error_time': self.last_error_time,
-            'active_jobs': len(schedule.jobs),
-            'next_run': schedule.next_run().isoformat() if schedule.jobs else None
-        }
+        try:
+            # Get current active websites count for comparison
+            current_active_count = len(self._get_active_websites())
+            
+            return {
+                'running': self.scheduler_running,
+                'thread_alive': self.scheduler_thread.is_alive() if self.scheduler_thread else False,
+                'scheduled_websites': len(self.scheduled_websites),
+                'database_active_websites': current_active_count,
+                'consecutive_errors': self.consecutive_errors,
+                'last_schedule_time': self.last_schedule_time,
+                'last_error_time': self.last_error_time,
+                'active_jobs': len(schedule.jobs),
+                'next_run': schedule.next_run().isoformat() if schedule.jobs else None,
+                'sync_status': 'in_sync' if len(self.scheduled_websites) == current_active_count else 'out_of_sync'
+            }
+        except Exception as e:
+            self.logger.error(f"Enhanced Scheduler: Error getting status: {e}")
+            return {
+                'running': self.scheduler_running,
+                'thread_alive': False,
+                'error': str(e)
+            }
     
     def force_reschedule(self) -> bool:
         """Force reschedule all websites"""
@@ -441,7 +461,19 @@ class EnhancedScheduler:
             
             # Reinitialize managers to ensure fresh data
             self._initialize_managers()
-            return self._schedule_website_checks()
+            
+            # Force reload websites from database
+            self.website_manager._load_websites(force_reload=True)
+            
+            # Schedule websites
+            success = self._schedule_website_checks()
+            
+            if success:
+                self.logger.info("Enhanced Scheduler: Force reschedule completed successfully")
+            else:
+                self.logger.warning("Enhanced Scheduler: Force reschedule completed but no websites were scheduled")
+            
+            return success
         except Exception as e:
             self.logger.error(f"Enhanced Scheduler: Failed to force reschedule: {e}")
             return False

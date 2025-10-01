@@ -1,68 +1,32 @@
 {
-  "last_schedule_time": "2025-09-30T05:06:12.308730+00:00",
+  "last_schedule_time": "2025-10-01T19:12:11.458847+00:00",
   "scheduled_websites": {
-    "4d2ae6e0-66ac-481d-b3f6-10df3c3daaae": {
-      "name": "https://westlanddre.com/",
-      "url": "https://westlanddre.com/",
-      "interval": 60,
-      "scheduled_at": "2025-09-29T20:01:57.748344+00:00"
-    },
-    "c2efa336-bf69-4d5c-9301-d4ecc2a4a218": {
-      "name": "test",
-      "url": "https://example.com/",
-      "interval": 60,
-      "scheduled_at": "2025-09-29T20:01:57.760661+00:00"
-    },
-    "aa0ae398-99cb-444a-a3db-545cc5b97811": {
-      "name": "https://legowerk.webflow.io/",
-      "url": "https://legowerk.webflow.io/",
-      "interval": 60,
-      "scheduled_at": "2025-09-29T20:01:57.761419+00:00"
-    },
-    "f2cf9480-eb3f-4393-bbd0-ed9242e11d83": {
-      "name": "studio7event.com",
-      "url": "https://studio7event.com/",
-      "interval": 60,
-      "scheduled_at": "2025-09-29T21:05:19.064231+00:00"
-    },
-    "83d90c2d-8943-490a-b303-75f0a8f132e2": {
-      "name": "Test Website",
-      "url": "https://example.com",
-      "interval": 60,
-      "scheduled_at": "2025-09-29T21:05:19.064587+00:00"
-    },
-    "a2e0b875-9b08-4df7-a7be-5ff6d8aefdf9": {
-      "name": "studio7event.com",
-      "url": "https://studio7event.com/",
-      "interval": 1440,
-      "scheduled_at": "2025-09-29T23:35:37.742156+00:00"
-    },
-    "223d7c59-6301-4a40-8d3a-e6bba414636b": {
-      "name": "Westland",
-      "url": "https://westlanddre.com/",
-      "interval": 60,
-      "scheduled_at": "2025-09-30T00:34:33.972211+00:00"
-    },
     "0c7beba8-a8bc-40fb-8645-2b58e0a768d9": {
       "name": "InstagramScraper",
       "url": "https://westlanddre.com/",
       "interval": 60,
-      "scheduled_at": "2025-09-30T05:06:12.307571+00:00"
+      "scheduled_at": "2025-10-01T19:12:11.457494+00:00"
     },
     "e58a13a7-088d-4c1e-a1a6-600292a8a11d": {
       "name": "Baseline Test Site",
       "url": "https://example.com",
       "interval": 60,
-      "scheduled_at": "2025-09-30T05:06:12.307995+00:00"
+      "scheduled_at": "2025-10-01T19:12:11.457907+00:00"
     },
     "8da5b271-d600-4e2d-a1ad-8127e8246c84": {
       "name": "Baseline Test Site",
       "url": "https://example.com",
       "interval": 60,
-      "scheduled_at": "2025-09-30T05:06:12.308361+00:00"
+      "scheduled_at": "2025-10-01T19:12:11.458266+00:00"
+    },
+    "32211b3a-0ca1-4f07-915f-1cfe556bdeaa": {
+      "name": "Test Site for Deletion",
+      "url": "https://example.com",
+      "interval": 1,
+      "scheduled_at": "2025-10-01T19:12:11.458584+00:00"
     }
   },
   "consecutive_errors": 0,
   "last_error_time": null,
-  "scheduler_running": true
+  "scheduler_running": false
 }

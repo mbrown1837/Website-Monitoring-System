@@ -361,7 +361,12 @@ def add_website():
                 website = website_manager.add_website(website_data)
                 
                 if website:
-                    force_reschedule_enhanced_scheduler()
+                    # Force reschedule to ensure scheduler immediately recognizes the new website
+                    success = force_reschedule_enhanced_scheduler()
+                    if success:
+                        logger.info(f"Website {name} added and scheduler rescheduled successfully")
+                    else:
+                        logger.warning(f"Website {name} added but scheduler reschedule failed")
                     
                     # Handle initial setup based on user choice
                     if initial_setup == 'none':
@@ -496,9 +501,17 @@ def edit_website(site_id):
             if not updated_data['name'] or not updated_data['url']:
                  flash('Name and URL are required.', 'danger')
             else:
-                website_manager.update_website(site_id, updated_data)
-                force_reschedule_enhanced_scheduler()
-                flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
+                success = website_manager.update_website(site_id, updated_data)
+                if success:
+                    # Force reschedule to ensure scheduler reflects the changes
+                    reschedule_success = force_reschedule_enhanced_scheduler()
+                    if reschedule_success:
+                        logger.info(f"Website {updated_data['name']} updated and scheduler rescheduled successfully")
+                    else:
+                        logger.warning(f"Website {updated_data['name']} updated but scheduler reschedule failed")
+                    flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
+                else:
+                    flash(f'Failed to update website "{updated_data["name"]}".', 'danger')
                 return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error updating website {site_id}: {e}", exc_info=True)
@@ -514,9 +527,18 @@ def remove_website(site_id):
     try:
         website = website_manager.get_website(site_id)
         if website:
+            website_name = website.get("name", site_id)
+            
             # Remove the website (this will also clean up the scheduler task)
-            website_manager.remove_website(site_id)
-            flash(f'Website "{website.get("name", site_id)}" and its scheduler task removed successfully!', 'success')
+            success = website_manager.remove_website(site_id)
+            
+            if success:
+                # Force reschedule to ensure scheduler is updated
+                force_reschedule_enhanced_scheduler()
+                flash(f'Website "{website_name}" and its scheduler task removed successfully!', 'success')
+                logger.info(f"Website {website_name} ({site_id}) removed and scheduler rescheduled")
+            else:
+                flash(f'Website "{website_name}" removed but there may have been cleanup issues.', 'warning')
         else:
             flash(f'Website with ID "{site_id}" not found.', 'danger')
     except Exception as e:
