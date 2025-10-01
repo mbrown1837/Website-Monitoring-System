@@ -653,13 +653,13 @@ class CrawlerModule:
             self.logger.info(f"Creating baselines only for pages that will do visual checks: {len(pages_to_snapshot)} pages")
         else:
             # For regular visual checks, use all valid pages
-        pages_to_snapshot = [
-            p for p in results.get('all_pages', []) 
-            if (p.get('is_internal') and 
-                p.get('status_code') == 200 and 
-                not image_ext_pattern.search(p['url']) and
-                not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
-        ]
+            pages_to_snapshot = [
+                p for p in results.get('all_pages', []) 
+                if (p.get('is_internal') and 
+                    p.get('status_code') == 200 and 
+                    not image_ext_pattern.search(p['url']) and
+                    not self._should_exclude_url_for_checks(p['url'], 'visual', results['website_id']))
+            ]
         
         if not pages_to_snapshot:
             self.logger.warning(f"No valid internal pages found to capture {log_action} snapshots.")
@@ -736,7 +736,7 @@ class CrawlerModule:
                         else:
                             # Only warn if we're not in baseline creation mode
                             if not hasattr(self, '_creating_baseline') or not self._creating_baseline:
-                            self.logger.warning(f"No baseline found for URL {url} to compare against the latest snapshot.")
+                                self.logger.warning(f"No baseline found for URL {url} to compare against the latest snapshot.")
                     else:
                         # If we're creating baselines, log that baseline was created
                         self.logger.info(f"Baseline snapshot created for URL {url}: {snapshot_path}")
