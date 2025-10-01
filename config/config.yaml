@@ -1,6 +1,7 @@
 log_level: INFO
 log_file_path: data/monitoring.log
-default_monitoring_interval_hours: 24
+default_monitoring_interval_hours: 1
+default_monitoring_interval_minutes: 60
 website_list_storage_type: json
 website_list_file_path: data/websites.json
 snapshot_directory: data/snapshots
@@ -10,12 +11,12 @@ playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537
   (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
 playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
-notification_email_from: websitecheckapp@digitalclics.com
-notification_email_to: websitecheckapp@digitalclics.com
+notification_email_from: support@westlanddre.com
+notification_email_to: sarmadsahib786@gmail.com
 dashboard_url: ${DASHBOARD_URL:-http://localhost:5001}
-content_change_threshold: 1.0
+content_change_threshold: 100.0
 image_diff_threshold: 1000
-structure_change_threshold: 1.0
+structure_change_threshold: 100.0
 semantic_similarity_threshold: 0.9
 ssim_similarity_threshold: 0.95
 visual_change_alert_threshold_percent: 0.01
@@ -44,7 +45,7 @@ smtp_use_tls: false
 smtp_use_ssl: true
 default_notification_email: websitecheckapp@digitalclics.com
 crawler_max_depth: 2
-crawler_respect_robots: false
+crawler_respect_robots: true
 crawler_check_external_links: true
 crawler_user_agent: SiteMonitor Bot
 greenflare_timeout: 30
