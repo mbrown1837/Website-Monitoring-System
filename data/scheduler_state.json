@@ -1,12 +1,6 @@
 {
   "last_schedule_time": "2025-10-01T19:12:11.458847+00:00",
   "scheduled_websites": {
-    "0c7beba8-a8bc-40fb-8645-2b58e0a768d9": {
-      "name": "InstagramScraper",
-      "url": "https://westlanddre.com/",
-      "interval": 60,
-      "scheduled_at": "2025-10-01T19:12:11.457494+00:00"
-    },
     "e58a13a7-088d-4c1e-a1a6-600292a8a11d": {
       "name": "Baseline Test Site",
       "url": "https://example.com",

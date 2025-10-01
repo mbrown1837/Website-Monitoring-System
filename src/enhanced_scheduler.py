@@ -273,10 +273,15 @@ class EnhancedScheduler:
         try:
             self.logger.info(f"Enhanced Scheduler: Performing check for {site_name} (ID: {site_id})")
             
+            # First check if this website is still in our tracking
+            if site_id not in self.scheduled_websites:
+                self.logger.warning(f"Enhanced Scheduler: Website {site_id} not in scheduled websites, skipping check")
+                return
+            
             # Get website details with force reload to ensure we have latest data
             website = self.website_manager.get_website(site_id)
             if not website:
-                self.logger.warning(f"Enhanced Scheduler: Website {site_id} not found, removing from schedule")
+                self.logger.warning(f"Enhanced Scheduler: Website {site_id} not found in database, removing from schedule")
                 # Remove from our tracking
                 if site_id in self.scheduled_websites:
                     del self.scheduled_websites[site_id]
@@ -334,6 +339,10 @@ class EnhancedScheduler:
                     
                     if tasks_run:
                         self.logger.info(f"Enhanced Scheduler: Executed {len(tasks_run)} scheduled tasks")
+                        
+                        # Log which tasks were executed for debugging
+                        for task in tasks_run:
+                            self.logger.debug(f"Enhanced Scheduler: Executed task: {task}")
                     
                     # Check for errors
                     if self.consecutive_errors >= self.max_consecutive_errors:
@@ -483,12 +492,23 @@ class EnhancedScheduler:
         try:
             self.logger.info(f"Enhanced Scheduler: Removing website {site_id} from schedule")
             
-            # Remove from our tracking
+            # Remove from our tracking first
             if site_id in self.scheduled_websites:
+                website_name = self.scheduled_websites[site_id].get('name', 'Unknown')
                 del self.scheduled_websites[site_id]
+                self.logger.info(f"Enhanced Scheduler: Removed {website_name} from scheduled websites tracking")
+            else:
+                self.logger.warning(f"Enhanced Scheduler: Website {site_id} was not in scheduled websites tracking")
             
             # Clear the specific job by tag
             schedule.clear(site_id)
+            
+            # Also clear any jobs that might be queued for execution
+            # This is a more aggressive approach to prevent race conditions
+            for job in schedule.jobs[:]:  # Create a copy to avoid modification during iteration
+                if site_id in job.tags:
+                    schedule.jobs.remove(job)
+                    self.logger.info(f"Enhanced Scheduler: Removed queued job for website {site_id}")
             
             # Save updated state
             self._save_state()
