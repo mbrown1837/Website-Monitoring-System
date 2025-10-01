@@ -357,36 +357,36 @@
                 </h5>
             </div>
             <div class="card-body">
-                {% if history_summary.visual_changes_detected > 0 %}
-                    <div class="row text-center mb-3">
-                        <div class="col-4">
-                            <h4 class="text-primary">{{ history_summary.visual_changes_detected }}</h4>
-                            <small class="text-muted">Changes Detected</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-info">{{ history_summary.avg_visual_diff|round(2) if history_summary.avg_visual_diff else 'N/A' }}%</h4>
-                            <small class="text-muted">Avg Change</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-warning">{{ history_summary.max_visual_diff|round(2) if history_summary.max_visual_diff else 'N/A' }}%</h4>
-                            <small class="text-muted">Max Change</small>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ history_summary.visual_changes_detected }}</h4>
+                        <small class="text-muted">Changes Detected</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info">{{ history_summary.avg_visual_diff|round(2) if history_summary.avg_visual_diff else '0.00' }}%</h4>
+                        <small class="text-muted">Avg Change</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-warning">{{ history_summary.max_visual_diff|round(2) if history_summary.max_visual_diff else '0.00' }}%</h4>
+                        <small class="text-muted">Max Change</small>
+                    </div>
+                </div>
+                
+                <!-- Visual Stability Score -->
+                {% set stability_score = 100 - (history_summary.visual_changes_detected * 5) %}
+                {% set stability_score = [stability_score, 0]|max %}
+                <div class="mb-3">
+                    <h6>Visual Stability Score</h6>
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar {% if stability_score >= 80 %}bg-success{% elif stability_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                             style="width: {{ stability_score }}%">
+                            {{ stability_score|round(0) }}%
                         </div>
                     </div>
-                    
-                    <!-- Visual Stability Score -->
-                    {% set stability_score = 100 - (history_summary.visual_changes_detected * 5) %}
-                    {% set stability_score = [stability_score, 0]|max %}
-                    <div class="mb-3">
-                        <h6>Visual Stability Score</h6>
-                        <div class="progress mb-2" style="height: 20px;">
-                            <div class="progress-bar {% if stability_score >= 80 %}bg-success{% elif stability_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                 style="width: {{ stability_score }}%">
-                                {{ stability_score|round(0) }}%
-                            </div>
-                        </div>
-                        <small class="text-muted">Based on frequency of visual changes</small>
-                    </div>
-                {% else %}
+                    <small class="text-muted">Based on frequency of visual changes</small>
+                </div>
+                
+                {% if history_summary.visual_changes_detected == 0 %}
                     <div class="alert alert-success">
                         <i class="bi bi-check-circle"></i> No visual changes detected recently. Your website appears stable.
                     </div>
