@@ -204,7 +204,7 @@ def settings():
         try:
             # Update general settings
             current_config['log_level'] = request.form.get('log_level', current_config['log_level'])
-            current_config['default_monitoring_interval_minutes'] = int(request.form.get('default_monitoring_interval_minutes', current_config.get('default_monitoring_interval_minutes', 60)))
+            current_config['default_monitoring_interval_minutes'] = int(request.form.get('default_monitoring_interval_minutes', current_config.get('default_monitoring_interval_minutes', 1440)))
 
             # Update Snapshot/Playwright settings
             current_config['snapshot_directory'] = request.form.get('snapshot_directory', current_config['snapshot_directory'])
@@ -295,7 +295,7 @@ def add_website():
             # Basic fields
             name = request.form['name']
             url = request.form['url']
-            check_interval_minutes = int(request.form.get('check_interval_minutes', current_config.get('default_monitoring_interval_minutes', 60)))
+            check_interval_minutes = int(request.form.get('check_interval_minutes', current_config.get('default_monitoring_interval_minutes', 1440)))
             tags_str = request.form.get('tags', '')
             tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
             notification_emails_str = request.form.get('notification_emails', '')

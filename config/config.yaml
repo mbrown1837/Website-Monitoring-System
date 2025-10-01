@@ -1,6 +1,6 @@
 log_level: INFO
 log_file_path: data/monitoring.log
-default_monitoring_interval_minutes: 1440
+default_monitoring_interval_hours: 24
 website_list_storage_type: json
 website_list_file_path: data/websites.json
 snapshot_directory: data/snapshots

@@ -440,7 +440,7 @@ def schedule_website_monitoring_tasks(config_path=None):
         logger.warning("SCHEDULER: No active websites found to schedule.")
         return
 
-    default_interval_minutes = config.get('default_monitoring_interval_minutes', 60)
+    default_interval_minutes = config.get('default_monitoring_interval_minutes', 1440)
     for site in active_websites:
         site_id = site.get('id')
         # Check both check_interval_minutes and interval (convert hours to minutes)

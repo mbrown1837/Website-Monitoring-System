@@ -1,7 +1,7 @@
 log_level: INFO
 log_file_path: data/monitoring.log
 database_path: data/website_monitor.db
-default_monitoring_interval_minutes: 1440
+default_monitoring_interval_hours: 24
 website_list_storage_type: json
 website_list_file_path: data/websites.json
 snapshot_directory: data/snapshots
@@ -11,8 +11,8 @@ playwright_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537
   (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36
 playwright_render_delay_ms: 3000
 playwright_navigation_timeout_ms: 60000
-notification_email_from: support@westlanddre.com
-notification_email_to: sarmadsahib786@gmail.com
+notification_email_from: websitecheckapp@digitalclics.com
+notification_email_to: websitecheckapp@digitalclics.com
 dashboard_url: ${DASHBOARD_URL:-https://websitemonitor.digitalclics.com}
 content_change_threshold: 1.0
 image_diff_threshold: 1000
@@ -37,13 +37,13 @@ log_level_dashboard: INFO
 log_file_dashboard: data/dashboard.log
 dashboard_history_limit: 20
 dashboard_api_history_limit: 100
-smtp_server: 
-smtp_port: 587
-smtp_username: 
-smtp_password: 
-smtp_use_tls: true
-smtp_use_ssl: false
-default_notification_email: sarmadsahib786@gmail.com
+smtp_server: mail.digitalclics.com
+smtp_port: 465
+smtp_username: websitecheckapp@digitalclics.com
+smtp_password: ']d1n2%|121@3'
+smtp_use_tls: false
+smtp_use_ssl: true
+default_notification_email: websitecheckapp@digitalclics.com
 crawler_max_depth: 2
 crawler_respect_robots: false
 crawler_check_external_links: true

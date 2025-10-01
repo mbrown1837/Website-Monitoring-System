@@ -31,7 +31,7 @@
         </div>
         <div class="col-lg-6 col-md-12 mb-3">
             <label for="default_monitoring_interval_minutes" class="form-label">Default Monitoring Interval (minutes)</label>
-            <input type="number" class="form-control" id="default_monitoring_interval_minutes" name="default_monitoring_interval_minutes" value="{{ config.get('default_monitoring_interval_minutes', 60) }}" min="1">
+            <input type="number" class="form-control" id="default_monitoring_interval_minutes" name="default_monitoring_interval_minutes" value="{{ config.get('default_monitoring_interval_minutes', 1440) }}" min="1">
             <div class="form-text">Default check frequency for new websites, in minutes.</div>
         </div>
     </div>
@@ -96,11 +96,11 @@
     <div class="row mb-3">
         <div class="col-lg-6 col-md-12 mb-3">
             <label for="notification_email_from" class="form-label">Sender Email Address</label>
-            <input type="email" class="form-control" id="notification_email_from" name="notification_email_from" value="{{ config.get('notification_email_from', 'support@westlanddre.com') }}">
+            <input type="email" class="form-control" id="notification_email_from" name="notification_email_from" value="{{ config.get('notification_email_from', 'websitecheckapp@digitalclics.com') }}">
         </div>
         <div class="col-lg-6 col-md-12 mb-3">
             <label for="notification_email_to" class="form-label">Recipient Email Address(es)</label>
-            <input type="text" class="form-control" id="notification_email_to" name="notification_email_to" value="{{ config.get('notification_email_to', 'sarmadsahib786@gmail.com') }}">
+            <input type="text" class="form-control" id="notification_email_to" name="notification_email_to" value="{{ config.get('notification_email_to', 'websitecheckapp@digitalclics.com') }}">
             <div class="form-text">Comma-separated list of emails for alerts.</div>
         </div>
     </div>

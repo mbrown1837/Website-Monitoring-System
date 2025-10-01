@@ -900,19 +900,19 @@ def send_email_alert(subject: str, body_html: str, body_text: str = None, recipi
                 
                 if server_ssl:
                     server = smtplib.SMTP_SSL(server_host, server_port, timeout=10)
-                else:
+        else:
                     server = smtplib.SMTP(server_host, server_port, timeout=10)
                     if server_tls:
-                        server.starttls()
-                
+                server.starttls()
+        
                 # Always try to login since we're only using Digital Clics SMTP
-                server.login(smtp_username, smtp_password)
+        server.login(smtp_username, smtp_password)
                 
-                server.send_message(msg)
-                server.quit()
-                
+        server.send_message(msg)
+        server.quit()
+        
                 logger.info(f"Email sent successfully to {', '.join(recipient_emails)} via {server_host}:{server_port} (TLS: {server_tls}, SSL: {server_ssl})")
-                return True
+        return True
 
             except Exception as e:
                 logger.warning(f"EMAIL DEBUG - Failed to send via {server_host}:{server_port} (TLS: {server_tls}, SSL: {server_ssl}): {e}")

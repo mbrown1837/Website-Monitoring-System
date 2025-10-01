@@ -32,7 +32,7 @@
 
     <div class="mb-3">
         <label for="check_interval_minutes" class="form-label">Monitoring Interval (minutes)</label>
-        <input type="number" class="form-control" id="check_interval_minutes" name="check_interval_minutes" value="{{ website.check_interval_minutes if website else config.get('default_monitoring_interval_minutes', 60) }}" min="1">
+        <input type="number" class="form-control" id="check_interval_minutes" name="check_interval_minutes" value="{{ website.check_interval_minutes if website else config.get('default_monitoring_interval_minutes', 1440) }}" min="1">
         <div class="form-text">How often to check this website for changes (in minutes). Defaults to global setting if left empty.</div>
     </div>
 
