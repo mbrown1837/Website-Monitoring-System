@@ -1164,6 +1164,48 @@ def website_summary(site_id):
             logger.error(f"Error getting blur stats for website {site_id}: {e}")
             blur_stats = None
     
+    # Get performance statistics if enabled
+    performance_stats = None
+    performance_enabled = (website.get('auto_performance_enabled', False) or 
+                          website.get('auto_full_check_enabled', False))
+    if performance_enabled:
+        try:
+            from src.performance_checker import PerformanceChecker
+            performance_checker = PerformanceChecker()
+            performance_results = performance_checker.get_latest_performance_results(site_id, limit=1)
+            
+            if performance_results:
+                # Get the latest results and calculate stats
+                latest_results = performance_results[0]
+                
+                # Calculate average scores for mobile and desktop
+                mobile_scores = []
+                desktop_scores = []
+                mobile_fcp_values = []
+                mobile_lcp_values = []
+                mobile_cls_values = []
+                
+                for result in performance_results:
+                    if result[2] == 'mobile':  # device_type column
+                        mobile_scores.append(result[3])  # performance_score column
+                        mobile_fcp_values.append(result[8])  # fcp_score column
+                        mobile_lcp_values.append(result[9])  # lcp_score column
+                        mobile_cls_values.append(result[10])  # cls_score column
+                    elif result[2] == 'desktop':
+                        desktop_scores.append(result[3])
+                
+                performance_stats = {
+                    'mobile_score': round(sum(mobile_scores) / len(mobile_scores), 0) if mobile_scores else None,
+                    'desktop_score': round(sum(desktop_scores) / len(desktop_scores), 0) if desktop_scores else None,
+                    'mobile_fcp': round(sum(mobile_fcp_values) / len(mobile_fcp_values), 1) if mobile_fcp_values else None,
+                    'mobile_lcp': round(sum(mobile_lcp_values) / len(mobile_lcp_values), 1) if mobile_lcp_values else None,
+                    'mobile_cls': round(sum(mobile_cls_values) / len(mobile_cls_values), 3) if mobile_cls_values else None,
+                    'last_check': latest_results[7] if len(latest_results) > 7 else None  # timestamp column
+                }
+        except Exception as e:
+            logger.error(f"Error getting performance stats for website {site_id}: {e}")
+            performance_stats = None
+    
     # Get website history summary
     history_summary = {
         'total_checks': 0,
@@ -1203,6 +1245,7 @@ def website_summary(site_id):
         'crawler_stats': crawler_stats,
         'crawler_results': crawler_results,
         'blur_stats': blur_stats,
+        'performance_stats': performance_stats,
         'history_summary': history_summary,
         'has_recent_data': crawler_results is not None
     }
