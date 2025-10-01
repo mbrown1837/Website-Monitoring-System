@@ -1,8 +1,7 @@
 log_level: INFO
 log_file_path: data/monitoring.log
 database_path: data/website_monitor.db
-default_monitoring_interval_hours: 1
-default_monitoring_interval_minutes: 60
+default_monitoring_interval_minutes: 1440
 website_list_storage_type: json
 website_list_file_path: data/websites.json
 snapshot_directory: data/snapshots
@@ -15,9 +14,9 @@ playwright_navigation_timeout_ms: 60000
 notification_email_from: support@westlanddre.com
 notification_email_to: sarmadsahib786@gmail.com
 dashboard_url: ${DASHBOARD_URL:-https://websitemonitor.digitalclics.com}
-content_change_threshold: 100.0
+content_change_threshold: 1.0
 image_diff_threshold: 1000
-structure_change_threshold: 100.0
+structure_change_threshold: 1.0
 semantic_similarity_threshold: 0.9
 ssim_similarity_threshold: 0.95
 visual_change_alert_threshold_percent: 0.01
@@ -44,9 +43,9 @@ smtp_username:
 smtp_password: 
 smtp_use_tls: true
 smtp_use_ssl: false
-default_notification_email: websitecheckapp@digitalclics.com
+default_notification_email: sarmadsahib786@gmail.com
 crawler_max_depth: 2
-crawler_respect_robots: true
+crawler_respect_robots: false
 crawler_check_external_links: true
 crawler_user_agent: SiteMonitor Bot
 greenflare_timeout: 30
