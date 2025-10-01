@@ -225,16 +225,16 @@
             </div>
             <div class="card-body">
                 {% if website.auto_performance_enabled or website.auto_full_check_enabled %}
-                    {% if performance_stats %}
+                    {% if performance_stats and (performance_stats.mobile_score is not none or performance_stats.desktop_score is not none) %}
                         <div class="row text-center mb-3">
                             <div class="col-6">
-                                <h4 class="{% if performance_stats.mobile_score >= 90 %}text-success{% elif performance_stats.mobile_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                <h4 class="{% if performance_stats.mobile_score and performance_stats.mobile_score >= 90 %}text-success{% elif performance_stats.mobile_score and performance_stats.mobile_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
                                     {{ performance_stats.mobile_score|default('N/A') }}
                                 </h4>
                                 <small class="text-muted">Mobile Score</small>
                             </div>
                             <div class="col-6">
-                                <h4 class="{% if performance_stats.desktop_score >= 90 %}text-success{% elif performance_stats.desktop_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                <h4 class="{% if performance_stats.desktop_score and performance_stats.desktop_score >= 90 %}text-success{% elif performance_stats.desktop_score and performance_stats.desktop_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
                                     {{ performance_stats.desktop_score|default('N/A') }}
                                 </h4>
                                 <small class="text-muted">Desktop Score</small>

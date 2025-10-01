@@ -215,10 +215,7 @@ def _create_email_content(site_name: str, site_url: str, check_type: str, check_
 
                 <!-- Footer -->
                 <div style="background: #2c3e50; color: #ecf0f1; padding: 30px; text-align: center; margin-top: 30px; border-radius: 8px;">
-                    <p style="margin: 0 0 10px 0;">This is an automated report from your Website Monitoring System.
-
----
-Developed by Digital Clics - © 2025</p>
+                    <p style="margin: 0 0 10px 0;">This is an automated report from your Website Monitoring System.</p>
                     <p style="margin: 0 0 15px 0;"><a href="{dashboard_url}" style="color: #3498db; text-decoration: none;">Visit Dashboard</a> | <a href="{dashboard_url}/settings" style="color: #3498db; text-decoration: none;">Settings</a></p>
                     <hr style="border: none; border-top: 1px solid #34495e; margin: 15px 0;">
                     <p style="margin: 0; font-size: 12px; color: #bdc3c7;">Developed by Digital Clics - © 2025</p>

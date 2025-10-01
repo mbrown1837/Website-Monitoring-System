@@ -1168,15 +1168,19 @@ def website_summary(site_id):
     performance_stats = None
     performance_enabled = (website.get('auto_performance_enabled', False) or 
                           website.get('auto_full_check_enabled', False))
+    logger.info(f"Performance enabled for website {site_id}: {performance_enabled}")
+    
     if performance_enabled:
         try:
             from src.performance_checker import PerformanceChecker
             performance_checker = PerformanceChecker()
-            performance_results = performance_checker.get_latest_performance_results(site_id, limit=1)
+            performance_results = performance_checker.get_latest_performance_results(site_id, limit=10)
+            logger.info(f"Found {len(performance_results)} performance results for website {site_id}")
             
             if performance_results:
                 # Get the latest results and calculate stats
                 latest_results = performance_results[0]
+                logger.info(f"Latest performance result: {latest_results}")
                 
                 # Calculate average scores for mobile and desktop
                 mobile_scores = []
@@ -1186,13 +1190,16 @@ def website_summary(site_id):
                 mobile_cls_values = []
                 
                 for result in performance_results:
-                    if result[2] == 'mobile':  # device_type column
-                        mobile_scores.append(result[3])  # performance_score column
-                        mobile_fcp_values.append(result[8])  # fcp_score column
-                        mobile_lcp_values.append(result[9])  # lcp_score column
-                        mobile_cls_values.append(result[10])  # cls_score column
-                    elif result[2] == 'desktop':
-                        desktop_scores.append(result[3])
+                    if len(result) > 10:  # Ensure result has enough columns
+                        if result[2] == 'mobile':  # device_type column
+                            mobile_scores.append(result[3])  # performance_score column
+                            mobile_fcp_values.append(result[8])  # fcp_score column
+                            mobile_lcp_values.append(result[9])  # lcp_score column
+                            mobile_cls_values.append(result[10])  # cls_score column
+                        elif result[2] == 'desktop':
+                            desktop_scores.append(result[3])
+                
+                logger.info(f"Mobile scores: {mobile_scores}, Desktop scores: {desktop_scores}")
                 
                 performance_stats = {
                     'mobile_score': round(sum(mobile_scores) / len(mobile_scores), 0) if mobile_scores else None,
@@ -1202,9 +1209,14 @@ def website_summary(site_id):
                     'mobile_cls': round(sum(mobile_cls_values) / len(mobile_cls_values), 3) if mobile_cls_values else None,
                     'last_check': latest_results[7] if len(latest_results) > 7 else None  # timestamp column
                 }
+                logger.info(f"Calculated performance stats: {performance_stats}")
+            else:
+                logger.info(f"No performance results found for website {site_id}")
         except Exception as e:
             logger.error(f"Error getting performance stats for website {site_id}: {e}")
             performance_stats = None
+    else:
+        logger.info(f"Performance monitoring not enabled for website {site_id}")
     
     # Get website history summary
     history_summary = {
