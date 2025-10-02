@@ -38,6 +38,7 @@ _max_concurrent_site_checks = 1  # Force single-site processing for reliability
 _site_check_semaphore = threading.Semaphore(_max_concurrent_site_checks)
 _processing_lock = threading.Lock()  # Additional lock to ensure only one site processes at a time
 _current_processing_site = None  # Track which site is currently being processed
+_processing_complete_event = threading.Event()  # Event to signal when processing completes
 
 def get_scheduler_managers(config_path=None, website_manager=None, history_manager=None, crawler_module=None):
     """Get or create scheduler managers with proper configuration."""
@@ -316,10 +317,24 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
     with _processing_lock:
         if _current_processing_site is not None:
             logger.info(f"⏳ Waiting for {_current_processing_site} to finish before processing {site_name}")
-            while _current_processing_site is not None:
-                time.sleep(1)  # Wait 1 second before checking again
-        _current_processing_site = site_name
-        logger.info(f"🚀 Starting single-site processing for: {site_name}")
+    
+    # Wait outside the lock to avoid deadlock
+    while True:
+        with _processing_lock:
+            if _current_processing_site is None:
+                _current_processing_site = site_name
+                _processing_complete_event.clear()  # Reset event for this processing session
+                logger.info(f"🚀 Starting single-site processing for: {site_name}")
+                break
+        
+        # Wait for the current processing to complete
+        logger.info(f"⏳ {site_name} waiting for {_current_processing_site} to complete...")
+        _processing_complete_event.wait(timeout=30)  # Wait up to 30 seconds
+        
+        # Check again after wait
+        with _processing_lock:
+            if _current_processing_site is None:
+                continue  # Try to acquire processing slot again
     
     # Concurrency gate: limit number of concurrent site checks
     logger.debug(f"Awaiting site check slot (max {_max_concurrent_site_checks} concurrent)...")
@@ -401,6 +416,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         # Clear the current processing site to allow next site to start
         with _processing_lock:
             _current_processing_site = None
+        # Signal that processing is complete so waiting threads can proceed
+        _processing_complete_event.set()
         logger.info(f"✅ Completed single-site processing for: {site_name}")
 
 def schedule_website_monitoring_tasks(config_path=None):
