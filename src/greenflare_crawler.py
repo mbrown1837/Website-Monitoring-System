@@ -254,7 +254,9 @@ class GreenflareWrapper:
             # Check for missing meta tags
             missing_meta_tags = {}
             # Only check internal pages and only check title and description
-            if page['is_internal']:  # Only check meta tags for internal pages
+            # Also exclude image URLs from meta tag analysis
+            is_image_url = any(page['url'].lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico', '.tiff', '.tif'])
+            if page['is_internal'] and not is_image_url:  # Only check meta tags for internal pages, exclude images
                 if 'page_title' not in row or not row.get('page_title'):
                     missing_meta_tags['title'] = 'Missing page title'
                 elif len(row.get('page_title', '')) < 10:

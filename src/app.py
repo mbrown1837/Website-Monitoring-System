@@ -1190,14 +1190,14 @@ def website_summary(site_id):
                 mobile_cls_values = []
                 
                 for result in performance_results:
-                    if len(result) > 10:  # Ensure result has enough columns
-                        if result[5] == 'mobile':  # device_type column (index 5)
-                            mobile_scores.append(result[6])  # performance_score column (index 6)
-                            mobile_fcp_values.append(result[7])  # fcp_score column (index 7)
-                            mobile_lcp_values.append(result[9])  # lcp_score column (index 9)
-                            mobile_cls_values.append(result[11])  # cls_score column (index 11)
-                        elif result[5] == 'desktop':
-                            desktop_scores.append(result[6])  # performance_score column (index 6)
+                    if isinstance(result, dict) and 'device_type' in result:
+                        if result['device_type'] == 'mobile':
+                            mobile_scores.append(result['performance_score'])
+                            mobile_fcp_values.append(result['fcp_score'])
+                            mobile_lcp_values.append(result['lcp_score'])
+                            mobile_cls_values.append(result['cls_score'])
+                        elif result['device_type'] == 'desktop':
+                            desktop_scores.append(result['performance_score'])
                 
                 logger.info(f"Mobile scores: {mobile_scores}, Desktop scores: {desktop_scores}")
                 
@@ -1207,7 +1207,7 @@ def website_summary(site_id):
                     'mobile_fcp': round(sum(mobile_fcp_values) / len(mobile_fcp_values), 1) if mobile_fcp_values else None,
                     'mobile_lcp': round(sum(mobile_lcp_values) / len(mobile_lcp_values), 1) if mobile_lcp_values else None,
                     'mobile_cls': round(sum(mobile_cls_values) / len(mobile_cls_values), 3) if mobile_cls_values else None,
-                        'last_check': latest_results[20] if len(latest_results) > 20 else None  # timestamp column (index 20)
+                        'last_check': latest_results['timestamp'] if 'timestamp' in latest_results else None
                 }
                 logger.info(f"Calculated performance stats: {performance_stats}")
             else:
