@@ -287,6 +287,10 @@ class GreenflareWrapper:
             # Determine if it's an internal URL
             page['is_internal'] = self._is_same_domain(page['url'], self.start_urls[0])
             
+            # Skip image URLs entirely - don't include them in results
+            if is_image_url:
+                continue
+            
             # Mark broken links (4xx and 5xx status codes)
             status_code = page.get('status_code')
             if status_code and (status_code >= 400):
