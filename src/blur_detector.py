@@ -188,6 +188,16 @@ class BlurDetector:
                 self.logger.debug(f"Skipping tracking/analytics URL: {image_url}")
                 return None
             
+            # Skip SVG images (vector graphics don't need blur detection)
+            if image_url.lower().endswith('.svg') or 'image/svg' in image_url.lower():
+                self.logger.debug(f"Skipping SVG image: {image_url}")
+                return None
+            
+            # Skip animated WebP images (can cause processing errors)
+            if image_url.lower().endswith('.webp'):
+                self.logger.debug(f"Skipping WebP image (potential animation): {image_url}")
+                return None
+            
             # Handle protocol-relative URLs (//example.com/image.jpg)
             if image_url.startswith('//'):
                 image_url = 'https:' + image_url

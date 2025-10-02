@@ -214,11 +214,11 @@ class EnhancedScheduler:
             active_websites = self._get_active_websites()
             
             if not active_websites:
-                self.logger.warning("Enhanced Scheduler: No active websites found")
-                # Save empty state
+                self.logger.info("Enhanced Scheduler: No active websites found - this is normal on startup")
+                # Save empty state but don't treat as error
                 self.last_schedule_time = datetime.now(timezone.utc).isoformat()
                 self._save_state()
-                return False
+                return True  # Return True to allow scheduler to continue running
             
             # Schedule each website
             scheduled_count = 0

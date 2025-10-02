@@ -153,11 +153,18 @@ class CrawlerModule:
         """Return a normalized form of the URL for deduplication."""
         try:
             parsed = urlparse(url)
+            
+            # Skip anchor/fragment links (e.g., #section, #top)
+            if parsed.fragment and not parsed.path and not parsed.query:
+                self.logger.debug(f"Skipping anchor-only URL: {url}")
+                return None
+            
             scheme = parsed.scheme.lower() if parsed.scheme else "http"
             netloc = parsed.netloc.lower()
             path = parsed.path or "/"
             path = re.sub(r"/+$", "", path)
-            normalized_url = urlunparse((scheme, netloc, path or "/", "", "", ""))
+            # Remove fragment (anchor) from normalized URL to avoid duplicates
+            normalized_url = urlunparse((scheme, netloc, path or "/", "", parsed.query, ""))
             self.logger.debug(f"Normalizing URL: {url} -> {normalized_url}")
             return normalized_url
         except Exception as e:
