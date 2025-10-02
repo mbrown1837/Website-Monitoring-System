@@ -2,6 +2,18 @@
 
 {% block title %}Missing Meta Tags - {{ website_name }}{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Prevent URLs from being clickable in meta tags template */
+.meta-tags-url {
+    color: inherit !important;
+    text-decoration: none !important;
+    cursor: default !important;
+    pointer-events: none !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-4">
     <div class="col">
@@ -66,7 +78,7 @@
                 <tbody>
                     {% for tag in missing_tags %}
                     <tr>
-                        <td class="text-break">{{ tag.url }}</td>
+                        <td class="text-break meta-tags-url">{{ tag.url }}</td>
                         <td>
                             <span class="badge bg-warning text-dark">{{ tag.tag_type }}</span>
                         </td>
@@ -87,7 +99,7 @@
                         <h2 class="accordion-header" id="heading{{ loop.index }}">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" aria-controls="collapse{{ loop.index }}">
                                 <div class="d-flex justify-content-between w-100">
-                                    <span class="text-truncate me-3">{{ url }}</span>
+                                    <span class="text-truncate me-3 meta-tags-url">{{ url }}</span>
                                     <div>
                                         {% for issue in issues %}
                                         <span class="badge bg-warning text-dark me-1">{{ issue.tag_type }}</span>

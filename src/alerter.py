@@ -290,8 +290,13 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
         """
     
     elif check_type == 'manual_performance':
-        avg_score = check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score', 0)
-        pages_checked = check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)
+        perf_data = check_results.get('performance_check', {}).get('performance_check_summary', {})
+        avg_mobile_score = perf_data.get('avg_mobile_score', 0)
+        avg_desktop_score = perf_data.get('avg_desktop_score', 0)
+        pages_checked = perf_data.get('pages_analyzed', 0)
+        slowest_page = perf_data.get('slowest_page', 'N/A')
+        total_issues = perf_data.get('total_issues', 0)
+        
         return f"""
                 <!-- Performance Check Metrics -->
                 <h2 style="color: #333; border-bottom: 2px solid #6f42c1; padding-bottom: 10px;">⚡ Performance Check Results</h2>
@@ -301,10 +306,20 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Pages Checked</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;">
-                        <div style="font-size: 32px; font-weight: bold; color: {'#dc3545' if avg_score < 50 else '#28a745' if avg_score >= 80 else '#ffc107'};">{avg_score}</div>
+                        <div style="font-size: 32px; font-weight: bold; color: {'#dc3545' if avg_mobile_score < 50 else '#28a745' if avg_mobile_score >= 80 else '#ffc107'};">{avg_mobile_score}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Mobile Score</div>
                     </div>
-                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: #6f42c1;">{check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_desktop_score", 0)}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Desktop Score</div></div>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_desktop_score') else ''}
+                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if avg_desktop_score < 50 else \'#28a745\' if avg_desktop_score >= 80 else \'#ffc107\'};">{avg_desktop_score}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Desktop Score</div></div>' if avg_desktop_score else ''}
+                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if total_issues > 0 else \'#28a745\'};">{total_issues}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Issues Found</div></div>' if total_issues is not None else ''}
+                </div>
+                
+                <!-- Performance Summary -->
+                <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #6f42c1;">
+                    <h3 style="color: #6f42c1; margin-top: 0;">📊 Performance Summary</h3>
+                    <p><strong>Average Mobile Score:</strong> {avg_mobile_score}/100 {'(Excellent)' if avg_mobile_score >= 90 else '(Good)' if avg_mobile_score >= 50 else '(Needs Improvement)'}</p>
+                    {f'<p><strong>Average Desktop Score:</strong> {avg_desktop_score}/100 {\'(Excellent)\' if avg_desktop_score >= 90 else \'(Good)\' if avg_desktop_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_desktop_score else ''}
+                    {f'<p><strong>Slowest Page:</strong> {slowest_page}</p>' if slowest_page != 'N/A' else ''}
+                    {f'<p><strong>Total Issues:</strong> {total_issues} performance issues detected</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
                 </div>
         """
     
@@ -354,6 +369,7 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                         <div style="font-size: 32px; font-weight: bold; color: #6f42c1;">{check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Performance Checks</div>
                     </div>
+                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0) < 50 else \'#28a745\' if check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0) >= 80 else \'#ffc107\'};">{check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0)}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Avg Mobile Score</div></div>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
                 </div>
         """
 
@@ -405,16 +421,32 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
         """
     
     elif check_type == 'manual_performance':
+        perf_data = check_results.get('performance_check', {}).get('performance_check_summary', {})
+        pages_checked = perf_data.get('pages_analyzed', 0)
+        avg_mobile_score = perf_data.get('avg_mobile_score', 0)
+        avg_desktop_score = perf_data.get('avg_desktop_score', 0)
+        slowest_page = perf_data.get('slowest_page', 'N/A')
+        total_issues = perf_data.get('total_issues', 0)
+        
         return f"""
                 <!-- Performance Check Details -->
                 <h2 style="color: #333; border-bottom: 2px solid #6f42c1; padding-bottom: 10px;">🔍 Performance Check Details</h2>
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #6f42c1;">
                     <h3 style="color: #6f42c1; margin-top: 0;">⚡ Performance Analysis</h3>
-                    <p><strong>Pages Checked:</strong> {check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}</p>
-                    {f'<p><strong>Average Mobile Score:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_mobile_score", 0)}/100</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
-                    {f'<p><strong>Average Desktop Score:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("avg_desktop_score", 0)}/100</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_desktop_score') else ''}
-                    {f'<p><strong>Slowest Page:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("slowest_page", "N/A")}</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('slowest_page') else ''}
-                    {f'<p><strong>Performance Issues:</strong> {check_results.get("performance_check", {}).get("performance_check_summary", {}).get("total_issues", 0)} found</p>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('total_issues', 0) > 0 else ''}
+                    <p><strong>Pages Checked:</strong> {pages_checked}</p>
+                    {f'<p><strong>Average Mobile Score:</strong> {avg_mobile_score}/100 {\'(Excellent)\' if avg_mobile_score >= 90 else \'(Good)\' if avg_mobile_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_mobile_score else ''}
+                    {f'<p><strong>Average Desktop Score:</strong> {avg_desktop_score}/100 {\'(Excellent)\' if avg_desktop_score >= 90 else \'(Good)\' if avg_desktop_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_desktop_score else ''}
+                    {f'<p><strong>Slowest Page:</strong> {slowest_page}</p>' if slowest_page != 'N/A' else ''}
+                    {f'<p><strong>Performance Issues:</strong> {total_issues} found</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
+                    
+                    <!-- Core Web Vitals Info -->
+                    <div style="margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 5px;">
+                        <h4 style="color: #6f42c1; margin-top: 0; margin-bottom: 10px;">📊 Core Web Vitals</h4>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>LCP (Largest Contentful Paint):</strong> Measures loading performance</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>FID (First Input Delay):</strong> Measures interactivity</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><strong>CLS (Cumulative Layout Shift):</strong> Measures visual stability</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">These metrics are automatically analyzed for each page checked.</p>
+                    </div>
                 </div>
         """
     
@@ -528,8 +560,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -561,8 +591,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -590,8 +618,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -620,8 +646,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -648,8 +672,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -677,8 +699,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
         """
     
@@ -739,8 +759,6 @@ QUICK ACTIONS:
 
 This is an automated report from your Website Monitoring System.
 
----
-Developed by Digital Clics - © 2025
 Visit Dashboard: {dashboard_url}
     """
 
