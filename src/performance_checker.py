@@ -94,6 +94,23 @@ class PerformanceChecker:
         finally:
             conn.close()
     
+    def _extract_numeric_value(self, value):
+        """Extract numeric value from strings like '3.0 s' or return 0 if not numeric."""
+        if value is None:
+            return 0
+        try:
+            # If it's already a number, return it
+            return float(value)
+        except (ValueError, TypeError):
+            # If it's a string with units, extract the numeric part
+            import re
+            if isinstance(value, str):
+                # Extract the first number from the string
+                match = re.search(r'[\d.]+', value)
+                if match:
+                    return float(match.group())
+            return 0
+    
     def check_website_performance(self, website_id, crawl_id=None, pages_to_check=None):
         """
         Check website performance using Google PageSpeed Insights API.
@@ -467,23 +484,23 @@ class PerformanceChecker:
                         'website_id': row[1],
                         'crawl_id': row[2],
                         'url': row[3],
-                        'device_type': row[4],
-                        'performance_score': row[5],
-                        'fcp_score': row[6],
-                        'lcp_score': row[7],
-                        'cls_score': row[8],
-                        'fid_score': row[9],
-                        'speed_index': row[10],
-                        'total_blocking_time': row[11],
-                        'timestamp': row[12],
-                        'raw_data': row[13],
-                        'page_title': row[14],
-                        'fcp_display': row[15],
-                        'lcp_display': row[16],
-                        'cls_display': row[17],
-                        'fid_display': row[18],
-                        'speed_index_display': row[19],
-                        'tbt_display': row[20]
+                        'page_title': row[4],
+                        'device_type': row[5],
+                        'performance_score': int(row[6]) if row[6] is not None else 0,
+                        'fcp_score': self._extract_numeric_value(row[7]),
+                        'lcp_score': self._extract_numeric_value(row[9]),
+                        'cls_score': self._extract_numeric_value(row[11]),
+                        'fid_score': self._extract_numeric_value(row[13]),
+                        'speed_index': self._extract_numeric_value(row[15]),
+                        'total_blocking_time': self._extract_numeric_value(row[17]),
+                        'timestamp': row[19],
+                        'raw_data': row[20],
+                        'fcp_display': row[8],
+                        'lcp_display': row[10],
+                        'cls_display': row[12],
+                        'fid_display': row[14],
+                        'speed_index_display': row[16],
+                        'tbt_display': row[18]
                     })
                 else:  # Old schema fallback
                     results.append({
@@ -491,22 +508,22 @@ class PerformanceChecker:
                         'website_id': row[1],
                         'crawl_id': row[2],
                         'url': row[3],
-                        'page_title': 'N/A',
-                        'device_type': row[4],
-                        'performance_score': row[5],
-                        'fcp_score': row[6],
-                        'fcp_display': self._format_metric_display(row[6], 'fcp'),
-                        'lcp_score': row[7],
-                        'lcp_display': self._format_metric_display(row[7], 'lcp'),
-                        'cls_score': row[8],
-                        'cls_display': self._format_metric_display(row[8], 'cls'),
-                        'fid_score': row[9],
-                        'fid_display': self._format_metric_display(row[9], 'fid'),
-                        'speed_index': row[10],
-                        'speed_index_display': self._format_metric_display(row[10], 'speed_index'),
-                        'total_blocking_time': row[11],
-                        'tbt_display': self._format_metric_display(row[11], 'tbt'),
-                        'timestamp': row[12]
+                        'page_title': row[4] if len(row) > 4 else 'N/A',
+                        'device_type': row[5] if len(row) > 5 else 'mobile',
+                        'performance_score': int(row[6]) if len(row) > 6 and row[6] is not None else 0,
+                        'fcp_score': self._extract_numeric_value(row[7] if len(row) > 7 else 0),
+                        'fcp_display': self._format_metric_display(row[7] if len(row) > 7 else 0, 'fcp'),
+                        'lcp_score': self._extract_numeric_value(row[8] if len(row) > 8 else 0),
+                        'lcp_display': self._format_metric_display(row[8] if len(row) > 8 else 0, 'lcp'),
+                        'cls_score': self._extract_numeric_value(row[9] if len(row) > 9 else 0),
+                        'cls_display': self._format_metric_display(row[9] if len(row) > 9 else 0, 'cls'),
+                        'fid_score': self._extract_numeric_value(row[10] if len(row) > 10 else 0),
+                        'fid_display': self._format_metric_display(row[10] if len(row) > 10 else 0, 'fid'),
+                        'speed_index': row[11] if len(row) > 11 else 0,
+                        'speed_index_display': self._format_metric_display(row[11] if len(row) > 11 else 0, 'speed_index'),
+                        'total_blocking_time': row[12] if len(row) > 12 else 0,
+                        'tbt_display': self._format_metric_display(row[12] if len(row) > 12 else 0, 'tbt'),
+                        'timestamp': row[13] if len(row) > 13 else ''
                     })
             
             return results

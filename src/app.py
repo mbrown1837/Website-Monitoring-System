@@ -1180,7 +1180,8 @@ def website_summary(site_id):
             if performance_results:
                 # Get the latest results and calculate stats
                 latest_results = performance_results[0]
-                logger.info(f"Latest performance result: {latest_results}")
+                logger.info(f"Latest performance result keys: {list(latest_results.keys())}")
+                logger.info(f"Latest performance result timestamp: {latest_results.get('timestamp')}")
                 
                 # Calculate average scores for mobile and desktop
                 mobile_scores = []
@@ -1192,12 +1193,12 @@ def website_summary(site_id):
                 for result in performance_results:
                     if isinstance(result, dict) and 'device_type' in result:
                         if result['device_type'] == 'mobile':
-                            mobile_scores.append(result['performance_score'])
-                            mobile_fcp_values.append(result['fcp_score'])
-                            mobile_lcp_values.append(result['lcp_score'])
-                            mobile_cls_values.append(result['cls_score'])
+                            mobile_scores.append(float(result['performance_score']) if result['performance_score'] is not None else 0)
+                            mobile_fcp_values.append(float(result['fcp_score']) if result['fcp_score'] is not None else 0)
+                            mobile_lcp_values.append(float(result['lcp_score']) if result['lcp_score'] is not None else 0)
+                            mobile_cls_values.append(float(result['cls_score']) if result['cls_score'] is not None else 0)
                         elif result['device_type'] == 'desktop':
-                            desktop_scores.append(result['performance_score'])
+                            desktop_scores.append(float(result['performance_score']) if result['performance_score'] is not None else 0)
                 
                 logger.info(f"Mobile scores: {mobile_scores}, Desktop scores: {desktop_scores}")
                 
@@ -1207,7 +1208,7 @@ def website_summary(site_id):
                     'mobile_fcp': round(sum(mobile_fcp_values) / len(mobile_fcp_values), 1) if mobile_fcp_values else None,
                     'mobile_lcp': round(sum(mobile_lcp_values) / len(mobile_lcp_values), 1) if mobile_lcp_values else None,
                     'mobile_cls': round(sum(mobile_cls_values) / len(mobile_cls_values), 3) if mobile_cls_values else None,
-                        'last_check': latest_results['timestamp'] if 'timestamp' in latest_results else None
+                        'last_check': latest_results.get('timestamp', None)
                 }
                 logger.info(f"Calculated performance stats: {performance_stats}")
             else:

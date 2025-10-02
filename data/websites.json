@@ -1,1 +1,65 @@
-{}
+[
+  {
+    "id": "25c43824-8595-4eba-9180-4bdae33692a5",
+    "url": "https://example.com",
+    "name": "Test Site",
+    "check_interval_minutes": 60,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-10-02T00:50:44.046548+00:00",
+    "last_updated_utc": "2025-10-02T00:52:33.483788+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {
+      "https://example.com/": {
+        "path": "data/snapshots/example_com/25c43824-8595-4eba-9180-4bdae33692a5/baseline/baseline_home.png",
+        "timestamp": "2025-10-02T00:52:33.480824+00:00"
+      }
+    },
+    "has_subpage_baselines": true,
+    "baseline_visual_path": "data/snapshots/example_com/25c43824-8595-4eba-9180-4bdae33692a5/baseline/baseline_home.png",
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": null,
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never"
+  },
+  {
+    "id": "6da4cfa2-137f-45e1-8171-192c3100e060",
+    "url": "https://highlightbodyandpaint.com",
+    "name": "Test Site with Images",
+    "check_interval_minutes": 60,
+    "is_active": true,
+    "tags": [],
+    "notification_emails": [],
+    "created_utc": "2025-10-02T01:15:11.241018+00:00",
+    "last_updated_utc": "2025-10-02T01:15:11.241018+00:00",
+    "render_delay": 6,
+    "max_crawl_depth": 2,
+    "visual_diff_threshold": 5,
+    "capture_subpages": true,
+    "all_baselines": {},
+    "has_subpage_baselines": false,
+    "baseline_visual_path": null,
+    "enable_blur_detection": false,
+    "blur_detection_scheduled": false,
+    "blur_detection_manual": true,
+    "auto_crawl_enabled": true,
+    "auto_visual_enabled": true,
+    "auto_blur_enabled": true,
+    "auto_performance_enabled": true,
+    "auto_full_check_enabled": true,
+    "baseline_visual_path_web": null,
+    "exclude_pages_keywords": [],
+    "last_checked_simple": "Never"
+  }
+]

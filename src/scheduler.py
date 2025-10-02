@@ -341,7 +341,7 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             check_result['status'] = 'Baseline Created'
             logger.info(f"Baseline created for {website.get('name')}. No comparison will be performed.")
             
-            # Send email notification for baseline creation too
+            # Send email notification for baseline creation
             try:
                 check_result['is_manual'] = False  # Mark as scheduled check
                 email_result = alerter.send_report(website, check_result)

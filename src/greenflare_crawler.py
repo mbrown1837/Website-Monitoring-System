@@ -226,9 +226,15 @@ class GreenflareWrapper:
             # Skip tel: and mailto: links
             if row.get('url', '').lower().startswith(('tel:', 'mailto:')):
                 continue
+            
+            # Skip image URLs entirely - don't include them in results
+            url = row.get('url', '')
+            is_image_url = any(url.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.ico', '.tiff', '.tif'])
+            if is_image_url:
+                continue
                 
             page = {
-                'url': row.get('url', ''),
+                'url': url,
                 'status_code': row.get('status_code'),
                 'title': row.get('page_title', ''),
                 'referring_page': row.get('referring_url', '')
@@ -287,7 +293,7 @@ class GreenflareWrapper:
             # Determine if it's an internal URL
             page['is_internal'] = self._is_same_domain(page['url'], self.start_urls[0])
             
-            # Skip image URLs entirely - don't include them in results
+            # Skip image URLs entirely - don't include them in results (is_image_url already defined above)
             if is_image_url:
                 continue
             
