@@ -309,17 +309,17 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                         <div style="font-size: 32px; font-weight: bold; color: {'#dc3545' if avg_mobile_score < 50 else '#28a745' if avg_mobile_score >= 80 else '#ffc107'};">{avg_mobile_score}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Mobile Score</div>
                     </div>
-                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if avg_desktop_score < 50 else \'#28a745\' if avg_desktop_score >= 80 else \'#ffc107\'};">{avg_desktop_score}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Desktop Score</div></div>' if avg_desktop_score else ''}
-                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if total_issues > 0 else \'#28a745\'};">{total_issues}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Issues Found</div></div>' if total_issues is not None else ''}
+                    {'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: ' + ('#dc3545' if avg_desktop_score < 50 else '#28a745' if avg_desktop_score >= 80 else '#ffc107') + ';">' + str(avg_desktop_score) + '</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Desktop Score</div></div>' if avg_desktop_score else ''}
+                    {'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: ' + ('#dc3545' if total_issues > 0 else '#28a745') + ';">' + str(total_issues) + '</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Issues Found</div></div>' if total_issues is not None else ''}
                 </div>
                 
                 <!-- Performance Summary -->
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #6f42c1;">
                     <h3 style="color: #6f42c1; margin-top: 0;">📊 Performance Summary</h3>
                     <p><strong>Average Mobile Score:</strong> {avg_mobile_score}/100 {'(Excellent)' if avg_mobile_score >= 90 else '(Good)' if avg_mobile_score >= 50 else '(Needs Improvement)'}</p>
-                    {f'<p><strong>Average Desktop Score:</strong> {avg_desktop_score}/100 {\'(Excellent)\' if avg_desktop_score >= 90 else \'(Good)\' if avg_desktop_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_desktop_score else ''}
-                    {f'<p><strong>Slowest Page:</strong> {slowest_page}</p>' if slowest_page != 'N/A' else ''}
-                    {f'<p><strong>Total Issues:</strong> {total_issues} performance issues detected</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
+                    {'<p><strong>Average Desktop Score:</strong> ' + str(avg_desktop_score) + '/100 ' + ('(Excellent)' if avg_desktop_score >= 90 else '(Good)' if avg_desktop_score >= 50 else '(Needs Improvement)') + '</p>' if avg_desktop_score else ''}
+                    {'<p><strong>Slowest Page:</strong> ' + slowest_page + '</p>' if slowest_page != 'N/A' else ''}
+                    {'<p><strong>Total Issues:</strong> ' + str(total_issues) + ' performance issues detected</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
                 </div>
         """
     
@@ -369,7 +369,7 @@ def _create_metrics_section(check_type: str, check_results: dict) -> str:
                         <div style="font-size: 32px; font-weight: bold; color: #6f42c1;">{check_results.get('performance_check', {}).get('performance_check_summary', {}).get('pages_analyzed', 0)}</div>
                         <div style="font-size: 14px; color: #666; text-transform: uppercase;">Performance Checks</div>
                     </div>
-                    {f'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: {\'#dc3545\' if check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0) < 50 else \'#28a745\' if check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0) >= 80 else \'#ffc107\'};">{check_results.get(\'performance_check\', {}).get(\'performance_check_summary\', {}).get(\'avg_mobile_score\', 0)}</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Avg Mobile Score</div></div>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
+                    {'<div style="background: #f8f9fa; padding: 20px; margin: 10px; border-radius: 8px; text-align: center; min-width: 150px; border: 1px solid #ddd;"><div style="font-size: 32px; font-weight: bold; color: ' + ('#dc3545' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score', 0) < 50 else '#28a745' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score', 0) >= 80 else '#ffc107') + ';">' + str(check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score', 0)) + '</div><div style="font-size: 14px; color: #666; text-transform: uppercase;">Avg Mobile Score</div></div>' if check_results.get('performance_check', {}).get('performance_check_summary', {}).get('avg_mobile_score') else ''}
                 </div>
         """
 
@@ -434,10 +434,10 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                 <div style="background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #6f42c1;">
                     <h3 style="color: #6f42c1; margin-top: 0;">⚡ Performance Analysis</h3>
                     <p><strong>Pages Checked:</strong> {pages_checked}</p>
-                    {f'<p><strong>Average Mobile Score:</strong> {avg_mobile_score}/100 {\'(Excellent)\' if avg_mobile_score >= 90 else \'(Good)\' if avg_mobile_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_mobile_score else ''}
-                    {f'<p><strong>Average Desktop Score:</strong> {avg_desktop_score}/100 {\'(Excellent)\' if avg_desktop_score >= 90 else \'(Good)\' if avg_desktop_score >= 50 else \'(Needs Improvement)\'}</p>' if avg_desktop_score else ''}
-                    {f'<p><strong>Slowest Page:</strong> {slowest_page}</p>' if slowest_page != 'N/A' else ''}
-                    {f'<p><strong>Performance Issues:</strong> {total_issues} found</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
+                    {'<p><strong>Average Mobile Score:</strong> ' + str(avg_mobile_score) + '/100 ' + ('(Excellent)' if avg_mobile_score >= 90 else '(Good)' if avg_mobile_score >= 50 else '(Needs Improvement)') + '</p>' if avg_mobile_score else ''}
+                    {'<p><strong>Average Desktop Score:</strong> ' + str(avg_desktop_score) + '/100 ' + ('(Excellent)' if avg_desktop_score >= 90 else '(Good)' if avg_desktop_score >= 50 else '(Needs Improvement)') + '</p>' if avg_desktop_score else ''}
+                    {'<p><strong>Slowest Page:</strong> ' + slowest_page + '</p>' if slowest_page != 'N/A' else ''}
+                    {'<p><strong>Performance Issues:</strong> ' + str(total_issues) + ' found</p>' if total_issues > 0 else '<p><strong>Status:</strong> No major performance issues detected</p>'}
                     
                     <!-- Core Web Vitals Info -->
                     <div style="margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 5px;">
