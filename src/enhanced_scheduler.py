@@ -220,8 +220,10 @@ class EnhancedScheduler:
                 self._save_state()
                 return True  # Return True to allow scheduler to continue running
             
-            # Schedule each website
+            # Schedule each website with staggered timing to prevent conflicts
             scheduled_count = 0
+            stagger_minutes = 0  # Stagger each site by 15 minutes to prevent conflicts
+            
             for site in active_websites:
                 try:
                     site_id = site.get('id')
@@ -232,13 +234,27 @@ class EnhancedScheduler:
                         self.logger.error(f"Enhanced Scheduler: Skipping site with missing ID: {site_name}")
                         continue
                     
-                    # Schedule the check with a tag for easy removal
-                    job = schedule.every(interval_minutes).minutes.do(
-                        self._perform_website_check,
-                        site_id=site_id,
-                        site_name=site_name
-                    )
+                    # Calculate staggered start time (15 minutes apart)
+                    stagger_offset = stagger_minutes * 15
+                    
+                    # Schedule the check with staggered timing
+                    if stagger_offset == 0:
+                        # First site runs immediately
+                        job = schedule.every(interval_minutes).minutes.do(
+                            self._perform_website_check,
+                            site_id=site_id,
+                            site_name=site_name
+                        )
+                    else:
+                        # Subsequent sites run with staggered offset
+                        job = schedule.every(interval_minutes).minutes.at(f"{stagger_offset:02d}:00").do(
+                            self._perform_website_check,
+                            site_id=site_id,
+                            site_name=site_name
+                        )
+                    
                     job.tag(site_id)  # Tag the job with site_id for easy removal
+                    stagger_minutes += 1
                     
                     # Track scheduled website
                     self.scheduled_websites[site_id] = {
@@ -249,7 +265,10 @@ class EnhancedScheduler:
                     }
                     
                     scheduled_count += 1
-                    self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes")
+                    if stagger_offset == 0:
+                        self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes (immediate start)")
+                    else:
+                        self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes (staggered +{stagger_offset} minutes)")
                     
                 except Exception as e:
                     self.logger.error(f"Enhanced Scheduler: Failed to schedule {site.get('name', 'Unknown')}: {e}")
