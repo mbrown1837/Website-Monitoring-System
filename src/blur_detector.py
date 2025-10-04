@@ -193,10 +193,8 @@ class BlurDetector:
                 self.logger.debug(f"Skipping SVG image: {image_url}")
                 return None
             
-            # Skip animated WebP images (can cause processing errors)
-            if image_url.lower().endswith('.webp'):
-                self.logger.debug(f"Skipping WebP image (potential animation): {image_url}")
-                return None
+            # Note: WebP images are now supported for blur detection
+            # OpenCV and PIL both handle WebP images perfectly
             
             # Handle protocol-relative URLs (//example.com/image.jpg)
             if image_url.startswith('//'):
@@ -236,10 +234,12 @@ class BlurDetector:
             
             image_url = normalized_url
             
+            # WebP images are now supported for blur detection
+            
             # Download the image with retry mechanism and enhanced headers to avoid 403 errors
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+                'Accept': 'image/webp,image/png,image/jpeg,image/gif,image/*,*/*;q=0.8',  # Include WebP support
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Connection': 'keep-alive',

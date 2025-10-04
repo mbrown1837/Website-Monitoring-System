@@ -201,16 +201,21 @@ class PerformanceChecker:
                     else:
                         self.logger.warning(f"No performance data received for {page_url} on {device}")
                         page_results[device] = {
-                            'error': 'No data received from API'
+                            'error': 'No data received from API',
+                            'error_type': 'API_ERROR',
+                            'page_title': page_title
                         }
                     
                     # Add delay between requests to respect API limits
-                    time.sleep(2)  # Increased delay for multiple pages
+                    delay = self.config.get('pagespeed_api_delay', 2)  # Configurable delay
+                    time.sleep(delay)
                     
                 except Exception as e:
                     self.logger.error(f"Error checking performance for {page_url} on {device}: {e}", exc_info=True)
                     page_results[device] = {
-                        'error': str(e)
+                        'error': str(e),
+                        'error_type': 'EXCEPTION',
+                        'page_title': page_title
                     }
             
             # Store page results
@@ -261,6 +266,30 @@ class PerformanceChecker:
                 'test.com'
             ]
             
+            # Skip only truly problematic URL patterns (non-HTML files, system files)
+            problematic_patterns = [
+                'robots.txt',
+                'favicon.ico',
+                '.pdf',
+                '.doc',
+                '.docx',
+                '.zip',
+                '.exe',
+                '.dmg',
+                '.mp4',
+                '.avi',
+                '.mov',
+                '.wav',
+                '.mp3'
+            ]
+            
+            # Check for problematic patterns in URL path
+            url_lower = url.lower()
+            for pattern in problematic_patterns:
+                if pattern in url_lower:
+                    self.logger.debug(f"Skipping PageSpeed API for non-HTML file pattern '{pattern}': {url}")
+                    return False
+            
             domain = parsed.netloc.lower()
             for invalid_domain in invalid_domains:
                 if invalid_domain in domain:
@@ -269,6 +298,38 @@ class PerformanceChecker:
             return True
         except Exception:
             return False
+    
+    def _check_noindex_meta_tag(self, url):
+        """Check if a page has noindex meta tag (optional filtering)."""
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            
+            # Quick check for noindex meta tag
+            response = requests.get(url, timeout=10, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            })
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                
+                # Check for noindex in robots meta tag
+                robots_meta = soup.find('meta', attrs={'name': 'robots'})
+                if robots_meta and 'noindex' in robots_meta.get('content', '').lower():
+                    self.logger.debug(f"Page {url} has noindex meta tag - skipping PageSpeed API")
+                    return True
+                
+                # Check for noindex in individual meta tag
+                noindex_meta = soup.find('meta', attrs={'name': 'robots', 'content': lambda x: x and 'noindex' in x.lower()})
+                if noindex_meta:
+                    self.logger.debug(f"Page {url} has noindex meta tag - skipping PageSpeed API")
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            self.logger.debug(f"Could not check noindex meta tag for {url}: {e}")
+            return False  # If we can't check, assume it's indexable
     
     def _call_pagespeed_api(self, url, strategy='mobile', max_retries=3):
         """
@@ -286,6 +347,12 @@ class PerformanceChecker:
         if not self._is_valid_pagespeed_url(url):
             self.logger.warning(f"Skipping PageSpeed API for invalid URL: {url}")
             return None
+        
+        # Optional: Check for noindex meta tag (disabled by default to monitor all pages)
+        if self.config.get('pagespeed_skip_noindex_pages', False):
+            if self._check_noindex_meta_tag(url):
+                self.logger.info(f"Skipping PageSpeed API for noindex page: {url}")
+                return None
             
         params = {
             'url': url,
@@ -295,27 +362,71 @@ class PerformanceChecker:
             'locale': 'en'
         }
         
+        # Get timeout settings from config with sensible defaults
+        base_timeout = self.config.get('pagespeed_api_timeout', 60)  # Base timeout in seconds
+        max_timeout = self.config.get('pagespeed_api_max_timeout', 180)  # Maximum timeout in seconds
+        
         for attempt in range(max_retries):
             try:
-                # Increase timeout and add exponential backoff
-                timeout = 60 + (attempt * 30)  # 60s, 90s, 120s
+                # Increase timeout with exponential backoff, but cap at max_timeout
+                timeout = min(base_timeout + (attempt * 30), max_timeout)
                 self.logger.debug(f"PageSpeed API attempt {attempt + 1}/{max_retries} for {url} ({strategy}) with {timeout}s timeout")
+                
+                # Track start time for performance monitoring
+                start_time = time.time()
                 
                 response = requests.get(self.api_url, params=params, timeout=timeout)
                 response.raise_for_status()
                 
+                # Track response time
+                response_time = time.time() - start_time
+                if response_time > 30:  # Log slow responses
+                    self.logger.info(f"PageSpeed API slow response for {url}: {response_time:.2f}s")
+                
                 return response.json()
                 
             except requests.exceptions.Timeout as e:
-                self.logger.warning(f"PageSpeed API timeout (attempt {attempt + 1}/{max_retries}) for {url}: {e}")
+                self.logger.warning(f"PageSpeed API timeout (attempt {attempt + 1}/{max_retries}) for {url} after {timeout}s: {e}")
                 if attempt < max_retries - 1:
                     wait_time = (attempt + 1) * 5  # 5s, 10s, 15s
-                    self.logger.info(f"Retrying in {wait_time} seconds...")
+                    self.logger.info(f"Retrying in {wait_time} seconds with increased timeout...")
                     time.sleep(wait_time)
                 else:
-                    self.logger.error(f"PageSpeed API failed after {max_retries} attempts for {url}")
+                    self.logger.error(f"PageSpeed API failed after {max_retries} attempts for {url} - page may be too slow or complex")
                     return None
                     
+            except requests.exceptions.HTTPError as e:
+                # Handle specific HTTP error codes
+                if e.response.status_code == 400:
+                    # Try to get more details about the 400 error
+                    try:
+                        error_details = e.response.json()
+                        self.logger.warning(f"PageSpeed API 400 Bad Request for {url}: {error_details}")
+                    except:
+                        self.logger.warning(f"PageSpeed API 400 Bad Request for {url} - URL may be invalid or unsupported by PageSpeed API")
+                    
+                    # Don't retry 400 errors, but log them for investigation
+                    return None
+                elif e.response.status_code == 403:
+                    self.logger.error(f"PageSpeed API 403 Forbidden for {url} - API key may be invalid or quota exceeded")
+                    return None  # Don't retry 403 errors
+                elif e.response.status_code == 429:
+                    self.logger.warning(f"PageSpeed API 429 Too Many Requests for {url} - rate limited")
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 10  # Longer wait for rate limits
+                        self.logger.info(f"Retrying in {wait_time} seconds...")
+                        time.sleep(wait_time)
+                    else:
+                        return None
+                else:
+                    self.logger.error(f"PageSpeed API HTTP error {e.response.status_code} for {url}: {e}")
+                    if attempt < max_retries - 1:
+                        wait_time = (attempt + 1) * 5
+                        self.logger.info(f"Retrying in {wait_time} seconds...")
+                        time.sleep(wait_time)
+                    else:
+                        return None
+                        
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"PageSpeed API request failed for {url}: {e}")
                 if attempt < max_retries - 1:

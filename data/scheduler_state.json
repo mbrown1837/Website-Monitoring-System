@@ -1,0 +1,20 @@
+{
+  "last_schedule_time": "2025-10-02T04:23:06.033534+00:00",
+  "scheduled_websites": {
+    "25c43824-8595-4eba-9180-4bdae33692a5": {
+      "name": "Test Site",
+      "url": "https://example.com",
+      "interval": 60,
+      "scheduled_at": "2025-10-02T04:23:06.021921+00:00"
+    },
+    "6da4cfa2-137f-45e1-8171-192c3100e060": {
+      "name": "Test Site with Images",
+      "url": "https://highlightbodyandpaint.com",
+      "interval": 60,
+      "scheduled_at": "2025-10-02T04:23:06.027872+00:00"
+    }
+  },
+  "consecutive_errors": 0,
+  "last_error_time": null,
+  "scheduler_running": true
+}

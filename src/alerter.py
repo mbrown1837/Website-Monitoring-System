@@ -386,7 +386,7 @@ def _create_content_sections(check_type: str, check_results: dict) -> str:
                     <p><strong>Snapshots Captured:</strong> {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}</p>
                     <p><strong>Visual Changes Detected:</strong> {'Yes' if check_results.get('significant_change_detected', False) else 'No'}</p>
                     {f'<p><strong>Visual Difference Score:</strong> {check_results.get("visual_diff_percent", 0):.2f}%</p>' if check_results.get('visual_diff_percent') else ''}
-                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}</p>'}
+                    {f'<p><strong>Baseline Comparison:</strong> {"Completed" if check_results.get("baseline_comparison_completed", False) else ("No baseline available" if not check_results.get("visual_baselines") and not check_results.get("all_baselines") else "Comparison attempted")}</p>'}
                 </div>
         """
     
@@ -550,7 +550,7 @@ Status: {check_results.get('status', 'Completed')}
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
+{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else ("No baseline available" if not check_results.get("visual_baselines") and not check_results.get("all_baselines") else "Comparison attempted")}'}
 
 QUICK ACTIONS:
 ==============
@@ -736,7 +736,7 @@ DETAILED CHECK RESULTS:
 - Snapshots Captured: {len(check_results.get('visual_baselines', []) or check_results.get('latest_snapshots', {}) or check_results.get('all_baselines', {}))}
 - Visual Changes Detected: {'Yes' if check_results.get('significant_change_detected', False) else 'No'}
 {f'- Visual Difference Score: {check_results.get("visual_diff_percent", 0):.2f}%' if check_results.get('visual_diff_percent') else ''}
-{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else "No baseline available"}'}
+{f'- Baseline Comparison: {"Completed" if check_results.get("baseline_comparison_completed", False) else ("No baseline available" if not check_results.get("visual_baselines") and not check_results.get("all_baselines") else "Comparison attempted")}'}
 
 🔍 BLUR DETECTION RESULTS:
 - Images Analyzed: {check_results.get('blur_detection_summary', {}).get('total_images_processed', 0)}

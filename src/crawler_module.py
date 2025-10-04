@@ -733,6 +733,9 @@ class CrawlerModule:
                                 page_results[url]['visual_diff_image_path'] = results['visual_diff_image_path']
 
                             self.logger.info(f"Visual comparison for {url} complete. Difference: {results['visual_diff_percent']:.2f}%")
+                            
+                            # Mark that baseline comparison was completed (for email template)
+                            results['baseline_comparison_completed'] = True
 
                             # For backward compatibility and other potential checks, let's keep ssim if available.
                             if OPENCV_SKIMAGE_AVAILABLE:
@@ -1496,10 +1499,17 @@ class CrawlerModule:
             self.logger.info(f"Total pages to check for performance: {len(pages_to_check)}")
             
             # Limit to reasonable number of pages to avoid API limits and timeouts
-            max_pages = 5  # Reduced limit to prevent timeouts
+            max_pages = self.config.get('pagespeed_max_pages', 5)  # Configurable limit
             if len(pages_to_check) > max_pages:
                 self.logger.info(f"Limiting performance check to {max_pages} pages (found {len(pages_to_check)})")
-                pages_to_check = pages_to_check[:max_pages]
+                # Prioritize main page and important pages
+                main_page = next((p for p in pages_to_check if p['url'] == website_url), None)
+                if main_page:
+                    # Put main page first, then take the rest
+                    other_pages = [p for p in pages_to_check if p['url'] != website_url]
+                    pages_to_check = [main_page] + other_pages[:max_pages-1]
+                else:
+                    pages_to_check = pages_to_check[:max_pages]
             
             self.logger.info(f"Running performance check for {len(pages_to_check)} pages")
             
