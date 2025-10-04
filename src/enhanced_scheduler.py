@@ -568,6 +568,52 @@ class EnhancedScheduler:
             self.logger.error(f"Enhanced Scheduler: Failed to force reschedule: {e}")
             return False
     
+    def reschedule_website(self, site_id: str) -> bool:
+        """Reschedule a specific website (useful when interval changes) - RESETS TIMER FROM NOW"""
+        try:
+            self.logger.info(f"Enhanced Scheduler: Rescheduling website {site_id} (timer reset from now)...")
+            
+            # Clear existing schedule for this specific site
+            schedule.clear(site_id)
+            
+            # Remove from tracking
+            if site_id in self.scheduled_websites:
+                site_name = self.scheduled_websites[site_id]['name']
+                del self.scheduled_websites[site_id]
+                self.logger.info(f"Enhanced Scheduler: Cleared existing schedule for {site_name}")
+            
+            # Get updated website info with fresh data
+            website = self.website_manager.get_website(site_id)
+            if not website:
+                self.logger.warning(f"Enhanced Scheduler: Website {site_id} not found, skipping reschedule")
+                return False
+            
+            site_name = website.get('name', website.get('url', 'Unknown'))
+            interval_minutes = website.get('check_interval_minutes', 60)
+            
+            # Schedule with new interval (timer resets from NOW)
+            job = schedule.every(interval_minutes).minutes.do(
+                self._perform_website_check_queued,
+                site_id=site_id,
+                site_name=site_name
+            )
+            job.tag(site_id)
+            
+            # Update tracking with new schedule time
+            self.scheduled_websites[site_id] = {
+                'name': site_name,
+                'url': website.get('url'),
+                'interval': interval_minutes,
+                'scheduled_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            self.logger.info(f"Enhanced Scheduler: Rescheduled {site_name} every {interval_minutes} minutes (TIMER RESET FROM NOW)")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced Scheduler: Error rescheduling website {site_id}: {e}")
+            return False
+    
     def remove_website(self, site_id: str) -> bool:
         """Remove a specific website from the scheduler"""
         try:
@@ -651,6 +697,13 @@ def remove_website_from_scheduler(site_id: str) -> bool:
     global _enhanced_scheduler
     if _enhanced_scheduler:
         return _enhanced_scheduler.remove_website(site_id)
+    return False
+
+def reschedule_website_in_scheduler(site_id: str) -> bool:
+    """Reschedule a specific website (useful when interval changes) - RESETS TIMER FROM NOW"""
+    global _enhanced_scheduler
+    if _enhanced_scheduler:
+        return _enhanced_scheduler.reschedule_website(site_id)
     return False
 
 if __name__ == '__main__':

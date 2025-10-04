@@ -40,12 +40,12 @@ except ImportError:
     from src.history_manager_sqlite import HistoryManager
     from src.crawler_module import CrawlerModule
 from src.scheduler import perform_website_check, make_json_serializable
-from src.enhanced_scheduler import force_reschedule_enhanced_scheduler
+from src.enhanced_scheduler import force_reschedule_enhanced_scheduler, reschedule_website_in_scheduler
 try:
-    from .enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler
+    from .enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler, reschedule_website_in_scheduler
 except ImportError:
     # Fallback for direct execution
-    from src.enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler
+    from src.enhanced_scheduler import start_enhanced_scheduler, stop_enhanced_scheduler, get_enhanced_scheduler_status, force_reschedule_enhanced_scheduler, reschedule_website_in_scheduler
 from src.crawler_module import CrawlerModule # Import the crawler module
 # from src.alerter import send_email_alert # For testing alerts
 
@@ -503,10 +503,10 @@ def edit_website(site_id):
             else:
                 success = website_manager.update_website(site_id, updated_data)
                 if success:
-                    # Force reschedule to ensure scheduler reflects the changes
-                    reschedule_success = force_reschedule_enhanced_scheduler()
+                    # Reschedule only this specific website (resets timer from now)
+                    reschedule_success = reschedule_website_in_scheduler(site_id)
                     if reschedule_success:
-                        logger.info(f"Website {updated_data['name']} updated and scheduler rescheduled successfully")
+                        logger.info(f"Website {updated_data['name']} updated and scheduler rescheduled successfully (timer reset from now)")
                     else:
                         logger.warning(f"Website {updated_data['name']} updated but scheduler reschedule failed")
                     flash(f'Website "{updated_data["name"]}" updated successfully!', 'success')
