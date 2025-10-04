@@ -757,6 +757,22 @@ class WebsiteManagerSQLite:
         except Exception as e:
             self.logger.error(f"Error restoring websites from backup: {e}")
             return False
+    
+    def invalidate_website_cache(self, website_id: str = None):
+        """Invalidate website cache to force reload of latest data (including last checked time)."""
+        try:
+            if website_id:
+                # Invalidate specific website from cache
+                if website_id in self._websites_cache:
+                    del self._websites_cache[website_id]
+                    self.logger.debug(f"Invalidated cache for website {website_id}")
+            else:
+                # Invalidate entire cache
+                self._websites_cache = {}
+                self._websites_loaded = False
+                self.logger.debug("Invalidated entire website cache")
+        except Exception as e:
+            self.logger.error(f"Error invalidating website cache: {e}")
 
     def get_automated_check_config(self, website_id):
         """Get automated monitoring configuration for a website."""

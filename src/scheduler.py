@@ -369,6 +369,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
             
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
+            # Invalidate website cache to update "Last Checked" time on dashboard
+            website_manager.invalidate_website_cache(site_id)
             # Don't return early - let the finally block execute to release the lock
         else:
             # Run significance checks and send email for ALL checks (not just when changes detected)
@@ -399,6 +401,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
 
             serializable_result = make_json_serializable(check_result)
             history_manager.add_check_record(**serializable_result)
+            # Invalidate website cache to update "Last Checked" time on dashboard
+            website_manager.invalidate_website_cache(site_id)
 
         logger.info(f"Check for '{website.get('name')}' completed. Status: {check_result['status']}")
         db_manager.log_scheduler_event("INFO", f"Check completed: {check_result['status']}", site_id, check_result.get('check_id'))
@@ -410,6 +414,8 @@ def perform_website_check(site_id: str, crawler_options_override: dict = None, c
         check_result['error_message'] = str(e)
         serializable_result = make_json_serializable(check_result)
         history_manager.add_check_record(**serializable_result)
+        # Invalidate website cache to update "Last Checked" time on dashboard
+        website_manager.invalidate_website_cache(site_id)
         return serializable_result
     finally:
         _site_check_semaphore.release()

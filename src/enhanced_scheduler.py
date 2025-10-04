@@ -322,6 +322,8 @@ class EnhancedScheduler:
             
             # Reset error counter on success
             self.consecutive_errors = 0
+            # Invalidate website cache to update "Last Checked" time on dashboard
+            self.website_manager.invalidate_website_cache(site_id)
             self.logger.info(f"Enhanced Scheduler: Check completed for {site_name}")
             
         except Exception as e:
