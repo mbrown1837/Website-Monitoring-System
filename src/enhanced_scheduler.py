@@ -12,6 +12,7 @@ import signal
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 import sqlite3
+import queue
 
 from src.website_manager_sqlite import WebsiteManagerSQLite
 from src.history_manager_sqlite import HistoryManager
@@ -46,6 +47,11 @@ class EnhancedScheduler:
         self.shutdown_event = threading.Event()
         self.last_schedule_time = None
         self.scheduled_websites = {}
+        
+        # Queue-based processing
+        self.check_queue = queue.Queue()
+        self.queue_processor_thread = None
+        self.queue_processing_lock = threading.Lock()
         
         # Error recovery
         self.max_consecutive_errors = 5
@@ -220,9 +226,8 @@ class EnhancedScheduler:
                 self._save_state()
                 return True  # Return True to allow scheduler to continue running
             
-            # Schedule each website with staggered timing to prevent conflicts
+            # Schedule each website with queue-based timing to prevent conflicts
             scheduled_count = 0
-            stagger_minutes = 0  # Stagger each site by 15 minutes to prevent conflicts
             
             for site in active_websites:
                 try:
@@ -234,27 +239,14 @@ class EnhancedScheduler:
                         self.logger.error(f"Enhanced Scheduler: Skipping site with missing ID: {site_name}")
                         continue
                     
-                    # Calculate staggered start time (15 minutes apart)
-                    stagger_offset = stagger_minutes * 15
-                    
-                    # Schedule the check with staggered timing
-                    if stagger_offset == 0:
-                        # First site runs immediately
-                        job = schedule.every(interval_minutes).minutes.do(
-                            self._perform_website_check,
-                            site_id=site_id,
-                            site_name=site_name
-                        )
-                    else:
-                        # Subsequent sites run with staggered offset
-                        job = schedule.every(interval_minutes).minutes.at(f"{stagger_offset:02d}:00").do(
-                            self._perform_website_check,
-                            site_id=site_id,
-                            site_name=site_name
-                        )
+                    # Schedule the check - all sites use the same queue-based system
+                    job = schedule.every(interval_minutes).minutes.do(
+                        self._perform_website_check_queued,
+                        site_id=site_id,
+                        site_name=site_name
+                    )
                     
                     job.tag(site_id)  # Tag the job with site_id for easy removal
-                    stagger_minutes += 1
                     
                     # Track scheduled website
                     self.scheduled_websites[site_id] = {
@@ -265,10 +257,7 @@ class EnhancedScheduler:
                     }
                     
                     scheduled_count += 1
-                    if stagger_offset == 0:
-                        self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes (immediate start)")
-                    else:
-                        self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes (staggered +{stagger_offset} minutes)")
+                    self.logger.info(f"Enhanced Scheduler: Scheduled {site_name} every {interval_minutes} minutes (queue-based)")
                     
                 except Exception as e:
                     self.logger.error(f"Enhanced Scheduler: Failed to schedule {site.get('name', 'Unknown')}: {e}")
@@ -339,6 +328,68 @@ class EnhancedScheduler:
             self.logger.error(f"Enhanced Scheduler: Error checking {site_name}: {e}")
             self.consecutive_errors += 1
             self.last_error_time = datetime.now(timezone.utc).isoformat()
+    
+    def _perform_website_check_queued(self, site_id: str, site_name: str):
+        """Queue-based website check to prevent conflicts"""
+        try:
+            self.logger.info(f"Enhanced Scheduler: Queuing check for {site_name} (ID: {site_id})")
+            
+            # Add to queue instead of running immediately
+            check_task = {
+                'site_id': site_id,
+                'site_name': site_name,
+                'queued_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            self.check_queue.put(check_task)
+            self.logger.info(f"Enhanced Scheduler: {site_name} added to processing queue")
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced Scheduler: Failed to queue check for {site_name}: {e}")
+    
+    def _queue_processor_worker(self):
+        """Process queued website checks one at a time"""
+        try:
+            self.logger.info("Enhanced Scheduler: Queue processor thread starting...")
+            
+            while not self.shutdown_event.is_set():
+                try:
+                    # Wait for a task with timeout
+                    try:
+                        check_task = self.check_queue.get(timeout=1)
+                    except queue.Empty:
+                        continue
+                    
+                    site_id = check_task['site_id']
+                    site_name = check_task['site_name']
+                    queued_at = check_task['queued_at']
+                    
+                    self.logger.info(f"Enhanced Scheduler: Processing queued check for {site_name} (queued at {queued_at})")
+                    
+                    # Perform the actual check
+                    self._perform_website_check(site_id, site_name)
+                    
+                    # Mark task as done
+                    self.check_queue.task_done()
+                    
+                    self.logger.info(f"Enhanced Scheduler: Completed queued check for {site_name}")
+                    
+                except Exception as e:
+                    self.logger.error(f"Enhanced Scheduler: Error in queue processor: {e}")
+                    # Mark task as done even if it failed
+                    try:
+                        self.check_queue.task_done()
+                    except:
+                        pass
+                    
+                    # Wait before retrying
+                    if self.shutdown_event.wait(timeout=60):
+                        break
+            
+            self.logger.info("Enhanced Scheduler: Queue processor thread stopped")
+            
+        except Exception as e:
+            self.logger.error(f"Enhanced Scheduler: Fatal error in queue processor: {e}")
     
     def _scheduler_worker(self):
         """Main scheduler worker thread"""
@@ -414,8 +465,16 @@ class EnhancedScheduler:
             )
             self.scheduler_thread.start()
             
+            # Start queue processor thread
+            self.queue_processor_thread = threading.Thread(
+                target=self._queue_processor_worker,
+                name="QueueProcessor",
+                daemon=True
+            )
+            self.queue_processor_thread.start()
+            
             self.scheduler_running = True
-            self.logger.info("Enhanced Scheduler: Started successfully")
+            self.logger.info("Enhanced Scheduler: Started successfully with queue processor")
             return True
             
         except Exception as e:
@@ -435,9 +494,12 @@ class EnhancedScheduler:
             # Signal shutdown
             self.shutdown_event.set()
             
-            # Wait for thread to finish
+            # Wait for threads to finish
             if self.scheduler_thread and self.scheduler_thread.is_alive():
                 self.scheduler_thread.join(timeout=30)
+            
+            if self.queue_processor_thread and self.queue_processor_thread.is_alive():
+                self.queue_processor_thread.join(timeout=30)
             
             # Clear schedules
             schedule.clear()
